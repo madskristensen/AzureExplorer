@@ -46,6 +46,13 @@
           <CommandName>Streaming Logs</CommandName>
         </Strings>
       </Menu>
+
+      <!-- Log document window toolbar -->
+      <Menu guid="AzureExplorer" id="LogWindowToolbar" type="ToolWindowToolbar">
+        <Strings>
+          <CommandName>Log Window Toolbar</CommandName>
+        </Strings>
+      </Menu>
     </Menus>
 
     <!-- ==================== GROUPS ==================== -->
@@ -85,6 +92,11 @@
       </Group>
       <Group guid="AzureExplorer" id="AppServiceRefreshGroup" priority="0x0300">
         <Parent guid="AzureExplorer" id="AppServiceContextMenu"/>
+      </Group>
+
+      <!-- Log document window toolbar group -->
+      <Group guid="AzureExplorer" id="LogWindowToolbarGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="LogWindowToolbar"/>
       </Group>
     </Groups>
 
@@ -249,6 +261,18 @@
         </Strings>
       </Button>
 
+      <!-- Log window toolbar: Disconnect -->
+      <Button guid="AzureExplorer" id="DisconnectLogStream" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="LogWindowToolbarGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Stop"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>IconAndText</CommandFlag>
+        <Strings>
+          <ButtonText>Disconnect</ButtonText>
+          <LocCanonicalName>.AzureExplorer.DisconnectLogStream</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -271,6 +295,8 @@
       <IDSymbol name="StreamingLogsFlyout" value="0x0023" />
       <IDSymbol name="StreamingLogsGroup" value="0x0046" />
       <IDSymbol name="AppServiceRefreshGroup" value="0x0044" />
+      <IDSymbol name="LogWindowToolbar" value="0x0024" />
+      <IDSymbol name="LogWindowToolbarGroup" value="0x0047" />
 
       <!-- Commands -->
       <IDSymbol name="ShowExplorerWindow" value="0x0100" />
@@ -287,6 +313,7 @@
       <IDSymbol name="OpenKudu" value="0x0116" />
       <IDSymbol name="StreamLogs" value="0x0117" />
       <IDSymbol name="StreamHttpLogs" value="0x0118" />
+      <IDSymbol name="DisconnectLogStream" value="0x0119" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

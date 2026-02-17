@@ -36,6 +36,8 @@ namespace AzureExplorer
         public const int StreamingLogsFlyout = 0x0023;
         public const int StreamingLogsGroup = 0x0046;
         public const int AppServiceRefreshGroup = 0x0044;
+        public const int LogWindowToolbar = 0x0024;
+        public const int LogWindowToolbarGroup = 0x0047;
         public const int ShowExplorerWindow = 0x0100;
         public const int SignIn = 0x0101;
         public const int Refresh = 0x0102;
@@ -50,5 +52,6 @@ namespace AzureExplorer
         public const int OpenKudu = 0x0116;
         public const int StreamLogs = 0x0117;
         public const int StreamHttpLogs = 0x0118;
+        public const int DisconnectLogStream = 0x0119;
     }
 }

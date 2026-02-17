@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -7,6 +8,7 @@ using System.Threading;
 using Azure.Core;
 
 using AzureExplorer.Models;
+using AzureExplorer.ToolWindows;
 
 namespace AzureExplorer.Services
 {
@@ -16,8 +18,7 @@ namespace AzureExplorer.Services
     /// </summary>
     internal static class LogStreamService
     {
-        private static CancellationTokenSource _streamCts;
-        private static string _streamKey;
+        private static readonly ConcurrentDictionary<string, CancellationTokenSource> _streams = new();
 
         /// <summary>
         /// Toggles log streaming for the given node and stream path.
@@ -27,41 +28,58 @@ namespace AzureExplorer.Services
         {
             var key = $"{node.Label}|{streamPath}";
 
-            if (_streamCts != null && _streamKey == key)
+            if (_streams.TryRemove(key, out CancellationTokenSource existingCts))
             {
-                Stop();
+                existingCts.Cancel();
+                existingCts.Dispose();
                 await VS.StatusBar.ShowMessageAsync($"Stopped {label} for {node.Label}.");
                 return false;
             }
 
-            Stop();
-
             var cts = new CancellationTokenSource();
-            _streamCts = cts;
-            _streamKey = key;
+            _streams[key] = cts;
 
-            ThreadHelper.JoinableTaskFactory.RunAsync(() => StreamAsync(node, streamPath, label, cts.Token)).FireAndForget();
+            ThreadHelper.JoinableTaskFactory.RunAsync(() => StreamAsync(node, streamPath, label, key, cts.Token)).FireAndForget();
             return true;
         }
 
-        internal static void Stop()
+        /// <summary>
+        /// Stops log streaming for a specific key.
+        /// </summary>
+        internal static void StopByKey(string key)
         {
-            _streamCts?.Cancel();
-            _streamCts?.Dispose();
-            _streamCts = null;
-            _streamKey = null;
+            if (_streams.TryRemove(key, out CancellationTokenSource cts))
+            {
+                cts.Cancel();
+                cts.Dispose();
+            }
         }
 
-        private static async Task StreamAsync(AppServiceNode node, string streamPath, string label, CancellationToken ct)
+        /// <summary>
+        /// Checks if a stream is currently active for the given key.
+        /// </summary>
+        internal static bool IsStreaming(string key) => _streams.ContainsKey(key);
+
+        internal static void Stop()
         {
-            OutputWindowPane pane = null;
+            foreach (var kvp in _streams)
+            {
+                kvp.Value.Cancel();
+                kvp.Value.Dispose();
+            }
+            _streams.Clear();
+        }
+
+        private static async Task StreamAsync(AppServiceNode node, string streamPath, string label, string key, CancellationToken ct)
+        {
+            LogDocumentWindow logWindow = null;
 
             try
             {
-                pane = await VS.Windows.CreateOutputWindowPaneAsync($"Azure: {node.Label}");
-                await pane.ActivateAsync();
-                await pane.ClearAsync();
-                await pane.WriteLineAsync($"Enabling logging for {node.Label}...");
+                logWindow = await LogDocumentWindow.GetOrCreateAsync(node.Label, label, key);
+                await logWindow.ClearAsync();
+                await logWindow.SetStreamingStateAsync(true);
+                await logWindow.AppendLineAsync($"Enabling logging for {node.Label}...");
 
                 try
                 {
@@ -70,8 +88,8 @@ namespace AzureExplorer.Services
                 }
                 catch (Exception ex)
                 {
-                    await pane.WriteLineAsync($"Warning: Could not enable logging: {ex.Message}");
-                    await pane.WriteLineAsync("Attempting to connect anyway...");
+                    await logWindow.AppendLineAsync($"Warning: Could not enable logging: {ex.Message}");
+                    await logWindow.AppendLineAsync("Attempting to connect anyway...");
                 }
 
                 // Hit the app so it writes at least one log entry to disk.
@@ -95,7 +113,7 @@ namespace AzureExplorer.Services
                     }
                 }
 
-                await pane.WriteLineAsync($"Connecting to {label} for {node.Label}...");
+                await logWindow.AppendLineAsync($"Connecting to {label} for {node.Label}...");
 
                 TokenCredential credential = AzureResourceService.Instance.GetCredential(node.SubscriptionId);
                 var context = new TokenRequestContext(["https://management.azure.com/.default"]);
@@ -130,7 +148,7 @@ namespace AzureExplorer.Services
 
                             if (attempt == 0)
                             {
-                                await pane.WriteLineAsync("Connected. Run command again to disconnect.");
+                                await logWindow.AppendLineAsync("Connected. Run command again to disconnect.");
                                 await VS.StatusBar.ShowMessageAsync($"Streaming {label} for {node.Label}...");
                             }
 
@@ -152,7 +170,7 @@ namespace AzureExplorer.Services
                                     if (line == null)
                                         break;
 
-                                    await pane.WriteLineAsync(line);
+                                    await logWindow.AppendLineAsync(line);
                                 }
                             }
                         }
@@ -165,7 +183,7 @@ namespace AzureExplorer.Services
                         // Quick disconnect — log files probably don't exist yet.
                         if (attempt < maxAttempts - 1 && !ct.IsCancellationRequested)
                         {
-                            await pane.WriteLineAsync("Waiting for log files...");
+                            await logWindow.AppendLineAsync("Waiting for log files...");
                             await Task.Delay(3000, ct);
                         }
                     }
@@ -177,22 +195,28 @@ namespace AzureExplorer.Services
             }
             catch (HttpRequestException ex)
             {
-                if (pane != null)
-                    await pane.WriteLineAsync($"Connection failed: {ex.Message}");
+                if (logWindow != null)
+                    await logWindow.AppendLineAsync($"Connection failed: {ex.Message}");
 
                 await VS.StatusBar.ShowMessageAsync($"Log stream failed for {node.Label}.");
             }
             catch (Exception ex)
             {
-                if (pane != null)
-                    await pane.WriteLineAsync($"Error: {ex.Message}");
+                if (logWindow != null)
+                    await logWindow.AppendLineAsync($"Error: {ex.Message}");
 
                 await VS.StatusBar.ShowMessageAsync($"Log stream error: {ex.Message}");
             }
             finally
             {
-                if (pane != null)
-                    await pane.WriteLineAsync("Log stream disconnected.");
+                // Remove from active streams
+                _streams.TryRemove(key, out _);
+
+                if (logWindow != null)
+                {
+                    await logWindow.AppendLineAsync("Log stream disconnected.");
+                    await logWindow.SetStreamingStateAsync(false);
+                }
             }
         }
     }

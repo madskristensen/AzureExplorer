@@ -45,6 +45,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commands\DisconnectLogStreamCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\ShowExplorerCommand.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
@@ -80,6 +81,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
+    <Compile Include="ToolWindows\LogDocumentControl.xaml.cs">
+      <DependentUpon>LogDocumentControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ToolWindows\LogDocumentWindow.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -104,6 +109,9 @@
   <ItemGroup>
     <Page Include="ToolWindows\AzureExplorerControl.xaml">
       <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ToolWindows\LogDocumentControl.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

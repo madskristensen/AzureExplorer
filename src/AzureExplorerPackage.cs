@@ -14,6 +14,7 @@ namespace AzureExplorer
     [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(AzureExplorerWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
+    [ProvideToolWindow(typeof(LogDocumentWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.DocumentWell, Transient = true, MultiInstances = true)]
     [ProvideToolWindowVisibility(typeof(AzureExplorerWindow.Pane), VSConstants.UICONTEXT.NoSolution_string)]
     [ProvideToolWindowVisibility(typeof(AzureExplorerWindow.Pane), VSConstants.UICONTEXT.SolutionHasSingleProject_string)]
     [ProvideToolWindowVisibility(typeof(AzureExplorerWindow.Pane), VSConstants.UICONTEXT.SolutionHasMultipleProjects_string)]
