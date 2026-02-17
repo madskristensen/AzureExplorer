@@ -10,11 +10,11 @@ namespace AzureExplorer
     {
         public const string Id = "AzureExplorer.a37686a9-f4b9-46b5-8db6-1a04ac61cf1f";
         public const string Name = "Azure Explorer";
-        public const string Description = @"Empty VSIX Project.";
+        public const string Description = @"Azure Explorer provides a lightweight tool window for browsing subscriptions, resource groups, and App Services without leaving your IDE.";
         public const string Language = "en-US";
         public const string Version = "1.0";
         public const string Author = "Mads Kristensen";
-        public const string Tags = "";
+        public const string Tags = "cloud, azure";
         public const bool IsPreview = false;
     }
 }

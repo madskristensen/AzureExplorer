@@ -3,10 +3,12 @@
     <Metadata>
         <Identity Id="AzureExplorer.a37686a9-f4b9-46b5-8db6-1a04ac61cf1f" Version="1.0" Language="en-US" Publisher="Mads Kristensen" />
         <DisplayName>Azure Explorer</DisplayName>
-        <Description xml:space="preserve">Empty VSIX Project.</Description>
+        <Description xml:space="preserve">Azure Explorer provides a lightweight tool window for browsing subscriptions, resource groups, and App Services without leaving your IDE.</Description>
+        <MoreInfo>https://github.com/madskristensen/AzureExplorer</MoreInfo>
         <License>Resources\LICENSE.txt</License>
         <Icon>Resources\Icon.png</Icon>
         <PreviewImage>Resources\Icon.png</PreviewImage>
+        <Tags>cloud, azure</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">

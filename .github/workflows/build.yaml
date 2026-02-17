@@ -40,11 +40,19 @@ jobs:
         manifest-file: ${{ env.VsixManifestPath }}
         vsix-token-source-file: ${{ env.VsixManifestSourcePath }}
 
+    - name: Cache NuGet packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
     - name: Build
       run: msbuild /v:m -restore /p:OutDir=\_built
 
-    - name: Run tests
-      run: dotnet vstest /_built/CommentsVS.Test.dll
+    # - name: Run tests
+    #   run: dotnet vstest /_built/CSVEditor.Test.dll
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -77,3 +85,14 @@ jobs:
           extension-file: '${{ github.event.repository.name }}.vsix'
           publish-manifest-file: 'vs-publish.json'
           personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
+
+      - name: Tag and release
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]') }}
+        id: tag_release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: release ${{ needs.build.outputs.version }}
+          generate_release_notes: true
+          tag_name: ${{ needs.build.outputs.version }}
+          files: |
+            **/*.vsix
