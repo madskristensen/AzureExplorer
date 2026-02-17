@@ -1,0 +1,147 @@
+<UserControl x:Class="AzureExplorer.ToolWindows.AzureExplorerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
+             xmlns:platformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:helpers="clr-namespace:AzureExplorer.Helpers"
+             toolkit:Themes.UseVsTheme="True">
+    <UserControl.Resources>
+        <helpers:TreeViewItemToIndentConverter x:Key="IndentConverter" />
+
+        <!-- Expander toggle arrow matching VS style -->
+        <Style x:Key="ExpandCollapseToggle" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="Transparent" Padding="4,4,0,4">
+                            <Path x:Name="ExpandPath"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Data="M 0 0 L 4 4 L 0 8 Z"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
+                                  SnapsToDevicePixels="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ExpandPath" Property="Data" Value="M 0 0 L 8 0 L 4 4 Z" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <TreeView x:Name="ExplorerTree"
+                  BorderThickness="0"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Foreground"
+                            Value="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TreeViewItem">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Full-width selection background -->
+                                    <Border x:Name="Bd"
+                                            Background="Transparent"
+                                            TextElement.Foreground="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}"
+                                            Padding="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                              Converter={StaticResource IndentConverter}}"
+                                            SnapsToDevicePixels="True">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="16" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <ToggleButton x:Name="Expander"
+                                                          Style="{StaticResource ExpandCollapseToggle}"
+                                                          IsChecked="{Binding IsExpanded,
+                                                                              RelativeSource={RelativeSource TemplatedParent}}"
+                                                          ClickMode="Press" />
+                                            <ContentPresenter x:Name="PART_Header"
+                                                              Grid.Column="1"
+                                                              ContentSource="Header"
+                                                              HorizontalAlignment="Stretch"
+                                                              VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+
+                                    <ItemsPresenter x:Name="ItemsHost"
+                                                    Grid.Row="1"
+                                                    Visibility="Collapsed" />
+                                </Grid>
+
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsExpanded" Value="True">
+                                        <Setter TargetName="ItemsHost"
+                                                Property="Visibility"
+                                                Value="Visible" />
+                                    </Trigger>
+                                    <Trigger Property="HasItems" Value="False">
+                                        <Setter TargetName="Expander"
+                                                Property="Visibility"
+                                                Value="Hidden" />
+                                    </Trigger>
+
+                                    <!-- Selected + focused -->
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="True" />
+                                            <Condition Property="IsSelectionActive" Value="True" />
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="Bd"
+                                                Property="Background"
+                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemActiveBrushKey}}" />
+                                        <Setter Property="Foreground"
+                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                                        <Setter TargetName="Bd"
+                                                Property="TextElement.Foreground"
+                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
+                                    </MultiTrigger>
+
+                                    <!-- Selected + unfocused (right-click / context menu open) -->
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="True" />
+                                            <Condition Property="IsSelectionActive" Value="False" />
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="Bd"
+                                                Property="Background"
+                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemInactiveBrushKey}}" />
+                                        <Setter Property="Foreground"
+                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                                        <Setter TargetName="Bd"
+                                                Property="TextElement.Foreground"
+                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                                    </MultiTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+
+        <TextBlock x:Name="EmptyMessage"
+                   Text="Click Sign In on the toolbar to connect to Azure."
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Opacity="0.5"
+                   Visibility="Collapsed" />
+    </Grid>
+</UserControl>

@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+  <Include href="KnownImageIds.vsct"/>
+  <Include href="VSGlobals.vsct"/>
+
+  <Commands package="AzureExplorer">
+
+    <!-- ==================== MENUS ==================== -->
+    <Menus>
+      <!-- Tool window toolbar -->
+      <Menu guid="AzureExplorer" id="ToolWindowToolbar" type="ToolWindowToolbar">
+        <Strings>
+          <CommandName>Azure Explorer Toolbar</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Subscription node -->
+      <Menu guid="AzureExplorer" id="SubscriptionContextMenu" type="Context">
+        <Strings>
+          <CommandName>Subscription</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Resource Group node -->
+      <Menu guid="AzureExplorer" id="ResourceGroupContextMenu" type="Context">
+        <Strings>
+          <CommandName>Resource Group</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: App Service node -->
+      <Menu guid="AzureExplorer" id="AppServiceContextMenu" type="Context">
+        <Strings>
+          <CommandName>App Service</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Flyout: Streaming Logs (inside App Service context menu) -->
+      <Menu guid="AzureExplorer" id="StreamingLogsFlyout" priority="0x0250" type="Menu">
+        <Parent guid="AzureExplorer" id="AppServiceDiagnosticsGroup"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <CommandName>Streaming Logs</CommandName>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <!-- ==================== GROUPS ==================== -->
+    <Groups>
+      <!-- View menu group for the Show Explorer command -->
+      <Group guid="AzureExplorer" id="ViewMenuGroup" priority="0x0600">
+        <Parent guid="VSMainMenu" id="View"/>
+      </Group>
+
+      <!-- Toolbar group (single group so buttons appear side-by-side) -->
+      <Group guid="AzureExplorer" id="ToolbarGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="ToolWindowToolbar"/>
+      </Group>
+
+      <!-- Subscription context menu groups -->
+      <Group guid="AzureExplorer" id="SubscriptionContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SubscriptionContextMenu"/>
+      </Group>
+
+      <!-- Resource Group context menu groups -->
+      <Group guid="AzureExplorer" id="ResourceGroupContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="ResourceGroupContextMenu"/>
+      </Group>
+
+      <!-- App Service context menu groups -->
+      <Group guid="AzureExplorer" id="AppServiceBrowseGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="AppServiceContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="AppServiceActionsGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="AppServiceContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="AppServiceDiagnosticsGroup" priority="0x0250">
+        <Parent guid="AzureExplorer" id="AppServiceContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="StreamingLogsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="StreamingLogsFlyout"/>
+      </Group>
+      <Group guid="AzureExplorer" id="AppServiceRefreshGroup" priority="0x0300">
+        <Parent guid="AzureExplorer" id="AppServiceContextMenu"/>
+      </Group>
+    </Groups>
+
+    <!-- ==================== BUTTONS ==================== -->
+    <Buttons>
+
+      <!-- View > Azure Explorer (opens the tool window) -->
+      <Button guid="AzureExplorer" id="ShowExplorerWindow" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="ViewMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudGroup"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Azure Explorer</ButtonText>
+          <LocCanonicalName>.AzureExplorer.ShowExplorerWindow</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Toolbar: Sign In -->
+      <Button guid="AzureExplorer" id="SignIn" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="ToolbarGroup"/>
+        <Icon guid="ImageCatalogGuid" id="AddUser"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Sign In</ButtonText>
+          <LocCanonicalName>.AzureExplorer.SignIn</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Toolbar: Refresh -->
+      <Button guid="AzureExplorer" id="Refresh" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="ToolbarGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.Refresh</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Subscription context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshSubscription" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshSubscription</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Resource Group context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshResourceGroup" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="ResourceGroupContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshResourceGroup</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Browse Site -->
+      <Button guid="AzureExplorer" id="BrowseSite" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="WebURL"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Browse Site</ButtonText>
+          <LocCanonicalName>.AzureExplorer.BrowseSite</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Open in Portal -->
+      <Button guid="AzureExplorer" id="OpenPortal" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Web"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Open in Portal</ButtonText>
+          <LocCanonicalName>.AzureExplorer.OpenPortal</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Open Kudu Console -->
+      <Button guid="AzureExplorer" id="OpenKudu" priority="0x0300" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Console"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Open Kudu Console</ButtonText>
+          <LocCanonicalName>.AzureExplorer.OpenKudu</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Application Log Stream -->
+      <Button guid="AzureExplorer" id="StreamLogs" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="StreamingLogsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Log"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Application Logs</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StreamLogs</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: HTTP Log Stream -->
+      <Button guid="AzureExplorer" id="StreamHttpLogs" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="StreamingLogsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="WebURL"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>HTTP Logs</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StreamHttpLogs</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Start -->
+      <Button guid="AzureExplorer" id="StartAppService" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Run"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Start</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StartAppService</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Stop -->
+      <Button guid="AzureExplorer" id="StopAppService" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Stop"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Stop</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StopAppService</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Restart -->
+      <Button guid="AzureExplorer" id="RestartAppService" priority="0x0300" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Restart"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Restart</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RestartAppService</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshAppService" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceRefreshGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshAppService</LocCanonicalName>
+        </Strings>
+      </Button>
+
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    <GuidSymbol name="AzureExplorer" value="{5e5465aa-805e-4395-b20d-a439f7c92ca1}">
+      <!-- Menus -->
+      <IDSymbol name="ToolWindowToolbar" value="0x0010" />
+      <IDSymbol name="SubscriptionContextMenu" value="0x0020" />
+      <IDSymbol name="ResourceGroupContextMenu" value="0x0021" />
+      <IDSymbol name="AppServiceContextMenu" value="0x0022" />
+
+      <!-- Groups -->
+      <IDSymbol name="ViewMenuGroup" value="0x0030" />
+      <IDSymbol name="ToolbarGroup" value="0x0031" />
+      <IDSymbol name="SubscriptionContextMenuGroup" value="0x0040" />
+      <IDSymbol name="ResourceGroupContextMenuGroup" value="0x0041" />
+      <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
+      <IDSymbol name="AppServiceActionsGroup" value="0x0043" />
+      <IDSymbol name="AppServiceDiagnosticsGroup" value="0x0045" />
+      <IDSymbol name="StreamingLogsFlyout" value="0x0023" />
+      <IDSymbol name="StreamingLogsGroup" value="0x0046" />
+      <IDSymbol name="AppServiceRefreshGroup" value="0x0044" />
+
+      <!-- Commands -->
+      <IDSymbol name="ShowExplorerWindow" value="0x0100" />
+      <IDSymbol name="SignIn" value="0x0101" />
+      <IDSymbol name="Refresh" value="0x0102" />
+      <IDSymbol name="RefreshSubscription" value="0x0103" />
+      <IDSymbol name="RefreshResourceGroup" value="0x0104" />
+      <IDSymbol name="BrowseSite" value="0x0110" />
+      <IDSymbol name="StartAppService" value="0x0111" />
+      <IDSymbol name="StopAppService" value="0x0112" />
+      <IDSymbol name="RestartAppService" value="0x0113" />
+      <IDSymbol name="RefreshAppService" value="0x0114" />
+      <IDSymbol name="OpenPortal" value="0x0115" />
+      <IDSymbol name="OpenKudu" value="0x0116" />
+      <IDSymbol name="StreamLogs" value="0x0117" />
+      <IDSymbol name="StreamHttpLogs" value="0x0118" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

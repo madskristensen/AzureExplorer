@@ -1,0 +1,74 @@
+﻿using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
+
+namespace AzureExplorer.Models
+{
+    internal enum AppServiceState
+    {
+        Unknown,
+        Running,
+        Stopped
+    }
+
+    /// <summary>
+    /// Represents an Azure App Service (Web App). Leaf node with context menu actions.
+    /// </summary>
+    internal sealed class AppServiceNode : ExplorerNodeBase
+    {
+        private AppServiceState _state;
+
+        public AppServiceNode(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName)
+            : base(name)
+        {
+            SubscriptionId = subscriptionId;
+            ResourceGroupName = resourceGroupName;
+            DefaultHostName = defaultHostName;
+            State = ParseState(state);
+            Description = State.ToString();
+        }
+
+        public string SubscriptionId { get; }
+        public string ResourceGroupName { get; }
+        public string DefaultHostName { get; }
+
+        public AppServiceState State
+        {
+            get => _state;
+            set
+            {
+                if (SetProperty(ref _state, value))
+                {
+                    Description = value.ToString();
+                    OnPropertyChanged(nameof(IconMoniker));
+                }
+            }
+        }
+
+        public string BrowseUrl =>
+            string.IsNullOrEmpty(DefaultHostName) ? null : $"https://{DefaultHostName}";
+
+        public override ImageMoniker IconMoniker => State switch
+        {
+            AppServiceState.Running => KnownMonikers.WebApplication,
+            AppServiceState.Stopped => KnownMonikers.ApplicationWarning,
+            _ => KnownMonikers.WebApplication
+        };
+
+        public override int ContextMenuId => PackageIds.AppServiceContextMenu;
+        public override bool SupportsChildren => false;
+
+        internal static AppServiceState ParseState(string state)
+        {
+            if (string.IsNullOrEmpty(state))
+                return AppServiceState.Unknown;
+
+            if (state.Equals("Running", System.StringComparison.OrdinalIgnoreCase))
+                return AppServiceState.Running;
+
+            if (state.Equals("Stopped", System.StringComparison.OrdinalIgnoreCase))
+                return AppServiceState.Stopped;
+
+            return AppServiceState.Unknown;
+        }
+    }
+}
