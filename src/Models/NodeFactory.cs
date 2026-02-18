@@ -12,7 +12,7 @@ namespace AzureExplorer.Models
     internal static class NodeFactory
     {
         private static readonly Dictionary<string, Func<GenericResourceData, string, string, ExplorerNodeBase>> _creators
-            = new Dictionary<string, Func<GenericResourceData, string, string, ExplorerNodeBase>>(StringComparer.OrdinalIgnoreCase)
+            = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["Microsoft.Web/sites"] = CreateAppServiceNode,
             };

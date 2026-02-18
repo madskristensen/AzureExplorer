@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,10 +17,13 @@ namespace AzureExplorer.Services
     /// </summary>
     internal sealed class AzureResourceService
     {
-        private static readonly Lazy<AzureResourceService> _instance = new Lazy<AzureResourceService>(() => new AzureResourceService());
+        private static readonly Lazy<AzureResourceService> _instance = new(() => new AzureResourceService());
 
         private readonly ConcurrentDictionary<string, string> _subscriptionTenantMap =
-            new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            new(StringComparer.OrdinalIgnoreCase);
+
+        private readonly ConcurrentDictionary<string, ArmClient> _clientCache =
+            new(StringComparer.OrdinalIgnoreCase);
 
         private AzureResourceService() { }
 
@@ -46,13 +48,22 @@ namespace AzureExplorer.Services
         }
 
         /// <summary>
-        /// Creates an <see cref="ArmClient"/> scoped to the correct tenant for
+        /// Gets or creates a cached <see cref="ArmClient"/> scoped to the correct tenant for
         /// the given subscription. When <paramref name="subscriptionId"/> is null
         /// the default (home-tenant) credential is used.
         /// </summary>
         internal ArmClient GetClient(string subscriptionId = null)
         {
-            return new ArmClient(GetCredential(subscriptionId));
+            var cacheKey = subscriptionId ?? string.Empty;
+            return _clientCache.GetOrAdd(cacheKey, _ => new ArmClient(GetCredential(subscriptionId)));
+        }
+
+        /// <summary>
+        /// Clears the cached ArmClient instances. Call when credentials change (sign-out/sign-in).
+        /// </summary>
+        internal void ClearClientCache()
+        {
+            _clientCache.Clear();
         }
 
         /// <summary>
@@ -171,25 +182,16 @@ namespace AzureExplorer.Services
         /// Wraps a <see cref="TokenCredential"/> to inject a specific tenant ID
         /// into every token request, enabling multi-tenant token acquisition.
         /// </summary>
-        private sealed class TenantScopedCredential : TokenCredential
+        private sealed class TenantScopedCredential(TokenCredential inner, string tenantId) : TokenCredential
         {
-            private readonly TokenCredential _inner;
-            private readonly string _tenantId;
-
-            public TenantScopedCredential(TokenCredential inner, string tenantId)
-            {
-                _inner = inner;
-                _tenantId = tenantId;
-            }
-
             public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
             {
                 var scoped = new TokenRequestContext(
                     requestContext.Scopes,
                     requestContext.ParentRequestId,
                     requestContext.Claims,
-                    _tenantId);
-                return _inner.GetToken(scoped, cancellationToken);
+                    tenantId);
+                return inner.GetToken(scoped, cancellationToken);
             }
 
             public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
@@ -198,8 +200,8 @@ namespace AzureExplorer.Services
                     requestContext.Scopes,
                     requestContext.ParentRequestId,
                     requestContext.Claims,
-                    _tenantId);
-                return _inner.GetTokenAsync(scoped, cancellationToken);
+                    tenantId);
+                return inner.GetTokenAsync(scoped, cancellationToken);
             }
         }
     }

@@ -15,7 +15,7 @@ namespace AzureExplorer.Services
     /// </summary>
     internal sealed class AppServiceManager
     {
-        private static readonly Lazy<AppServiceManager> _instance = new Lazy<AppServiceManager>(() => new AppServiceManager());
+        private static readonly Lazy<AppServiceManager> _instance = new(() => new AppServiceManager());
 
         private AppServiceManager() { }
 

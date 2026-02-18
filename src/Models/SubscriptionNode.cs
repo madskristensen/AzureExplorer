@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.ResourceManager.Resources;
 using AzureExplorer.Services;
@@ -21,15 +22,16 @@ namespace AzureExplorer.Models
         public override int ContextMenuId => PackageIds.SubscriptionContextMenu;
         public override bool SupportsChildren => true;
 
-        public override async Task LoadChildrenAsync()
+        public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {
             if (!BeginLoading())
                 return;
 
             try
             {
-                await foreach (ResourceGroupResource rg in AzureResourceService.Instance.GetResourceGroupsAsync(SubscriptionId))
+                await foreach (ResourceGroupResource rg in AzureResourceService.Instance.GetResourceGroupsAsync(SubscriptionId, cancellationToken))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     AddChild(new ResourceGroupNode(rg.Data.Name, SubscriptionId));
                 }
             }

@@ -128,7 +128,7 @@
       <!-- Toolbar: Refresh -->
       <Button guid="AzureExplorer" id="Refresh" priority="0x0200" type="Button">
         <Parent guid="AzureExplorer" id="ToolbarGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Refresh</ButtonText>
@@ -139,7 +139,7 @@
       <!-- Subscription context: Refresh -->
       <Button guid="AzureExplorer" id="RefreshSubscription" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Refresh</ButtonText>
@@ -150,7 +150,7 @@
       <!-- Resource Group context: Refresh -->
       <Button guid="AzureExplorer" id="RefreshResourceGroup" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="ResourceGroupContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Refresh</ButtonText>
@@ -253,7 +253,7 @@
       <!-- App Service context: Refresh -->
       <Button guid="AzureExplorer" id="RefreshAppService" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="AppServiceRefreshGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Refresh"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Refresh</ButtonText>

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
@@ -11,8 +10,6 @@ using AzureExplorer.Models;
 using AzureExplorer.Services;
 
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace AzureExplorer.ToolWindows
@@ -26,11 +23,12 @@ namespace AzureExplorer.ToolWindows
             InitializeComponent();
             _instance = this;
 
-            RootNodes = new ObservableCollection<ExplorerNodeBase>();
+            RootNodes = [];
 
             SetupTreeView();
 
             AzureAuthService.Instance.AuthStateChanged += OnAuthStateChanged;
+            Unloaded += OnUnloaded;
 
             RefreshRootNodes();
 
@@ -150,9 +148,28 @@ namespace AzureExplorer.ToolWindows
         {
             ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                RefreshRootNodes();
+                try
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    RefreshRootNodes();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Auth state change handler failed: {ex.Message}");
+                }
             }).FireAndForget();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            // Unsubscribe from events to prevent memory leaks
+            AzureAuthService.Instance.AuthStateChanged -= OnAuthStateChanged;
+            Unloaded -= OnUnloaded;
+
+            if (_instance == this)
+            {
+                _instance = null;
+            }
         }
 
         private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
@@ -184,7 +201,7 @@ namespace AzureExplorer.ToolWindows
         private void ExplorerTree_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             var source = e.OriginalSource as DependencyObject;
-            while (source != null && !(source is TreeViewItem))
+            while (source != null && source is not TreeViewItem)
             {
                 source = VisualTreeHelper.GetParent(source);
             }
@@ -247,8 +264,7 @@ namespace AzureExplorer.ToolWindows
             Guid guid = PackageGuids.AzureExplorer;
             var points = new POINTS[]
             {
-                new POINTS
-                {
+                new() {
                     x = (short)screenPoint.X,
                     y = (short)screenPoint.Y
                 }

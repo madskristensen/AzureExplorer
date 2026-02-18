@@ -1,11 +1,10 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 
 using AzureExplorer.Services;
-
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace AzureExplorer.ToolWindows
@@ -17,23 +16,38 @@ namespace AzureExplorer.ToolWindows
     public class LogDocumentWindow : BaseToolWindow<LogDocumentWindow>
     {
         private static readonly ConcurrentDictionary<string, LogDocumentWindow> _instances = new();
+        private static readonly ConcurrentDictionary<int, (string Key, string Caption)> _pendingState = new();
         private static int _nextInstanceId;
-        private static string _pendingKey;
-        private static string _pendingCaption;
 
         private LogDocumentControl _control;
         private string _logKey;
         private string _caption;
+        private int _instanceId;
 
-        public override string GetTitle(int toolWindowId) => _caption ?? _pendingCaption ?? "Logs";
+        public override string GetTitle(int toolWindowId)
+        {
+            if (_caption != null)
+                return _caption;
+
+            if (_pendingState.TryGetValue(toolWindowId, out (string Key, string Caption) state))
+                return state.Caption;
+
+            return "Logs";
+        }
 
         public override Type PaneType => typeof(Pane);
 
         public override System.Threading.Tasks.Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
         {
-            _logKey = _pendingKey;
-            _caption = _pendingCaption;
-            _control = new LogDocumentControl(_logKey, OnDisconnectRequested);
+            _instanceId = toolWindowId;
+
+            if (_pendingState.TryRemove(toolWindowId, out (string Key, string Caption) state))
+            {
+                _logKey = state.Key;
+                _caption = state.Caption;
+            }
+
+            _control = new LogDocumentControl(_logKey);
 
             if (_logKey != null)
             {
@@ -65,25 +79,26 @@ namespace AzureExplorer.ToolWindows
                 return existing;
             }
 
-            // Set pending values before creating
             // Short title format: "appName [type]" e.g. "myapp [HTTP]"
-            string shortType = streamType;
+            var shortType = streamType;
             if (shortType.EndsWith(" logs", StringComparison.OrdinalIgnoreCase))
                 shortType = shortType.Substring(0, shortType.Length - 5);
             if (shortType.Equals("application", StringComparison.OrdinalIgnoreCase))
                 shortType = "App";
-            _pendingKey = streamKey;
-            _pendingCaption = $"{appName} [{shortType}]";
 
             // Use unique instance ID for multi-instance support
-            int instanceId = System.Threading.Interlocked.Increment(ref _nextInstanceId);
+            var instanceId = System.Threading.Interlocked.Increment(ref _nextInstanceId);
+
+            // Store pending state keyed by instance ID to avoid race conditions
+            _pendingState[instanceId] = (streamKey, $"{appName} [{shortType}]");
+
             await ShowAsync(instanceId);
 
             // Retrieve the instance that was just created
             _instances.TryGetValue(streamKey, out LogDocumentWindow window);
 
-            _pendingKey = null;
-            _pendingCaption = null;
+            // Clean up pending state if CreateAsync didn't consume it (edge case)
+            _pendingState.TryRemove(instanceId, out _);
 
             return window;
         }
@@ -117,10 +132,10 @@ namespace AzureExplorer.ToolWindows
         /// <summary>
         /// Sets the streaming state to update UI accordingly.
         /// </summary>
-        public async System.Threading.Tasks.Task SetStreamingStateAsync(bool isStreaming)
+        public async System.Threading.Tasks.Task SetStreamingStateAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _control?.SetStreamingState(isStreaming);
+            _control?.SetStreamingState();
         }
 
         /// <summary>
@@ -130,7 +145,7 @@ namespace AzureExplorer.ToolWindows
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            foreach (var kvp in _instances)
+            foreach (KeyValuePair<string, LogDocumentWindow> kvp in _instances)
             {
                 // Check if this instance's pane is active
                 if (kvp.Value._control != null)
@@ -146,6 +161,7 @@ namespace AzureExplorer.ToolWindows
         public class Pane : ToolWindowPane
         {
             private LogDocumentControl _control;
+            private string _streamKey;
 
             public Pane()
             {
@@ -160,6 +176,7 @@ namespace AzureExplorer.ToolWindows
                 {
                     base.Content = value;
                     _control = value as LogDocumentControl;
+                    _streamKey = _control?.StreamKey;
                 }
             }
 
@@ -188,43 +205,23 @@ namespace AzureExplorer.ToolWindows
 
             protected override void OnClose()
             {
-                if (_control != null)
+                if (_streamKey != null)
                 {
-                    // Find and remove from instances
-                    foreach (var kvp in _instances)
-                    {
-                        if (kvp.Value._control == _control)
-                        {
-                            // Stop streaming when window is closed
-                            LogStreamService.StopByKey(kvp.Key);
-                            Remove(kvp.Key);
-                            break;
-                        }
-                    }
+                    // Stop streaming and remove from instances when window is closed
+                    LogStreamService.StopByKey(_streamKey);
+                    Remove(_streamKey);
                 }
 
                 base.OnClose();
             }
         }
 
-        private class LogSearchTask : IVsSearchTask
+        private class LogSearchTask(uint cookie, IVsSearchQuery searchQuery, IVsSearchCallback searchCallback, LogDocumentControl control) : IVsSearchTask
         {
-            private readonly uint _cookie;
-            private readonly IVsSearchQuery _searchQuery;
-            private readonly IVsSearchCallback _searchCallback;
-            private readonly LogDocumentControl _control;
             private volatile uint _status = (uint)__VSSEARCHTASKSTATUS.STS_CREATED;
 
-            public LogSearchTask(uint cookie, IVsSearchQuery searchQuery, IVsSearchCallback searchCallback, LogDocumentControl control)
-            {
-                _cookie = cookie;
-                _searchQuery = searchQuery;
-                _searchCallback = searchCallback;
-                _control = control;
-            }
-
-            public uint Id => _cookie;
-            public IVsSearchQuery SearchQuery => _searchQuery;
+            public uint Id => cookie;
+            public IVsSearchQuery SearchQuery => searchQuery;
             public uint Status => _status;
             public int ErrorCode => 0;
 
@@ -235,9 +232,9 @@ namespace AzureExplorer.ToolWindows
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    _control?.ApplyFilter(_searchQuery.SearchString);
+                    control?.ApplyFilter(searchQuery.SearchString);
                     _status = (uint)__VSSEARCHTASKSTATUS.STS_COMPLETED;
-                    _searchCallback.ReportComplete(this, 0);
+                    searchCallback.ReportComplete(this, 0);
                 }).FireAndForget();
             }
 

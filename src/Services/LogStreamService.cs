@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -62,7 +63,7 @@ namespace AzureExplorer.Services
 
         internal static void Stop()
         {
-            foreach (var kvp in _streams)
+            foreach (KeyValuePair<string, CancellationTokenSource> kvp in _streams)
             {
                 kvp.Value.Cancel();
                 kvp.Value.Dispose();
@@ -78,7 +79,7 @@ namespace AzureExplorer.Services
             {
                 logWindow = await LogDocumentWindow.GetOrCreateAsync(node.Label, label, key);
                 await logWindow.ClearAsync();
-                await logWindow.SetStreamingStateAsync(true);
+                await logWindow.SetStreamingStateAsync();
                 await logWindow.AppendLineAsync($"Enabling logging for {node.Label}...");
 
                 try
@@ -153,9 +154,9 @@ namespace AzureExplorer.Services
                             }
 
                             using (Stream stream = await response.Content.ReadAsStreamAsync())
-                            // Use minimal buffer (1 byte) for real-time streaming instead of
-                            // the default 1KB buffer which causes batching/delayed output.
-                            using (var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 1))
+                            // Use a small buffer (128 bytes) to balance real-time streaming
+                            // with CPU efficiency. A 1-byte buffer causes excessive system calls.
+                            using (var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 128))
                             {
                                 while (!ct.IsCancellationRequested)
                                 {
@@ -215,7 +216,7 @@ namespace AzureExplorer.Services
                 if (logWindow != null)
                 {
                     await logWindow.AppendLineAsync("Log stream disconnected.");
-                    await logWindow.SetStreamingStateAsync(false);
+                    await logWindow.SetStreamingStateAsync();
                 }
             }
         }

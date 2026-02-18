@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AzureExplorer.Services;
@@ -33,7 +34,7 @@ namespace AzureExplorer.Models
         public override int ContextMenuId => PackageIds.ResourceGroupContextMenu;
         public override bool SupportsChildren => true;
 
-        public override async Task LoadChildrenAsync()
+        public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {
             if (!BeginLoading())
                 return;
@@ -43,10 +44,11 @@ namespace AzureExplorer.Models
                 ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
                 SubscriptionResource sub = client.GetSubscriptionResource(
                     SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName)).Value;
+                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
 
-                await foreach (WebSiteResource site in rg.GetWebSites().GetAllAsync())
+                await foreach (WebSiteResource site in rg.GetWebSites().GetAllAsync(cancellationToken: cancellationToken))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     AddChild(new AppServiceNode(
                         site.Data.Name,
                         SubscriptionId,

@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace AzureExplorer.Models
@@ -23,6 +23,7 @@ namespace AzureExplorer.Models
             SubscriptionId = subscriptionId;
             ResourceGroupName = resourceGroupName;
             DefaultHostName = defaultHostName;
+            BrowseUrl = string.IsNullOrEmpty(defaultHostName) ? null : $"https://{defaultHostName}";
             State = ParseState(state);
             Description = State.ToString();
         }
@@ -30,6 +31,7 @@ namespace AzureExplorer.Models
         public string SubscriptionId { get; }
         public string ResourceGroupName { get; }
         public string DefaultHostName { get; }
+        public string BrowseUrl { get; }
 
         public AppServiceState State
         {
@@ -43,9 +45,6 @@ namespace AzureExplorer.Models
                 }
             }
         }
-
-        public string BrowseUrl =>
-            string.IsNullOrEmpty(DefaultHostName) ? null : $"https://{DefaultHostName}";
 
         public override ImageMoniker IconMoniker => State switch
         {

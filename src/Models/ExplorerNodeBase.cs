@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
+using System.Threading;
 
 using Microsoft.VisualStudio.Imaging.Interop;
 
@@ -11,24 +11,17 @@ namespace AzureExplorer.Models
     /// Abstract base class for all tree nodes in the Azure Explorer tool window.
     /// Provides common properties for display, lazy-loading children, and VSCT context menu integration.
     /// </summary>
-    internal abstract class ExplorerNodeBase : INotifyPropertyChanged
+    internal abstract class ExplorerNodeBase(string label) : INotifyPropertyChanged
     {
-        private string _label;
         private string _description;
         private bool _isExpanded;
         private bool _isLoading;
         private bool _isLoaded;
 
-        protected ExplorerNodeBase(string label)
-        {
-            _label = label;
-            Children = new ObservableCollection<ExplorerNodeBase>();
-        }
-
         public string Label
         {
-            get => _label;
-            set => SetProperty(ref _label, value);
+            get => label;
+            set => SetProperty(ref label, value);
         }
 
         /// <summary>
@@ -55,7 +48,7 @@ namespace AzureExplorer.Models
         /// </summary>
         public abstract bool SupportsChildren { get; }
 
-        public ObservableCollection<ExplorerNodeBase> Children { get; }
+        public ObservableCollection<ExplorerNodeBase> Children { get; } = [];
 
         public bool IsExpanded
         {
@@ -80,7 +73,8 @@ namespace AzureExplorer.Models
         /// <summary>
         /// Override to load child nodes asynchronously. Called once when the node is first expanded.
         /// </summary>
-        public virtual Task LoadChildrenAsync()
+        /// <param name="cancellationToken">Token to cancel the loading operation.</param>
+        public virtual Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;
         }
@@ -88,13 +82,13 @@ namespace AzureExplorer.Models
         /// <summary>
         /// Resets loaded state and reloads children.
         /// </summary>
-        public async Task RefreshAsync()
+        public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
             IsLoaded = false;
             IsLoading = false;
             Description = null;
             Children.Clear();
-            await LoadChildrenAsync();
+            await LoadChildrenAsync(cancellationToken);
         }
 
         /// <summary>

@@ -9,13 +9,13 @@ namespace AzureExplorer
         protected override void BeforeQueryStatus(EventArgs e)
         {
             // Enable only when there's an active log window with streaming
-            Command.Enabled = LogDocumentWindow.GetActiveStreamKey() != null &&
-                              LogStreamService.IsStreaming(LogDocumentWindow.GetActiveStreamKey());
+            var streamKey = LogDocumentWindow.GetActiveStreamKey();
+            Command.Enabled = streamKey != null && LogStreamService.IsStreaming(streamKey);
         }
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            string streamKey = LogDocumentWindow.GetActiveStreamKey();
+            var streamKey = LogDocumentWindow.GetActiveStreamKey();
             if (streamKey != null)
             {
                 LogStreamService.StopByKey(streamKey);

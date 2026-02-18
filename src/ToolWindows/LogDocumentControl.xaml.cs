@@ -8,12 +8,13 @@ namespace AzureExplorer.ToolWindows
     /// </summary>
     public partial class LogDocumentControl : UserControl
     {
+        private const int _maxLineCount = 10000;
         private readonly string _streamKey;
-        private readonly List<string> _allLines = new();
+        private readonly List<string> _allLines = [];
         private string _currentFilter;
-        private TextBox _logTextBox;
+        private readonly TextBox _logTextBox;
 
-        public LogDocumentControl(string streamKey, Action disconnectCallback)
+        public LogDocumentControl(string streamKey)
         {
             InitializeComponent();
 
@@ -35,6 +36,20 @@ namespace AzureExplorer.ToolWindows
         {
             _allLines.Add(text);
 
+            // Enforce maximum line limit with FIFO eviction to prevent unbounded memory growth
+            if (_allLines.Count > _maxLineCount)
+            {
+                var linesToRemove = _allLines.Count - _maxLineCount;
+                _allLines.RemoveRange(0, linesToRemove);
+
+                // If not filtering, rebuild the view to reflect removed lines
+                if (string.IsNullOrEmpty(_currentFilter))
+                {
+                    RefreshFilteredView();
+                    return;
+                }
+            }
+
             // If filtering, only show matching lines
             if (string.IsNullOrEmpty(_currentFilter) || MatchesFilter(text, _currentFilter))
             {
@@ -55,7 +70,7 @@ namespace AzureExplorer.ToolWindows
         /// <summary>
         /// Sets the streaming state (no-op now that toolbar is in VSCT).
         /// </summary>
-        public void SetStreamingState(bool isStreaming)
+        public void SetStreamingState()
         {
             // Streaming state is now managed by the VSCT toolbar command
         }
@@ -73,7 +88,7 @@ namespace AzureExplorer.ToolWindows
         {
             _logTextBox?.Clear();
 
-            foreach (string line in _allLines)
+            foreach (var line in _allLines)
             {
                 if (string.IsNullOrEmpty(_currentFilter) || MatchesFilter(line, _currentFilter))
                 {

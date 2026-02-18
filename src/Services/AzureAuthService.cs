@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,13 +14,12 @@ namespace AzureExplorer.Services
     /// </summary>
     internal sealed class AzureAuthService
     {
-        private static readonly Lazy<AzureAuthService> _instance = new Lazy<AzureAuthService>(() => new AzureAuthService());
-        private static readonly string CacheDir = Path.Combine(
+        private static readonly Lazy<AzureAuthService> _instance = new(() => new AzureAuthService());
+        private static readonly string _cacheDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AzureExplorer");
-        private static readonly string AuthRecordPath = Path.Combine(CacheDir, "auth-record.bin");
+        private static readonly string _authRecordPath = Path.Combine(_cacheDir, "auth-record.bin");
 
         private InteractiveBrowserCredential _credential;
-        private AuthenticationRecord _authRecord;
         private string _accountName;
 
         private AzureAuthService() { }
@@ -48,7 +46,7 @@ namespace AzureExplorer.Services
             if (IsSignedIn)
                 return true;
 
-            AuthenticationRecord record = LoadAuthRecord();
+            AuthenticationRecord record = await LoadAuthRecordAsync();
             if (record == null)
                 return false;
 
@@ -75,15 +73,19 @@ namespace AzureExplorer.Services
                 // Silent token acquisition succeeded — create the real credential
                 // (without DisableAutomaticAuthentication) for ArmClient use.
                 _credential = CreateCredential(record);
-                _authRecord = record;
                 _accountName = record.Username ?? "Azure Account";
                 IsSignedIn = true;
                 AuthStateChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
-            catch
+            catch (AuthenticationRequiredException)
             {
-                // Silent auth failed (expired refresh token, revoked, etc.)
+                // Silent auth failed — user interaction required (expected case)
+                return false;
+            }
+            catch (CredentialUnavailableException)
+            {
+                // Credential not available (expired refresh token, revoked, etc.)
                 return false;
             }
         }
@@ -110,7 +112,6 @@ namespace AzureExplorer.Services
                 SaveAuthRecord(record);
 
                 _credential = credential;
-                _authRecord = record;
                 _accountName = record.Username ?? "Azure Account";
                 IsSignedIn = true;
                 AuthStateChanged?.Invoke(this, EventArgs.Empty);
@@ -127,10 +128,10 @@ namespace AzureExplorer.Services
         public void SignOut()
         {
             _credential = null;
-            _authRecord = null;
             _accountName = null;
             IsSignedIn = false;
             DeleteAuthRecord();
+            AzureResourceService.Instance.ClearClientCache();
             AuthStateChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -160,17 +161,21 @@ namespace AzureExplorer.Services
             return new InteractiveBrowserCredential(options);
         }
 
-        private static AuthenticationRecord LoadAuthRecord()
+        private static async Task<AuthenticationRecord> LoadAuthRecordAsync()
         {
             try
             {
-                if (!File.Exists(AuthRecordPath))
-                    return null;
-
-                using (FileStream stream = File.OpenRead(AuthRecordPath))
+                // Offload file I/O to background thread to avoid blocking UI thread on startup
+                return await Task.Run(() =>
                 {
-                    return AuthenticationRecord.Deserialize(stream);
-                }
+                    if (!File.Exists(_authRecordPath))
+                        return null;
+
+                    using (FileStream stream = File.OpenRead(_authRecordPath))
+                    {
+                        return AuthenticationRecord.Deserialize(stream);
+                    }
+                });
             }
             catch
             {
@@ -182,8 +187,8 @@ namespace AzureExplorer.Services
         {
             try
             {
-                Directory.CreateDirectory(CacheDir);
-                using (FileStream stream = File.Create(AuthRecordPath))
+                Directory.CreateDirectory(_cacheDir);
+                using (FileStream stream = File.Create(_authRecordPath))
                 {
                     record.Serialize(stream);
                 }
@@ -198,8 +203,8 @@ namespace AzureExplorer.Services
         {
             try
             {
-                if (File.Exists(AuthRecordPath))
-                    File.Delete(AuthRecordPath);
+                if (File.Exists(_authRecordPath))
+                    File.Delete(_authRecordPath);
             }
             catch
             {

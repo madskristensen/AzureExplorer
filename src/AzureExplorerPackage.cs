@@ -5,6 +5,7 @@ global using Microsoft.VisualStudio.Shell;
 global using Task = System.Threading.Tasks.Task;
 using System.Runtime.InteropServices;
 using System.Threading;
+using AzureExplorer.Services;
 using AzureExplorer.ToolWindows;
 using Microsoft.VisualStudio;
 
@@ -26,6 +27,17 @@ namespace AzureExplorer
         {
             await this.RegisterCommandsAsync();
             this.RegisterToolWindows();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Stop all active log streams when VS closes
+                LogStreamService.Stop();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
