@@ -1,11 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Azure.ResourceManager.Resources;
-
-using AzureExplorer.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -44,23 +39,12 @@ namespace AzureExplorer.Models
                 AddChild(frontDoorsNode);
                 AddChild(keyVaultsNode);
 
-                // Then add resource groups
-                var resourceGroups = new List<ResourceGroupNode>();
+                // Add resource groups under a parent node
+                var resourceGroupsNode = new ResourceGroupsNode(SubscriptionId);
+                AddChild(resourceGroupsNode);
 
-                await foreach (ResourceGroupResource rg in AzureResourceService.Instance.GetResourceGroupsAsync(SubscriptionId, cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    resourceGroups.Add(new ResourceGroupNode(rg.Data.Name, SubscriptionId));
-                }
-
-                // Sort alphabetically by name
-                foreach (var node in resourceGroups.OrderBy(r => r.Label, StringComparer.OrdinalIgnoreCase))
-                {
-                    AddChild(node);
-                }
-
-                // Pre-load subscription-level categories in parallel
-                _ = PreloadSubscriptionCategoriesAsync(appServicesNode, frontDoorsNode, keyVaultsNode, cancellationToken);
+                // Pre-load subscription-level categories and resource groups in parallel
+                _ = PreloadChildrenAsync(appServicesNode, frontDoorsNode, keyVaultsNode, resourceGroupsNode, cancellationToken);
             }
             finally
             {
@@ -68,10 +52,11 @@ namespace AzureExplorer.Models
             }
         }
 
-        private static async Task PreloadSubscriptionCategoriesAsync(
+        private static async Task PreloadChildrenAsync(
             SubscriptionAppServicesNode appServicesNode,
             SubscriptionFrontDoorsNode frontDoorsNode,
             SubscriptionKeyVaultsNode keyVaultsNode,
+            ResourceGroupsNode resourceGroupsNode,
             CancellationToken cancellationToken)
         {
             try
@@ -79,7 +64,8 @@ namespace AzureExplorer.Models
                 await Task.WhenAll(
                     appServicesNode.LoadChildrenAsync(cancellationToken),
                     frontDoorsNode.LoadChildrenAsync(cancellationToken),
-                    keyVaultsNode.LoadChildrenAsync(cancellationToken));
+                    keyVaultsNode.LoadChildrenAsync(cancellationToken),
+                    resourceGroupsNode.LoadChildrenAsync(cancellationToken));
             }
             catch (OperationCanceledException)
             {
