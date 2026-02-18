@@ -1,11 +1,13 @@
 using AzureExplorer.AppService.Models;
 using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
-using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 
 namespace AzureExplorer.Core.Commands
 {
+    /// <summary>
+    /// Toolbar refresh command - refreshes selected node or reloads entire tree.
+    /// </summary>
     [Command(PackageIds.Refresh)]
     internal sealed class RefreshCommand : BaseCommand<RefreshCommand>
     {
@@ -30,79 +32,10 @@ namespace AzureExplorer.Core.Commands
         }
     }
 
-    [Command(PackageIds.RefreshSubscription)]
-    internal sealed class RefreshSubscriptionCommand : BaseCommand<RefreshSubscriptionCommand>
-    {
-        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
-        {
-            try
-            {
-                ExplorerNodeBase node = AzureExplorerControl.SelectedNode;
-                if (node != null)
-                    await node.RefreshAsync();
-            }
-            catch (Exception ex)
-            {
-                await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
-            }
-        }
-    }
-
-    [Command(PackageIds.RefreshResourceGroup)]
-    internal sealed class RefreshResourceGroupCommand : BaseCommand<RefreshResourceGroupCommand>
-    {
-        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
-        {
-            try
-            {
-                ExplorerNodeBase node = AzureExplorerControl.SelectedNode;
-                if (node != null)
-                    await node.RefreshAsync();
-            }
-            catch (Exception ex)
-            {
-                await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
-            }
-        }
-    }
-
-    [Command(PackageIds.RefreshTenant)]
-    internal sealed class RefreshTenantCommand : BaseCommand<RefreshTenantCommand>
-    {
-        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
-        {
-            try
-            {
-                ExplorerNodeBase node = AzureExplorerControl.SelectedNode;
-                if (node != null)
-                    await node.RefreshAsync();
-            }
-            catch (Exception ex)
-            {
-                await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
-            }
-        }
-    }
-
-    [Command(PackageIds.RefreshAccount)]
-    internal sealed class RefreshAccountCommand : BaseCommand<RefreshAccountCommand>
-    {
-        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
-        {
-            try
-            {
-                ExplorerNodeBase node = AzureExplorerControl.SelectedNode;
-                if (node != null)
-                    await node.RefreshAsync();
-            }
-            catch (Exception ex)
-            {
-                await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
-            }
-        }
-    }
-
-    [Command(PackageIds.RefreshAppService)]
+        /// <summary>
+        /// App Service specific refresh - updates the running state from Azure.
+        /// </summary>
+        [Command(PackageIds.RefreshAppService)]
     internal sealed class RefreshAppServiceCommand : BaseCommand<RefreshAppServiceCommand>
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)

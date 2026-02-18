@@ -268,28 +268,6 @@
         </Strings>
       </Button>
 
-      <!-- Subscription context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshSubscription" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshSubscription</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Tenant context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshTenant" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="TenantContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshTenant</LocCanonicalName>
-        </Strings>
-      </Button>
-
       <!-- Account context: Sign Out -->
       <Button guid="AzureExplorer" id="SignOutAccount" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="AccountContextMenuGroup"/>
@@ -301,72 +279,6 @@
         </Strings>
       </Button>
 
-      <!-- Account context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshAccount" priority="0x0200" type="Button">
-        <Parent guid="AzureExplorer" id="AccountContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshAccount</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Resource Group context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshResourceGroup" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="ResourceGroupContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshResourceGroup</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- App Services category context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshAppServicesCategory" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="AppServicesCategoryContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshAppServicesCategory</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- App Service Plans category context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshAppServicePlansCategory" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="AppServicePlansCategoryContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshAppServicePlansCategory</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Front Doors category context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshFrontDoorsCategory" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="FrontDoorsCategoryContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshFrontDoorsCategory</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Key Vaults category context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshKeyVaultsCategory" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshKeyVaultsCategory</LocCanonicalName>
-        </Strings>
-      </Button>
-
       <!-- Key Vault context: Copy Vault URI -->
       <Button guid="AzureExplorer" id="CopyVaultUri" priority="0x0200" type="Button">
         <Parent guid="AzureExplorer" id="KeyVaultBrowseGroup"/>
@@ -375,17 +287,6 @@
         <Strings>
           <ButtonText>Copy Vault URI</ButtonText>
           <LocCanonicalName>.AzureExplorer.CopyVaultUri</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Key Vault context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshKeyVault" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshKeyVault</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -441,17 +342,6 @@
         <Strings>
           <ButtonText>Browse Endpoint</ButtonText>
           <LocCanonicalName>.AzureExplorer.BrowseFrontDoor</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Front Door context: Refresh -->
-      <Button guid="AzureExplorer" id="RefreshFrontDoor" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="FrontDoorRefreshGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Refresh</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RefreshFrontDoor</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -592,11 +482,23 @@
         </Strings>
       </Button>
 
+      <!-- Refresh Node (consolidated command for all node types with children) -->
+      <Button guid="AzureExplorer" id="RefreshNode" priority="0x0100" type="Button">
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshNode</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
-  <!-- Command placements for Open in Portal across all resource context menus -->
+  <!-- Command placements for consolidated commands across context menus -->
   <CommandPlacements>
+    <!-- Open in Portal placements -->
     <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0050">
       <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
     </CommandPlacement>
@@ -614,6 +516,38 @@
     </CommandPlacement>
     <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0100">
       <Parent guid="AzureExplorer" id="KeyVaultBrowseGroup"/>
+    </CommandPlacement>
+
+    <!-- Refresh Node placements -->
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="ResourceGroupContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="TenantContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="AccountContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="AppServicesCategoryContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="AppServicePlansCategoryContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="FrontDoorsCategoryContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="FrontDoorRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
     </CommandPlacement>
   </CommandPlacements>
 
@@ -690,6 +624,7 @@
       <IDSymbol name="DisconnectLogStream" value="0x0119" />
       <IDSymbol name="ManageAppSettings" value="0x011A" />
       <IDSymbol name="DownloadPublishProfile" value="0x011B" />
+      <IDSymbol name="RefreshNode" value="0x011C" />
       <IDSymbol name="OpenAppServicePlanPortal" value="0x0120" />
       <IDSymbol name="RefreshAppServicesCategory" value="0x0121" />
       <IDSymbol name="RefreshAppServicePlansCategory" value="0x0122" />

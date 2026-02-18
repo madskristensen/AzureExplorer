@@ -51,6 +51,7 @@
       <DependentUpon>AppSettingsDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
+    <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="KeyVault\Commands\AddSecretCommand.cs" />
     <Compile Include="FrontDoor\Commands\BrowseFrontDoorCommand.cs" />

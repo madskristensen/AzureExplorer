@@ -90,25 +90,18 @@ namespace AzureExplorer.AppService.Dialogs
     /// <summary>
     /// Represents a single app setting key-value pair for data binding.
     /// </summary>
-    public sealed class AppSettingItem : INotifyPropertyChanged
+    public sealed class AppSettingItem(string name, string value) : INotifyPropertyChanged
     {
-        private string _name;
-        private string _value;
-
-        public AppSettingItem(string name, string value)
-        {
-            _name = name;
-            _value = value;
-        }
+        private string _value = value;
 
         public string Name
         {
-            get => _name;
+            get => name;
             set
             {
-                if (_name != value)
+                if (name != value)
                 {
-                    _name = value;
+                    name = value;
                     OnPropertyChanged();
                 }
             }
