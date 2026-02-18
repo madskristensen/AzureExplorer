@@ -14,7 +14,7 @@ namespace AzureExplorer.Test.Core.Models
             // Assert
             Assert.AreEqual("account-123", node.AccountId);
             Assert.AreEqual("Test Account", node.Label);
-            Assert.AreEqual(1, node.Children.Count);
+            Assert.HasCount(1, node.Children);
             Assert.IsInstanceOfType<LoadingNode>(node.Children[0]);
         }
     }

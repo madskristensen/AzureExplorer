@@ -1,4 +1,3 @@
-using AzureExplorer.Core.Models;
 using AzureExplorer.KeyVault.Models;
 
 namespace AzureExplorer.Test.KeyVault.Models
@@ -6,10 +5,10 @@ namespace AzureExplorer.Test.KeyVault.Models
     [TestClass]
     public sealed class KeyVaultNodeTests
     {
-        private const string TestName = "my-keyvault";
-        private const string TestSubscriptionId = "sub-123";
-        private const string TestResourceGroupName = "rg-test";
-        private const string TestVaultUri = "https://my-keyvault.vault.azure.net/";
+        private const string _testName = "my-keyvault";
+        private const string _testSubscriptionId = "sub-123";
+        private const string _testResourceGroupName = "rg-test";
+        private const string _testVaultUri = "https://my-keyvault.vault.azure.net/";
 
         #region Constructor Tests
 
@@ -17,13 +16,13 @@ namespace AzureExplorer.Test.KeyVault.Models
         public void Constructor_SetsPropertiesCorrectly()
         {
             // Arrange & Act
-            var node = new KeyVaultNode(TestName, TestSubscriptionId, TestResourceGroupName, "Succeeded", TestVaultUri);
+            var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, "Succeeded", _testVaultUri);
 
             // Assert
-            Assert.AreEqual(TestName, node.Label);
-            Assert.AreEqual(TestSubscriptionId, node.SubscriptionId);
-            Assert.AreEqual(TestResourceGroupName, node.ResourceGroupName);
-            Assert.AreEqual(TestVaultUri, node.VaultUri);
+            Assert.AreEqual(_testName, node.Label);
+            Assert.AreEqual(_testSubscriptionId, node.SubscriptionId);
+            Assert.AreEqual(_testResourceGroupName, node.ResourceGroupName);
+            Assert.AreEqual(_testVaultUri, node.VaultUri);
             Assert.AreEqual(KeyVaultState.Succeeded, node.State);
             Assert.AreEqual("Succeeded", node.Description);
         }
@@ -32,17 +31,17 @@ namespace AzureExplorer.Test.KeyVault.Models
         public void Constructor_WithNullVaultUri_ConstructsDefaultUri()
         {
             // Arrange & Act
-            var node = new KeyVaultNode(TestName, TestSubscriptionId, TestResourceGroupName, "Succeeded", vaultUri: null);
+            var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, "Succeeded", vaultUri: null);
 
             // Assert
-            Assert.AreEqual($"https://{TestName}.vault.azure.net/", node.VaultUri);
+            Assert.AreEqual($"https://{_testName}.vault.azure.net/", node.VaultUri);
         }
 
         [TestMethod]
         public void Constructor_WithUnknownState_SetsUnknown()
         {
             // Arrange & Act
-            var node = new KeyVaultNode(TestName, TestSubscriptionId, TestResourceGroupName, "InvalidState", TestVaultUri);
+            var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, "InvalidState", _testVaultUri);
 
             // Assert
             Assert.AreEqual(KeyVaultState.Unknown, node.State);
@@ -52,7 +51,7 @@ namespace AzureExplorer.Test.KeyVault.Models
         public void Constructor_WithNullState_SetsUnknown()
         {
             // Arrange & Act
-            var node = new KeyVaultNode(TestName, TestSubscriptionId, TestResourceGroupName, state: null, TestVaultUri);
+            var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, state: null, _testVaultUri);
 
             // Assert
             Assert.AreEqual(KeyVaultState.Unknown, node.State);
@@ -66,10 +65,11 @@ namespace AzureExplorer.Test.KeyVault.Models
         public void State_Set_UpdatesDescription()
         {
             // Arrange
-            var node = new KeyVaultNode(TestName, TestSubscriptionId, TestResourceGroupName, "Succeeded", TestVaultUri);
-
-            // Act
-            node.State = KeyVaultState.Failed;
+            var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, "Succeeded", _testVaultUri)
+            {
+                // Act
+                State = KeyVaultState.Failed
+            };
 
             // Assert
             Assert.AreEqual("Failed", node.Description);
@@ -79,7 +79,7 @@ namespace AzureExplorer.Test.KeyVault.Models
         public void State_Set_RaisesPropertyChangedForIconMoniker()
         {
             // Arrange
-            var node = new KeyVaultNode(TestName, TestSubscriptionId, TestResourceGroupName, "Succeeded", TestVaultUri);
+            var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, "Succeeded", _testVaultUri);
             var iconMonikerChanged = false;
 
             node.PropertyChanged += (sender, args) =>

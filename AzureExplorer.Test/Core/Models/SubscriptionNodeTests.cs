@@ -1,7 +1,5 @@
 using AzureExplorer.Core.Models;
 
-using Microsoft.VisualStudio.Imaging;
-
 namespace AzureExplorer.Test.Core.Models
 {
     [TestClass]
@@ -84,10 +82,10 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.IsTrue(node.Children.Any(c => c.GetType().Name == "SubscriptionAppServicesNode"));
+            Assert.Contains(c => c.GetType().Name == "SubscriptionAppServicesNode", node.Children);
         }
 
         [TestMethod]
@@ -97,10 +95,10 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.IsTrue(node.Children.Any(c => c.GetType().Name == "SubscriptionFrontDoorsNode"));
+            Assert.Contains(c => c.GetType().Name == "SubscriptionFrontDoorsNode", node.Children);
         }
 
         [TestMethod]
@@ -110,10 +108,10 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.IsTrue(node.Children.Any(c => c.GetType().Name == "SubscriptionKeyVaultsNode"));
+            Assert.Contains(c => c.GetType().Name == "SubscriptionKeyVaultsNode", node.Children);
         }
 
         [TestMethod]
@@ -123,10 +121,10 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.IsTrue(node.Children.Any(c => c.GetType().Name == "ResourceGroupsNode"));
+            Assert.Contains(c => c.GetType().Name == "ResourceGroupsNode", node.Children);
         }
 
         [TestMethod]
@@ -136,7 +134,7 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.HasCount(4, node.Children);
@@ -149,10 +147,10 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.IsFalse(node.Children.Any(c => c is LoadingNode));
+            Assert.DoesNotContain(c => c is LoadingNode, node.Children);
         }
 
         [TestMethod]
@@ -162,7 +160,7 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.IsTrue(node.IsLoaded);
@@ -175,7 +173,7 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.IsFalse(node.IsLoading);
@@ -195,7 +193,7 @@ namespace AzureExplorer.Test.Core.Models
             var initialChildCount = node.Children.Count;
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert - Should not change children
             Assert.HasCount(initialChildCount, node.Children);
@@ -215,7 +213,7 @@ namespace AzureExplorer.Test.Core.Models
             var initialChildCount = node.Children.Count;
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert - Should not change children
             Assert.HasCount(initialChildCount, node.Children);
@@ -244,7 +242,7 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.IsTrue(node.Children.All(c => c.Parent == node));
@@ -257,7 +255,7 @@ namespace AzureExplorer.Test.Core.Models
             var node = new SubscriptionNode(_testName, _testSubscriptionId);
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.AreEqual("SubscriptionAppServicesNode", node.Children[0].GetType().Name);
@@ -265,6 +263,8 @@ namespace AzureExplorer.Test.Core.Models
             Assert.AreEqual("SubscriptionKeyVaultsNode", node.Children[2].GetType().Name);
             Assert.AreEqual("ResourceGroupsNode", node.Children[3].GetType().Name);
         }
+
+        public TestContext TestContext { get; set; }
 
         #endregion
     }

@@ -331,7 +331,7 @@ namespace AzureExplorer.Test.Core.Models
             var node = new TestExplorerNode("Label");
 
             // Act
-            await node.LoadChildrenAsync();
+            await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.IsTrue(true); // Task completed successfully
@@ -363,13 +363,13 @@ namespace AzureExplorer.Test.Core.Models
             node.Children.Add(new TestExplorerNode("Child2"));
 
             // Act
-            await node.RefreshAsync();
+            await node.RefreshAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.IsFalse(node.IsLoaded);
             Assert.IsFalse(node.IsLoading);
             Assert.IsNull(node.Description);
-            Assert.AreEqual(0, node.Children.Count);
+            Assert.IsEmpty(node.Children);
             Assert.AreEqual(1, node.LoadChildrenCallCount);
         }
 
@@ -447,7 +447,7 @@ namespace AzureExplorer.Test.Core.Models
 
             // Assert
             Assert.IsTrue(result);
-            Assert.AreEqual(2, node.Children.Count);
+            Assert.HasCount(2, node.Children);
             Assert.AreEqual("Child1", node.Children[0].Label);
             Assert.AreEqual("Child2", node.Children[1].Label);
         }
@@ -466,7 +466,7 @@ namespace AzureExplorer.Test.Core.Models
 
             // Assert
             Assert.IsTrue(result);
-            Assert.AreEqual(0, node.Children.Count);
+            Assert.IsEmpty(node.Children);
         }
 
         [TestMethod]
@@ -529,7 +529,7 @@ namespace AzureExplorer.Test.Core.Models
 
             // Assert
             Assert.AreEqual(parent, child.Parent);
-            Assert.AreEqual(1, parent.Children.Count);
+            Assert.HasCount(1, parent.Children);
             Assert.AreEqual(child, parent.Children[0]);
         }
 
@@ -548,7 +548,7 @@ namespace AzureExplorer.Test.Core.Models
             parent.AddChildPublic(child3);
 
             // Assert
-            Assert.AreEqual(3, parent.Children.Count);
+            Assert.HasCount(3, parent.Children);
             Assert.AreEqual("Child1", parent.Children[0].Label);
             Assert.AreEqual("Child2", parent.Children[1].Label);
             Assert.AreEqual("Child3", parent.Children[2].Label);
@@ -876,5 +876,7 @@ namespace AzureExplorer.Test.Core.Models
 
             public void OnPropertyChangedPublic(string? propertyName = null) => OnPropertyChanged(propertyName);
         }
+
+        public TestContext TestContext { get; set; }
     }
 }
