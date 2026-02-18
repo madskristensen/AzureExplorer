@@ -23,6 +23,9 @@ namespace AzureExplorer.Services
         private readonly ConcurrentDictionary<string, string> _subscriptionTenantMap =
             new(StringComparer.OrdinalIgnoreCase);
 
+        private readonly ConcurrentDictionary<string, string> _subscriptionAccountMap =
+            new(StringComparer.OrdinalIgnoreCase);
+
         private readonly ConcurrentDictionary<string, ArmClient> _clientCache =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -36,8 +39,21 @@ namespace AzureExplorer.Services
         /// </summary>
         internal TokenCredential GetCredential(string subscriptionId = null)
         {
-            TokenCredential credential = AzureAuthService.Instance.Credential
-                ?? throw new InvalidOperationException("Not signed in to Azure.");
+            TokenCredential credential;
+
+            // Try to get account-specific credential for this subscription
+            if (subscriptionId != null && _subscriptionAccountMap.TryGetValue(subscriptionId, out var accountId))
+            {
+                credential = AzureAuthService.Instance.GetCredential(accountId);
+            }
+            else
+            {
+                // Fall back to first available account
+                var accounts = AzureAuthService.Instance.Accounts;
+                if (accounts.Count == 0)
+                    throw new InvalidOperationException("Not signed in to Azure.");
+                credential = accounts[0].Credential;
+            }
 
             if (subscriptionId != null &&
                 _subscriptionTenantMap.TryGetValue(subscriptionId, out var tenantId))
@@ -65,65 +81,51 @@ namespace AzureExplorer.Services
         internal void ClearClientCache()
         {
             _clientCache.Clear();
+            _subscriptionAccountMap.Clear();
         }
 
         /// <summary>
-        /// Yields Azure subscriptions across all accessible tenants as they are discovered.
-        /// Queries tenants in parallel for faster loading.
+        /// Yields all accessible Azure AD tenants for a specific account.
         /// </summary>
-        public async IAsyncEnumerable<SubscriptionResource> GetSubscriptionsAsync(
+        public async IAsyncEnumerable<TenantInfo> GetTenantsAsync(
+            string accountId,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            TokenCredential credential = AzureAuthService.Instance.Credential
-                ?? throw new InvalidOperationException("Not signed in to Azure.");
-
+            TokenCredential credential = AzureAuthService.Instance.GetCredential(accountId);
             var client = new ArmClient(credential);
-            var seen = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
 
-            // First, collect all tenants
-            var tenants = new List<TenantResource>();
             await foreach (TenantResource tenant in client.GetTenants().GetAllAsync(cancellationToken))
             {
                 if (tenant.Data.TenantId.HasValue)
-                    tenants.Add(tenant);
+                {
+                    yield return new TenantInfo(
+                        tenant.Data.TenantId.Value.ToString(),
+                        tenant.Data.DisplayName ?? tenant.Data.DefaultDomain);
+                }
             }
+        }
 
-            // Query all tenants in parallel, collecting results into a concurrent bag
-            var results = new ConcurrentBag<(SubscriptionResource Sub, string TenantId)>();
+        /// <summary>
+        /// Yields subscriptions belonging to a specific tenant for a specific account.
+        /// </summary>
+        public async IAsyncEnumerable<SubscriptionResource> GetSubscriptionsForTenantAsync(
+            string accountId,
+            string tenantId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = AzureAuthService.Instance.GetCredential(accountId);
+            var tenantCredential = new TenantScopedCredential(credential, tenantId);
+            var tenantClient = new ArmClient(tenantCredential);
 
-            var tasks = tenants.Select(tenant => Task.Run(async () =>
+            await foreach (SubscriptionResource sub in tenantClient.GetSubscriptions().GetAllAsync(cancellationToken))
             {
-                var tenantId = tenant.Data.TenantId.Value.ToString();
-                try
-                {
-                    var tenantCredential = new TenantScopedCredential(credential, tenantId);
-                    var tenantClient = new ArmClient(tenantCredential);
+                // Filter to subscriptions owned by this tenant to avoid duplicates from guest access
+                if (sub.Data.TenantId.HasValue && sub.Data.TenantId.Value.ToString() != tenantId)
+                    continue;
 
-                    await foreach (SubscriptionResource sub in tenantClient.GetSubscriptions().GetAllAsync(cancellationToken))
-                    {
-                        // Filter to subscriptions owned by this tenant to avoid duplicates
-                        if (sub.Data.TenantId.HasValue && sub.Data.TenantId.Value != tenant.Data.TenantId.Value)
-                            continue;
-
-                        results.Add((sub, tenantId));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Skipping tenant {tenantId}: {ex.Message}");
-                }
-            }, cancellationToken)).ToArray();
-
-            await Task.WhenAll(tasks);
-
-            // Yield unique subscriptions
-            foreach (var (sub, tenantId) in results)
-            {
-                if (seen.TryAdd(sub.Data.SubscriptionId, 0))
-                {
-                    _subscriptionTenantMap[sub.Data.SubscriptionId] = tenantId;
-                    yield return sub;
-                }
+                _subscriptionTenantMap[sub.Data.SubscriptionId] = tenantId;
+                _subscriptionAccountMap[sub.Data.SubscriptionId] = accountId;
+                yield return sub;
             }
         }
 
@@ -187,5 +189,14 @@ namespace AzureExplorer.Services
                 return inner.GetTokenAsync(scoped, cancellationToken);
             }
         }
+    }
+
+    /// <summary>
+    /// Holds basic information about an Azure AD tenant.
+    /// </summary>
+    internal sealed class TenantInfo(string tenantId, string displayName)
+    {
+        public string TenantId { get; } = tenantId;
+        public string DisplayName { get; } = displayName;
     }
 }

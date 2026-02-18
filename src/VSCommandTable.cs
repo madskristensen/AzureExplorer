@@ -31,6 +31,7 @@ namespace AzureExplorer
         public const int AppServicePlansCategoryContextMenu = 0x0027;
         public const int FrontDoorContextMenu = 0x0028;
         public const int FrontDoorsCategoryContextMenu = 0x0029;
+        public const int TenantContextMenu = 0x002A;
         public const int ViewMenuGroup = 0x0030;
         public const int ToolbarGroup = 0x0031;
         public const int SubscriptionContextMenuGroup = 0x0040;
@@ -41,6 +42,7 @@ namespace AzureExplorer
         public const int FrontDoorBrowseGroup = 0x004B;
         public const int FrontDoorRefreshGroup = 0x004C;
         public const int FrontDoorsCategoryContextMenuGroup = 0x004D;
+        public const int TenantContextMenuGroup = 0x004E;
         public const int AppServiceBrowseGroup = 0x0042;
         public const int AppServiceActionsGroup = 0x0043;
         public const int AppServiceDiagnosticsGroup = 0x0045;
@@ -54,6 +56,7 @@ namespace AzureExplorer
         public const int Refresh = 0x0102;
         public const int RefreshSubscription = 0x0103;
         public const int RefreshResourceGroup = 0x0104;
+        public const int RefreshTenant = 0x0105;
         public const int BrowseSite = 0x0110;
         public const int StartAppService = 0x0111;
         public const int StopAppService = 0x0112;

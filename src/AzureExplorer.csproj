@@ -54,6 +54,7 @@
     <Compile Include="Models\AppServicesNode.cs" />
     <Compile Include="Models\FrontDoorNode.cs" />
     <Compile Include="Models\FrontDoorsNode.cs" />
+    <Compile Include="Models\TenantNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\ShowExplorerCommand.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
@@ -98,6 +99,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSCommandTable.vsct</DependentUpon>
     </Compile>
+    <Compile Include="VSCommandTable.Tenant.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">

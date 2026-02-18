@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -109,33 +110,37 @@ namespace AzureExplorer.ToolWindows
         {
             RootNodes.Clear();
 
-            if (!AzureAuthService.Instance.IsSignedIn)
+            var accounts = AzureAuthService.Instance.Accounts;
+            if (accounts.Count == 0)
             {
                 RootNodes.Add(new SignInNode());
                 EmptyMessage.Visibility = Visibility.Collapsed;
                 return;
             }
 
-            var accountNode = new AccountNode(AzureAuthService.Instance.AccountName);
-            RootNodes.Add(accountNode);
             EmptyMessage.Visibility = Visibility.Collapsed;
 
-            // Load children first, then expand. Setting IsExpanded before
-            // LoadChildrenAsync completes causes a race with the Expanded
-            // event handler that also calls LoadChildrenAsync.
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            // Create an AccountNode for each signed-in account
+            foreach (var account in accounts.OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase))
             {
-                try
+                var accountNode = new AccountNode(account.AccountId, account.Username);
+                RootNodes.Add(accountNode);
+
+                // Load children first, then expand
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    await accountNode.LoadChildrenAsync();
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    accountNode.IsExpanded = true;
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Failed to load account children: {ex.Message}");
-                }
-            }).FireAndForget();
+                    try
+                    {
+                        await accountNode.LoadChildrenAsync();
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        accountNode.IsExpanded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to load account children: {ex.Message}");
+                    }
+                }).FireAndForget();
+            }
         }
 
         public async System.Threading.Tasks.Task ReloadAsync()
@@ -233,7 +238,7 @@ namespace AzureExplorer.ToolWindows
                 {
                     try
                     {
-                        await AzureAuthService.Instance.SignInAsync();
+                        await AzureAuthService.Instance.AddAccountAsync();
                     }
                     catch (Exception ex)
                     {

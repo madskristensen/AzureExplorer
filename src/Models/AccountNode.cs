@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Azure.ResourceManager.Resources;
-
 using AzureExplorer.Services;
 
 using Microsoft.VisualStudio.Imaging;
@@ -13,19 +11,25 @@ using Microsoft.VisualStudio.Imaging.Interop;
 namespace AzureExplorer.Models
 {
     /// <summary>
-    /// Root node representing the signed-in Azure account.
-    /// Children are <see cref="SubscriptionNode"/> instances.
+    /// Root node representing a signed-in Azure account.
+    /// Children are <see cref="TenantNode"/> instances representing each accessible tenant.
     /// </summary>
     internal sealed class AccountNode : ExplorerNodeBase
     {
-        public AccountNode(string accountName) : base(accountName)
+        public AccountNode(string accountId, string accountName) : base(accountName)
         {
+            AccountId = accountId;
             // Add placeholder so the expand arrow is shown before children are loaded
             Children.Add(new LoadingNode());
         }
 
+        /// <summary>
+        /// The unique identifier for this account (used for sign-out and credential lookup).
+        /// </summary>
+        public string AccountId { get; }
+
         public override ImageMoniker IconMoniker => KnownMonikers.Cloud;
-        public override int ContextMenuId => 0;
+        public override int ContextMenuId => PackageIds.AccountContextMenu;
         public override bool SupportsChildren => true;
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
@@ -35,16 +39,16 @@ namespace AzureExplorer.Models
 
             try
             {
-                var subscriptions = new List<SubscriptionNode>();
+                var tenants = new List<TenantNode>();
 
-                await foreach (SubscriptionResource sub in AzureResourceService.Instance.GetSubscriptionsAsync(cancellationToken))
+                await foreach (TenantInfo tenant in AzureResourceService.Instance.GetTenantsAsync(AccountId, cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    subscriptions.Add(new SubscriptionNode(sub.Data.DisplayName, sub.Data.SubscriptionId));
+                    tenants.Add(new TenantNode(tenant.TenantId, tenant.DisplayName, AccountId));
                 }
 
-                // Sort alphabetically by name
-                foreach (var node in subscriptions.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
+                // Sort alphabetically by display name
+                foreach (var node in tenants.OrderBy(t => t.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

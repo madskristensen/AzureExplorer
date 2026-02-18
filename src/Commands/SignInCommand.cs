@@ -1,4 +1,4 @@
-﻿using AzureExplorer.Services;
+using AzureExplorer.Services;
 
 namespace AzureExplorer
 {
@@ -9,7 +9,7 @@ namespace AzureExplorer
         {
             try
             {
-                await AzureAuthService.Instance.SignInAsync();
+                await AzureAuthService.Instance.AddAccountAsync();
                 await VS.StatusBar.ShowMessageAsync("Signed in to Azure successfully.");
             }
             catch (OperationCanceledException)
@@ -19,6 +19,26 @@ namespace AzureExplorer
             catch (Exception ex)
             {
                 await VS.MessageBox.ShowErrorAsync("Azure Sign In", ex.Message);
+            }
+        }
+    }
+
+    [Command(PackageIds.SignOutAccount)]
+    internal sealed class SignOutAccountCommand : BaseCommand<SignOutAccountCommand>
+    {
+        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+        {
+            try
+            {
+                if (ToolWindows.AzureExplorerControl.SelectedNode is not Models.AccountNode accountNode)
+                    return;
+
+                AzureAuthService.Instance.SignOut(accountNode.AccountId);
+                await VS.StatusBar.ShowMessageAsync($"Signed out from {accountNode.Label}.");
+            }
+            catch (Exception ex)
+            {
+                await VS.MessageBox.ShowErrorAsync("Azure Sign Out", ex.Message);
             }
         }
     }

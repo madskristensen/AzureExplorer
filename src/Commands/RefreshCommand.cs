@@ -64,6 +64,42 @@ namespace AzureExplorer
         }
     }
 
+    [Command(PackageIds.RefreshTenant)]
+    internal sealed class RefreshTenantCommand : BaseCommand<RefreshTenantCommand>
+    {
+        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+        {
+            try
+            {
+                ExplorerNodeBase node = AzureExplorerControl.SelectedNode;
+                if (node != null)
+                    await node.RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
+            }
+        }
+    }
+
+    [Command(PackageIds.RefreshAccount)]
+    internal sealed class RefreshAccountCommand : BaseCommand<RefreshAccountCommand>
+    {
+        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+        {
+            try
+            {
+                ExplorerNodeBase node = AzureExplorerControl.SelectedNode;
+                if (node != null)
+                    await node.RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
+            }
+        }
+    }
+
     [Command(PackageIds.RefreshAppService)]
     internal sealed class RefreshAppServiceCommand : BaseCommand<RefreshAppServiceCommand>
     {

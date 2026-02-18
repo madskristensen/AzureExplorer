@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +11,7 @@ using Azure.Identity;
 namespace AzureExplorer.Services
 {
     /// <summary>
-    /// Manages Azure authentication state with persistent token caching.
+    /// Manages Azure authentication state for multiple accounts with persistent token caching.
     /// Tokens and authentication records are stored to disk so users don't
     /// need to re-authenticate every VS session.
     /// </summary>
@@ -17,87 +20,131 @@ namespace AzureExplorer.Services
         private static readonly Lazy<AzureAuthService> _instance = new(() => new AzureAuthService());
         private static readonly string _cacheDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AzureExplorer");
-        private static readonly string _authRecordPath = Path.Combine(_cacheDir, "auth-record.bin");
+        private static readonly string _accountsDir = Path.Combine(_cacheDir, "accounts");
 
-        private InteractiveBrowserCredential _credential;
-        private string _accountName;
+        private readonly Dictionary<string, AccountCredential> _accounts = new(StringComparer.OrdinalIgnoreCase);
+        private readonly object _lock = new();
 
         private AzureAuthService() { }
 
         public static AzureAuthService Instance => _instance.Value;
 
-        public bool IsSignedIn { get; private set; }
+        /// <summary>
+        /// Returns true if at least one account is signed in.
+        /// </summary>
+        public bool IsSignedIn => _accounts.Count > 0;
 
         public bool IsSigningIn { get; private set; }
 
-        public string AccountName => _accountName;
-
-        public TokenCredential Credential => _credential;
+        /// <summary>
+        /// Gets a read-only collection of all signed-in accounts.
+        /// </summary>
+        public IReadOnlyList<AccountInfo> Accounts
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _accounts.Values
+                        .Select(a => new AccountInfo(a.AccountId, a.Username, a.Credential))
+                        .ToList()
+                        .AsReadOnly();
+                }
+            }
+        }
 
         public event EventHandler AuthStateChanged;
 
         /// <summary>
-        /// Attempts to restore a previous session silently using the persisted
-        /// authentication record and token cache. Returns true if successful.
-        /// This method never opens a browser.
+        /// Gets the credential for a specific account.
         /// </summary>
-        public async Task<bool> TrySilentSignInAsync(CancellationToken cancellationToken = default)
+        public TokenCredential GetCredential(string accountId)
         {
-            if (IsSignedIn)
-                return true;
-
-            AuthenticationRecord record = await LoadAuthRecordAsync();
-            if (record == null)
-                return false;
-
-            try
+            lock (_lock)
             {
-                // Use DisableAutomaticAuthentication so GetTokenAsync throws
-                // AuthenticationRequiredException instead of opening a browser.
-                var silentOptions = new InteractiveBrowserCredentialOptions
-                {
-                    TokenCachePersistenceOptions = new TokenCachePersistenceOptions
-                    {
-                        Name = "AzureExplorer",
-                        UnsafeAllowUnencryptedStorage = true,
-                    },
-                    AdditionallyAllowedTenants = { "*" },
-                    AuthenticationRecord = record,
-                    DisableAutomaticAuthentication = true,
-                };
-                var silentCredential = new InteractiveBrowserCredential(silentOptions);
+                if (_accounts.TryGetValue(accountId, out var account))
+                    return account.Credential;
+            }
 
-                var context = new TokenRequestContext(["https://management.azure.com/.default"]);
-                await silentCredential.GetTokenAsync(context, cancellationToken);
-
-                // Silent token acquisition succeeded — create the real credential
-                // (without DisableAutomaticAuthentication) for ArmClient use.
-                _credential = CreateCredential(record);
-                _accountName = record.Username ?? "Azure Account";
-                IsSignedIn = true;
-                AuthStateChanged?.Invoke(this, EventArgs.Empty);
-                return true;
-            }
-            catch (AuthenticationRequiredException)
-            {
-                // Silent auth failed — user interaction required (expected case)
-                return false;
-            }
-            catch (CredentialUnavailableException)
-            {
-                // Credential not available (expired refresh token, revoked, etc.)
-                return false;
-            }
+            throw new InvalidOperationException($"Account '{accountId}' is not signed in.");
         }
 
         /// <summary>
-        /// Signs in with a single interactive browser prompt.
+        /// Attempts to restore all previous sessions silently using persisted
+        /// authentication records and token cache. Returns number of accounts restored.
+        /// This method never opens a browser.
+        /// </summary>
+        public async Task<int> TrySilentSignInAsync(CancellationToken cancellationToken = default)
+        {
+            var records = await LoadAllAuthRecordsAsync();
+            if (records.Count == 0)
+            {
+                // Migration: try loading legacy single-account auth record
+                var legacyRecord = await LoadLegacyAuthRecordAsync();
+                if (legacyRecord != null)
+                    records.Add(legacyRecord);
+            }
+
+            int restored = 0;
+            foreach (var record in records)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    // Use DisableAutomaticAuthentication so GetTokenAsync throws
+                    // AuthenticationRequiredException instead of opening a browser.
+                    var silentOptions = new InteractiveBrowserCredentialOptions
+                    {
+                        TokenCachePersistenceOptions = new TokenCachePersistenceOptions
+                        {
+                            Name = "AzureExplorer",
+                            UnsafeAllowUnencryptedStorage = true,
+                        },
+                        AdditionallyAllowedTenants = { "*" },
+                        AuthenticationRecord = record,
+                        DisableAutomaticAuthentication = true,
+                    };
+                    var silentCredential = new InteractiveBrowserCredential(silentOptions);
+
+                    var context = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
+                    await silentCredential.GetTokenAsync(context, cancellationToken);
+
+                    // Silent token acquisition succeeded — create the real credential
+                    var credential = CreateCredential(record);
+                    var accountId = GetAccountId(record);
+
+                    lock (_lock)
+                    {
+                        _accounts[accountId] = new AccountCredential(accountId, record.Username ?? "Azure Account", credential, record);
+                    }
+
+                    restored++;
+                }
+                catch (AuthenticationRequiredException)
+                {
+                    // Silent auth failed for this account — skip it
+                }
+                catch (CredentialUnavailableException)
+                {
+                    // Credential not available (expired refresh token, revoked, etc.)
+                }
+            }
+
+            if (restored > 0)
+                AuthStateChanged?.Invoke(this, EventArgs.Empty);
+
+            return restored;
+        }
+
+        /// <summary>
+        /// Signs in a new account with an interactive browser prompt.
         /// Persists the authentication record and token cache to disk.
         /// </summary>
-        public async Task SignInAsync(CancellationToken cancellationToken = default)
+        public async Task<AccountInfo> AddAccountAsync(CancellationToken cancellationToken = default)
         {
             if (IsSigningIn)
-                return;
+                return null;
 
             IsSigningIn = true;
             try
@@ -106,15 +153,30 @@ namespace AzureExplorer.Services
 
                 // AuthenticateAsync opens the browser ONCE and returns an
                 // AuthenticationRecord we can persist for future silent auth.
-                var context = new TokenRequestContext(["https://management.azure.com/.default"]);
+                var context = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
                 AuthenticationRecord record = await credential.AuthenticateAsync(context, cancellationToken);
 
-                SaveAuthRecord(record);
+                var accountId = GetAccountId(record);
+                var username = record.Username ?? "Azure Account";
 
-                _credential = credential;
-                _accountName = record.Username ?? "Azure Account";
-                IsSignedIn = true;
+                // Check if account already exists
+                lock (_lock)
+                {
+                    if (_accounts.ContainsKey(accountId))
+                    {
+                        // Update existing account credential
+                        _accounts[accountId] = new AccountCredential(accountId, username, credential, record);
+                    }
+                    else
+                    {
+                        _accounts[accountId] = new AccountCredential(accountId, username, credential, record);
+                    }
+                }
+
+                SaveAuthRecord(accountId, record);
                 AuthStateChanged?.Invoke(this, EventArgs.Empty);
+
+                return new AccountInfo(accountId, username, credential);
             }
             finally
             {
@@ -123,33 +185,69 @@ namespace AzureExplorer.Services
         }
 
         /// <summary>
-        /// Clears credentials from memory and deletes persisted tokens.
+        /// Signs out a specific account and removes its persisted tokens.
         /// </summary>
-        public void SignOut()
+        public void SignOut(string accountId)
         {
-            _credential = null;
-            _accountName = null;
-            IsSignedIn = false;
-            DeleteAuthRecord();
+            lock (_lock)
+            {
+                _accounts.Remove(accountId);
+            }
+
+            DeleteAuthRecord(accountId);
             AzureResourceService.Instance.ClearClientCache();
             AuthStateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Signs out all accounts and removes all persisted tokens.
+        /// </summary>
+        public void SignOutAll()
+        {
+            List<string> accountIds;
+            lock (_lock)
+            {
+                accountIds = _accounts.Keys.ToList();
+                _accounts.Clear();
+            }
+
+            foreach (var accountId in accountIds)
+            {
+                DeleteAuthRecord(accountId);
+            }
+
+            // Also delete legacy auth record if it exists
+            DeleteLegacyAuthRecord();
+
+            AzureResourceService.Instance.ClearClientCache();
+            AuthStateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static string GetAccountId(AuthenticationRecord record)
+        {
+            // Use a combination of username and home account id to create a unique identifier
+            return record.HomeAccountId ?? record.Username ?? Guid.NewGuid().ToString();
+        }
+
+        private static string GetSafeFileName(string accountId)
+        {
+            // Create a safe filename from the account ID
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                accountId = accountId.Replace(c, '_');
+            }
+            return accountId;
         }
 
         private static InteractiveBrowserCredential CreateCredential(AuthenticationRecord authRecord)
         {
             var options = new InteractiveBrowserCredentialOptions
             {
-                // Persist tokens to disk so silent sign-in works across VS restarts.
-                // UnsafeAllowUnencryptedStorage is needed for .NET Framework 4.8
-                // where the encrypted MSAL cache may not initialize properly.
                 TokenCachePersistenceOptions = new TokenCachePersistenceOptions
                 {
                     Name = "AzureExplorer",
                     UnsafeAllowUnencryptedStorage = true,
                 },
-                // Allow the credential to acquire tokens for any tenant,
-                // not just the home tenant — fixes empty subscription lists
-                // for users with resources in work/guest tenants.
                 AdditionallyAllowedTenants = { "*" },
             };
 
@@ -161,17 +259,53 @@ namespace AzureExplorer.Services
             return new InteractiveBrowserCredential(options);
         }
 
-        private static async Task<AuthenticationRecord> LoadAuthRecordAsync()
+        private static async Task<List<AuthenticationRecord>> LoadAllAuthRecordsAsync()
         {
+            var records = new List<AuthenticationRecord>();
+
             try
             {
-                // Offload file I/O to background thread to avoid blocking UI thread on startup
+                if (!Directory.Exists(_accountsDir))
+                    return records;
+
+                await Task.Run(() =>
+                {
+                    foreach (var file in Directory.GetFiles(_accountsDir, "*.bin"))
+                    {
+                        try
+                        {
+                            using (FileStream stream = File.OpenRead(file))
+                            {
+                                var record = AuthenticationRecord.Deserialize(stream);
+                                records.Add(record);
+                            }
+                        }
+                        catch
+                        {
+                            // Skip corrupted files
+                        }
+                    }
+                });
+            }
+            catch
+            {
+                // Return empty list on error
+            }
+
+            return records;
+        }
+
+        private static async Task<AuthenticationRecord> LoadLegacyAuthRecordAsync()
+        {
+            var legacyPath = Path.Combine(_cacheDir, "auth-record.bin");
+            try
+            {
                 return await Task.Run(() =>
                 {
-                    if (!File.Exists(_authRecordPath))
+                    if (!File.Exists(legacyPath))
                         return null;
 
-                    using (FileStream stream = File.OpenRead(_authRecordPath))
+                    using (FileStream stream = File.OpenRead(legacyPath))
                     {
                         return AuthenticationRecord.Deserialize(stream);
                     }
@@ -183,12 +317,15 @@ namespace AzureExplorer.Services
             }
         }
 
-        private static void SaveAuthRecord(AuthenticationRecord record)
+        private static void SaveAuthRecord(string accountId, AuthenticationRecord record)
         {
             try
             {
-                Directory.CreateDirectory(_cacheDir);
-                using (FileStream stream = File.Create(_authRecordPath))
+                Directory.CreateDirectory(_accountsDir);
+                var fileName = GetSafeFileName(accountId) + ".bin";
+                var filePath = Path.Combine(_accountsDir, fileName);
+
+                using (FileStream stream = File.Create(filePath))
                 {
                     record.Serialize(stream);
                 }
@@ -199,17 +336,52 @@ namespace AzureExplorer.Services
             }
         }
 
-        private static void DeleteAuthRecord()
+        private static void DeleteAuthRecord(string accountId)
         {
             try
             {
-                if (File.Exists(_authRecordPath))
-                    File.Delete(_authRecordPath);
+                var fileName = GetSafeFileName(accountId) + ".bin";
+                var filePath = Path.Combine(_accountsDir, fileName);
+
+                if (File.Exists(filePath))
+                    File.Delete(filePath);
             }
             catch
             {
                 // Best effort cleanup
             }
         }
+
+        private static void DeleteLegacyAuthRecord()
+        {
+            try
+            {
+                var legacyPath = Path.Combine(_cacheDir, "auth-record.bin");
+                if (File.Exists(legacyPath))
+                    File.Delete(legacyPath);
+            }
+            catch
+            {
+                // Best effort cleanup
+            }
+        }
+
+        private sealed class AccountCredential(string accountId, string username, InteractiveBrowserCredential credential, AuthenticationRecord record)
+        {
+            public string AccountId { get; } = accountId;
+            public string Username { get; } = username;
+            public InteractiveBrowserCredential Credential { get; } = credential;
+            public AuthenticationRecord Record { get; } = record;
+        }
+    }
+
+    /// <summary>
+    /// Public information about a signed-in Azure account.
+    /// </summary>
+    internal sealed class AccountInfo(string accountId, string username, TokenCredential credential)
+    {
+        public string AccountId { get; } = accountId;
+        public string Username { get; } = username;
+        public TokenCredential Credential { get; } = credential;
     }
 }

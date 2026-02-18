@@ -73,6 +73,20 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Tenant node -->
+      <Menu guid="AzureExplorer" id="TenantContextMenu" type="Context">
+        <Strings>
+          <CommandName>Tenant</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Account node -->
+      <Menu guid="AzureExplorer" id="AccountContextMenu" type="Context">
+        <Strings>
+          <CommandName>Account</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Flyout: Streaming Logs (inside App Service context menu) -->
       <Menu guid="AzureExplorer" id="StreamingLogsFlyout" priority="0x0250" type="Menu">
         <Parent guid="AzureExplorer" id="AppServiceDiagnosticsGroup"/>
@@ -133,6 +147,16 @@
       <!-- Front Doors category context menu groups -->
       <Group guid="AzureExplorer" id="FrontDoorsCategoryContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="FrontDoorsCategoryContextMenu"/>
+      </Group>
+
+      <!-- Tenant context menu groups -->
+      <Group guid="AzureExplorer" id="TenantContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="TenantContextMenu"/>
+      </Group>
+
+      <!-- Account context menu groups -->
+      <Group guid="AzureExplorer" id="AccountContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="AccountContextMenu"/>
       </Group>
 
       <!-- App Service Plan context menu groups -->
@@ -207,6 +231,39 @@
         <Strings>
           <ButtonText>Refresh</ButtonText>
           <LocCanonicalName>.AzureExplorer.RefreshSubscription</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Tenant context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshTenant" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="TenantContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshTenant</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Account context: Sign Out -->
+      <Button guid="AzureExplorer" id="SignOutAccount" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="AccountContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Disconnect"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Sign Out</ButtonText>
+          <LocCanonicalName>.AzureExplorer.SignOutAccount</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Account context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshAccount" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="AccountContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshAccount</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -428,6 +485,8 @@
       <IDSymbol name="AppServicePlansCategoryContextMenu" value="0x0027" />
       <IDSymbol name="FrontDoorContextMenu" value="0x0028" />
       <IDSymbol name="FrontDoorsCategoryContextMenu" value="0x0029" />
+      <IDSymbol name="TenantContextMenu" value="0x002A" />
+      <IDSymbol name="AccountContextMenu" value="0x002B" />
 
       <!-- Groups -->
       <IDSymbol name="ViewMenuGroup" value="0x0030" />
@@ -440,6 +499,8 @@
       <IDSymbol name="FrontDoorBrowseGroup" value="0x004B" />
       <IDSymbol name="FrontDoorRefreshGroup" value="0x004C" />
       <IDSymbol name="FrontDoorsCategoryContextMenuGroup" value="0x004D" />
+      <IDSymbol name="TenantContextMenuGroup" value="0x004E" />
+      <IDSymbol name="AccountContextMenuGroup" value="0x004F" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
       <IDSymbol name="AppServiceActionsGroup" value="0x0043" />
       <IDSymbol name="AppServiceDiagnosticsGroup" value="0x0045" />
@@ -455,6 +516,9 @@
       <IDSymbol name="Refresh" value="0x0102" />
       <IDSymbol name="RefreshSubscription" value="0x0103" />
       <IDSymbol name="RefreshResourceGroup" value="0x0104" />
+      <IDSymbol name="RefreshTenant" value="0x0105" />
+      <IDSymbol name="SignOutAccount" value="0x0106" />
+      <IDSymbol name="RefreshAccount" value="0x0107" />
       <IDSymbol name="BrowseSite" value="0x0110" />
       <IDSymbol name="StartAppService" value="0x0111" />
       <IDSymbol name="StopAppService" value="0x0112" />
