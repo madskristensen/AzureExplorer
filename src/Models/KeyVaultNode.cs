@@ -1,3 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+
+using AzureExplorer.Services;
+
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
@@ -11,7 +17,7 @@ namespace AzureExplorer.Models
     }
 
     /// <summary>
-    /// Represents an Azure Key Vault. Expandable node containing secrets, keys, and certificates.
+    /// Represents an Azure Key Vault. Expandable node containing secrets directly.
     /// </summary>
     internal sealed class KeyVaultNode : ExplorerNodeBase
     {
@@ -27,8 +33,8 @@ namespace AzureExplorer.Models
             State = ParseState(state);
             Description = State.ToString();
 
-            // Add child category nodes
-            Children.Add(new SecretsNode(subscriptionId, name, VaultUri));
+            // Add loading placeholder
+            Children.Add(new LoadingNode());
         }
 
         public string SubscriptionId { get; }
@@ -52,11 +58,45 @@ namespace AzureExplorer.Models
         {
             KeyVaultState.Succeeded => KnownMonikers.AzureKeyVault,
             KeyVaultState.Failed => KnownMonikers.ApplicationWarning,
-            _ => KnownMonikers.Key
+            _ => KnownMonikers.AzureKeyVault
         };
 
         public override int ContextMenuId => PackageIds.KeyVaultContextMenu;
         public override bool SupportsChildren => true;
+
+        public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
+        {
+            if (!BeginLoading())
+                return;
+
+            try
+            {
+                var secrets = new List<SecretNode>();
+
+                await foreach (SecretNode secret in AzureResourceService.Instance.GetSecretsAsync(
+                    SubscriptionId, VaultUri, cancellationToken))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    secrets.Add(secret);
+                }
+
+                // Sort alphabetically by name
+                foreach (SecretNode node in secrets.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
+                {
+                    AddChild(node);
+                }
+            }
+            catch (Exception ex)
+            {
+                await ex.LogAsync();
+                Children.Clear();
+                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
+            }
+            finally
+            {
+                EndLoading();
+            }
+        }
 
         internal static KeyVaultState ParseState(string state)
         {

@@ -174,6 +174,9 @@
       <Group guid="AzureExplorer" id="KeyVaultBrowseGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="KeyVaultContextMenu"/>
       </Group>
+      <Group guid="AzureExplorer" id="KeyVaultActionsGroup" priority="0x0150">
+        <Parent guid="AzureExplorer" id="KeyVaultContextMenu"/>
+      </Group>
       <Group guid="AzureExplorer" id="KeyVaultRefreshGroup" priority="0x0200">
         <Parent guid="AzureExplorer" id="KeyVaultContextMenu"/>
       </Group>
@@ -181,6 +184,14 @@
       <!-- Key Vaults category context menu groups -->
       <Group guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenu"/>
+      </Group>
+
+      <!-- Secret context menu groups -->
+      <Group guid="AzureExplorer" id="SecretActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SecretContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="SecretDeleteGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="SecretContextMenu"/>
       </Group>
 
       <!-- Tenant context menu groups -->
@@ -389,6 +400,50 @@
         </Strings>
       </Button>
 
+      <!-- Key Vault context: Add Secret -->
+      <Button guid="AzureExplorer" id="AddSecret" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="KeyVaultActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Add"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Add Secret...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.AddSecret</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Secret context: Copy Value -->
+      <Button guid="AzureExplorer" id="CopySecretValue" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="SecretActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Value</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopySecretValue</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Secret context: Update Value -->
+      <Button guid="AzureExplorer" id="UpdateSecretValue" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="SecretActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Edit"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Update Value...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.UpdateSecretValue</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Secret context: Delete -->
+      <Button guid="AzureExplorer" id="DeleteSecret" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="SecretDeleteGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Cancel"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Delete...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.DeleteSecret</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Front Door context: Browse Endpoint -->
       <Button guid="AzureExplorer" id="BrowseFrontDoor" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="FrontDoorBrowseGroup"/>
@@ -581,8 +636,11 @@
       <IDSymbol name="FrontDoorRefreshGroup" value="0x004C" />
       <IDSymbol name="FrontDoorsCategoryContextMenuGroup" value="0x004D" />
       <IDSymbol name="KeyVaultBrowseGroup" value="0x0052" />
+      <IDSymbol name="KeyVaultActionsGroup" value="0x0056" />
       <IDSymbol name="KeyVaultRefreshGroup" value="0x0053" />
       <IDSymbol name="KeyVaultsCategoryContextMenuGroup" value="0x0054" />
+      <IDSymbol name="SecretActionsGroup" value="0x0057" />
+      <IDSymbol name="SecretDeleteGroup" value="0x0058" />
       <IDSymbol name="TenantContextMenuGroup" value="0x004E" />
       <IDSymbol name="AccountContextMenuGroup" value="0x004F" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
@@ -624,6 +682,10 @@
       <IDSymbol name="RefreshKeyVault" value="0x0141" />
       <IDSymbol name="RefreshKeyVaultsCategory" value="0x0142" />
       <IDSymbol name="CopyVaultUri" value="0x0143" />
+      <IDSymbol name="AddSecret" value="0x0144" />
+      <IDSymbol name="CopySecretValue" value="0x0145" />
+      <IDSymbol name="UpdateSecretValue" value="0x0146" />
+      <IDSymbol name="DeleteSecret" value="0x0147" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

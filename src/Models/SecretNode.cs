@@ -8,14 +8,16 @@ namespace AzureExplorer.Models
     /// </summary>
     internal sealed class SecretNode : ExplorerNodeBase
     {
-        public SecretNode(string name, string vaultUri, bool enabled)
+        public SecretNode(string name, string subscriptionId, string vaultUri, bool enabled)
             : base(name)
         {
+            SubscriptionId = subscriptionId;
             VaultUri = vaultUri;
             Enabled = enabled;
             Description = enabled ? "Enabled" : "Disabled";
         }
 
+        public string SubscriptionId { get; }
         public string VaultUri { get; }
         public bool Enabled { get; }
 

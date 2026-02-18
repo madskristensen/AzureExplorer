@@ -17,7 +17,7 @@ namespace AzureExplorer.Models
 
         protected override string ResourceType => "Microsoft.KeyVault/vaults";
 
-        public override ImageMoniker IconMoniker => KnownMonikers.Key;
+        public override ImageMoniker IconMoniker => KnownMonikers.AzureKeyVault;
         public override int ContextMenuId => PackageIds.KeyVaultsCategoryContextMenu;
 
         protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)

@@ -45,12 +45,22 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commands\AddSecretCommand.cs" />
     <Compile Include="Commands\BrowseFrontDoorCommand.cs" />
+    <Compile Include="Commands\CopySecretValueCommand.cs" />
     <Compile Include="Commands\CopyVaultUriCommand.cs" />
+    <Compile Include="Commands\DeleteSecretCommand.cs" />
     <Compile Include="Commands\DisconnectLogStreamCommand.cs" />
     <Compile Include="Commands\OpenAppServicePlanPortalCommand.cs" />
     <Compile Include="Commands\OpenFrontDoorPortalCommand.cs" />
     <Compile Include="Commands\OpenKeyVaultPortalCommand.cs" />
+    <Compile Include="Commands\UpdateSecretCommand.cs" />
+    <Compile Include="Dialogs\AddSecretDialog.xaml.cs">
+      <DependentUpon>AddSecretDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\UpdateSecretDialog.xaml.cs">
+      <DependentUpon>UpdateSecretDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Models\AppServicePlanNode.cs" />
     <Compile Include="Models\AppServicePlansNode.cs" />
     <Compile Include="Models\AppServicesNode.cs" />
@@ -60,7 +70,6 @@
     <Compile Include="Models\KeyVaultsNode.cs" />
     <Compile Include="Models\ResourceGroupsNode.cs" />
     <Compile Include="Models\SecretNode.cs" />
-    <Compile Include="Models\SecretsNode.cs" />
     <Compile Include="Models\SubscriptionAppServicesNode.cs" />
     <Compile Include="Models\SubscriptionFrontDoorsNode.cs" />
     <Compile Include="Models\SubscriptionKeyVaultsNode.cs" />
@@ -127,6 +136,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Dialogs\AddSecretDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\UpdateSecretDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ToolWindows\AzureExplorerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

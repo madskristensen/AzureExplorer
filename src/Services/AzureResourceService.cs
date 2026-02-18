@@ -177,8 +177,57 @@ namespace AzureExplorer.Services
             await foreach (Azure.Security.KeyVault.Secrets.SecretProperties secret in 
                 client.GetPropertiesOfSecretsAsync(cancellationToken))
             {
-                yield return new Models.SecretNode(secret.Name, vaultUri, secret.Enabled ?? true);
+                yield return new Models.SecretNode(secret.Name, subscriptionId, vaultUri, secret.Enabled ?? true);
             }
+        }
+
+        /// <summary>
+        /// Creates a new secret in the given Key Vault.
+        /// </summary>
+        public async Task CreateSecretAsync(
+            string subscriptionId,
+            string vaultUri,
+            string secretName,
+            string secretValue,
+            CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = GetCredential(subscriptionId);
+            var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
+
+            await client.SetSecretAsync(secretName, secretValue, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the value of a secret from the given Key Vault.
+        /// </summary>
+        public async Task<string> GetSecretValueAsync(
+            string subscriptionId,
+            string vaultUri,
+            string secretName,
+            CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = GetCredential(subscriptionId);
+            var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
+
+            Azure.Response<Azure.Security.KeyVault.Secrets.KeyVaultSecret> response = 
+                await client.GetSecretAsync(secretName, cancellationToken: cancellationToken);
+
+            return response.Value.Value;
+        }
+
+        /// <summary>
+        /// Deletes a secret from the given Key Vault.
+        /// </summary>
+        public async Task DeleteSecretAsync(
+            string subscriptionId,
+            string vaultUri,
+            string secretName,
+            CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = GetCredential(subscriptionId);
+            var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
+
+            await client.StartDeleteSecretAsync(secretName, cancellationToken);
         }
 
         /// <summary>

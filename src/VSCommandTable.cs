@@ -46,6 +46,7 @@ namespace AzureExplorer
         public const int FrontDoorRefreshGroup = 0x004C;
         public const int FrontDoorsCategoryContextMenuGroup = 0x004D;
         public const int KeyVaultBrowseGroup = 0x0052;
+        public const int KeyVaultActionsGroup = 0x0056;
         public const int KeyVaultRefreshGroup = 0x0053;
         public const int KeyVaultsCategoryContextMenuGroup = 0x0054;
         public const int TenantContextMenuGroup = 0x004E;
@@ -87,6 +88,12 @@ namespace AzureExplorer
         public const int RefreshKeyVault = 0x0141;
         public const int RefreshKeyVaultsCategory = 0x0142;
         public const int CopyVaultUri = 0x0143;
+        public const int AddSecret = 0x0144;
+        public const int CopySecretValue = 0x0145;
+        public const int UpdateSecretValue = 0x0146;
+        public const int DeleteSecret = 0x0147;
         public const int SecretContextMenu = 0x0055;
+        public const int SecretActionsGroup = 0x0057;
+        public const int SecretDeleteGroup = 0x0058;
     }
 }
