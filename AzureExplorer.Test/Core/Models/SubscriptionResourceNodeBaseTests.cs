@@ -1,9 +1,6 @@
-using AzureExplorer.Core.Models;
-using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
-using AzureExplorer.Core.Services;
+using AzureExplorer.Core.Models;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Moq;
 
 namespace AzureExplorer.Test.Core.Models
 {

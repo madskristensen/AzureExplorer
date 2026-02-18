@@ -33,13 +33,6 @@ jobs:
         sdk: 'false'
         msbuild: 'true'
 
-    - name: Increment VSIX version
-      id: vsix_version
-      uses: timheuer/vsix-version-stamp@v2
-      with:
-        manifest-file: ${{ env.VsixManifestPath }}
-        vsix-token-source-file: ${{ env.VsixManifestSourcePath }}
-
     - name: Cache NuGet packages
       uses: actions/cache@v3
       with:
@@ -47,6 +40,13 @@ jobs:
         key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
+
+    - name: Increment VSIX version
+      id: vsix_version
+      uses: timheuer/vsix-version-stamp@v2
+      with:
+        manifest-file: ${{ env.VsixManifestPath }}
+        vsix-token-source-file: ${{ env.VsixManifestSourcePath }}
 
     - name: Build
       run: msbuild /v:m -restore /p:OutDir=\_built
