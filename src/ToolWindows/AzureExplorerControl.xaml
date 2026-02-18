@@ -38,6 +38,7 @@
     <Grid>
         <TreeView x:Name="ExplorerTree"
                   BorderThickness="0"
+                  Padding="0,0,0,20"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <TreeView.ItemContainerStyle>
                 <Style TargetType="TreeViewItem">
