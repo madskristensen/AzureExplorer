@@ -31,7 +31,10 @@ namespace AzureExplorer
         public const int AppServicePlansCategoryContextMenu = 0x0027;
         public const int FrontDoorContextMenu = 0x0028;
         public const int FrontDoorsCategoryContextMenu = 0x0029;
+        public const int KeyVaultContextMenu = 0x0050;
+        public const int KeyVaultsCategoryContextMenu = 0x0051;
         public const int TenantContextMenu = 0x002A;
+        public const int AccountContextMenu = 0x002B;
         public const int ViewMenuGroup = 0x0030;
         public const int ToolbarGroup = 0x0031;
         public const int SubscriptionContextMenuGroup = 0x0040;
@@ -42,7 +45,11 @@ namespace AzureExplorer
         public const int FrontDoorBrowseGroup = 0x004B;
         public const int FrontDoorRefreshGroup = 0x004C;
         public const int FrontDoorsCategoryContextMenuGroup = 0x004D;
+        public const int KeyVaultBrowseGroup = 0x0052;
+        public const int KeyVaultRefreshGroup = 0x0053;
+        public const int KeyVaultsCategoryContextMenuGroup = 0x0054;
         public const int TenantContextMenuGroup = 0x004E;
+        public const int AccountContextMenuGroup = 0x004F;
         public const int AppServiceBrowseGroup = 0x0042;
         public const int AppServiceActionsGroup = 0x0043;
         public const int AppServiceDiagnosticsGroup = 0x0045;
@@ -57,6 +64,8 @@ namespace AzureExplorer
         public const int RefreshSubscription = 0x0103;
         public const int RefreshResourceGroup = 0x0104;
         public const int RefreshTenant = 0x0105;
+        public const int SignOutAccount = 0x0106;
+        public const int RefreshAccount = 0x0107;
         public const int BrowseSite = 0x0110;
         public const int StartAppService = 0x0111;
         public const int StopAppService = 0x0112;
@@ -74,5 +83,8 @@ namespace AzureExplorer
         public const int OpenFrontDoorPortal = 0x0131;
         public const int RefreshFrontDoor = 0x0132;
         public const int RefreshFrontDoorsCategory = 0x0133;
+        public const int OpenKeyVaultPortal = 0x0140;
+        public const int RefreshKeyVault = 0x0141;
+        public const int RefreshKeyVaultsCategory = 0x0142;
     }
 }

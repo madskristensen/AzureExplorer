@@ -35,21 +35,24 @@ namespace AzureExplorer.Models
             var appServicesNode = new AppServicesNode(SubscriptionId, ResourceGroupName);
             var appServicePlansNode = new AppServicePlansNode(SubscriptionId, ResourceGroupName);
             var frontDoorsNode = new FrontDoorsNode(SubscriptionId, ResourceGroupName);
+            var keyVaultsNode = new KeyVaultsNode(SubscriptionId, ResourceGroupName);
 
             AddChild(appServicesNode);
             AddChild(appServicePlansNode);
             AddChild(frontDoorsNode);
+            AddChild(keyVaultsNode);
 
             EndLoading();
 
             // Pre-load category children in parallel (fire-and-forget with error handling)
-            _ = PreloadCategoryChildrenAsync(appServicesNode, appServicePlansNode, frontDoorsNode, cancellationToken);
+            _ = PreloadCategoryChildrenAsync(appServicesNode, appServicePlansNode, frontDoorsNode, keyVaultsNode, cancellationToken);
         }
 
         private static async Task PreloadCategoryChildrenAsync(
             AppServicesNode appServicesNode,
             AppServicePlansNode appServicePlansNode,
             FrontDoorsNode frontDoorsNode,
+            KeyVaultsNode keyVaultsNode,
             CancellationToken cancellationToken)
         {
             try
@@ -57,7 +60,8 @@ namespace AzureExplorer.Models
                 await Task.WhenAll(
                     appServicesNode.LoadChildrenAsync(cancellationToken),
                     appServicePlansNode.LoadChildrenAsync(cancellationToken),
-                    frontDoorsNode.LoadChildrenAsync(cancellationToken));
+                    frontDoorsNode.LoadChildrenAsync(cancellationToken),
+                    keyVaultsNode.LoadChildrenAsync(cancellationToken));
             }
             catch (OperationCanceledException)
             {

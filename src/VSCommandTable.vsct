@@ -73,6 +73,20 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Key Vault node -->
+      <Menu guid="AzureExplorer" id="KeyVaultContextMenu" type="Context">
+        <Strings>
+          <CommandName>Key Vault</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Key Vaults category node -->
+      <Menu guid="AzureExplorer" id="KeyVaultsCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Key Vaults</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Context menu: Tenant node -->
       <Menu guid="AzureExplorer" id="TenantContextMenu" type="Context">
         <Strings>
@@ -147,6 +161,19 @@
       <!-- Front Doors category context menu groups -->
       <Group guid="AzureExplorer" id="FrontDoorsCategoryContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="FrontDoorsCategoryContextMenu"/>
+      </Group>
+
+      <!-- Key Vault context menu groups -->
+      <Group guid="AzureExplorer" id="KeyVaultBrowseGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="KeyVaultContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="KeyVaultRefreshGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="KeyVaultContextMenu"/>
+      </Group>
+
+      <!-- Key Vaults category context menu groups -->
+      <Group guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenu"/>
       </Group>
 
       <!-- Tenant context menu groups -->
@@ -308,6 +335,39 @@
         <Strings>
           <ButtonText>Refresh</ButtonText>
           <LocCanonicalName>.AzureExplorer.RefreshFrontDoorsCategory</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Key Vaults category context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshKeyVaultsCategory" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshKeyVaultsCategory</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Key Vault context: Open in Portal -->
+      <Button guid="AzureExplorer" id="OpenKeyVaultPortal" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="KeyVaultBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Web"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Open in Portal</ButtonText>
+          <LocCanonicalName>.AzureExplorer.OpenKeyVaultPortal</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Key Vault context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshKeyVault" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshKeyVault</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -485,6 +545,8 @@
       <IDSymbol name="AppServicePlansCategoryContextMenu" value="0x0027" />
       <IDSymbol name="FrontDoorContextMenu" value="0x0028" />
       <IDSymbol name="FrontDoorsCategoryContextMenu" value="0x0029" />
+      <IDSymbol name="KeyVaultContextMenu" value="0x0050" />
+      <IDSymbol name="KeyVaultsCategoryContextMenu" value="0x0051" />
       <IDSymbol name="TenantContextMenu" value="0x002A" />
       <IDSymbol name="AccountContextMenu" value="0x002B" />
 
@@ -499,6 +561,9 @@
       <IDSymbol name="FrontDoorBrowseGroup" value="0x004B" />
       <IDSymbol name="FrontDoorRefreshGroup" value="0x004C" />
       <IDSymbol name="FrontDoorsCategoryContextMenuGroup" value="0x004D" />
+      <IDSymbol name="KeyVaultBrowseGroup" value="0x0052" />
+      <IDSymbol name="KeyVaultRefreshGroup" value="0x0053" />
+      <IDSymbol name="KeyVaultsCategoryContextMenuGroup" value="0x0054" />
       <IDSymbol name="TenantContextMenuGroup" value="0x004E" />
       <IDSymbol name="AccountContextMenuGroup" value="0x004F" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
@@ -536,6 +601,9 @@
       <IDSymbol name="OpenFrontDoorPortal" value="0x0131" />
       <IDSymbol name="RefreshFrontDoor" value="0x0132" />
       <IDSymbol name="RefreshFrontDoorsCategory" value="0x0133" />
+      <IDSymbol name="OpenKeyVaultPortal" value="0x0140" />
+      <IDSymbol name="RefreshKeyVault" value="0x0141" />
+      <IDSymbol name="RefreshKeyVaultsCategory" value="0x0142" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

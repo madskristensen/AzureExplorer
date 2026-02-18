@@ -33,6 +33,18 @@ namespace AzureExplorer.Models
 
             try
             {
+                // Add subscription-level category nodes first
+                // These allow users to see resources they have direct access to,
+                // even without list permissions on the containing resource group
+                var appServicesNode = new SubscriptionAppServicesNode(SubscriptionId);
+                var frontDoorsNode = new SubscriptionFrontDoorsNode(SubscriptionId);
+                var keyVaultsNode = new SubscriptionKeyVaultsNode(SubscriptionId);
+
+                AddChild(appServicesNode);
+                AddChild(frontDoorsNode);
+                AddChild(keyVaultsNode);
+
+                // Then add resource groups
                 var resourceGroups = new List<ResourceGroupNode>();
 
                 await foreach (ResourceGroupResource rg in AzureResourceService.Instance.GetResourceGroupsAsync(SubscriptionId, cancellationToken))
@@ -46,10 +58,36 @@ namespace AzureExplorer.Models
                 {
                     AddChild(node);
                 }
+
+                // Pre-load subscription-level categories in parallel
+                _ = PreloadSubscriptionCategoriesAsync(appServicesNode, frontDoorsNode, keyVaultsNode, cancellationToken);
             }
             finally
             {
                 EndLoading();
+            }
+        }
+
+        private static async Task PreloadSubscriptionCategoriesAsync(
+            SubscriptionAppServicesNode appServicesNode,
+            SubscriptionFrontDoorsNode frontDoorsNode,
+            SubscriptionKeyVaultsNode keyVaultsNode,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.WhenAll(
+                    appServicesNode.LoadChildrenAsync(cancellationToken),
+                    frontDoorsNode.LoadChildrenAsync(cancellationToken),
+                    keyVaultsNode.LoadChildrenAsync(cancellationToken));
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when user navigates away; ignore
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Pre-load failed: {ex.Message}");
             }
         }
     }

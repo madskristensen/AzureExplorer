@@ -49,11 +49,17 @@
     <Compile Include="Commands\DisconnectLogStreamCommand.cs" />
     <Compile Include="Commands\OpenAppServicePlanPortalCommand.cs" />
     <Compile Include="Commands\OpenFrontDoorPortalCommand.cs" />
+    <Compile Include="Commands\OpenKeyVaultPortalCommand.cs" />
     <Compile Include="Models\AppServicePlanNode.cs" />
     <Compile Include="Models\AppServicePlansNode.cs" />
     <Compile Include="Models\AppServicesNode.cs" />
     <Compile Include="Models\FrontDoorNode.cs" />
     <Compile Include="Models\FrontDoorsNode.cs" />
+    <Compile Include="Models\KeyVaultNode.cs" />
+    <Compile Include="Models\KeyVaultsNode.cs" />
+    <Compile Include="Models\SubscriptionAppServicesNode.cs" />
+    <Compile Include="Models\SubscriptionFrontDoorsNode.cs" />
+    <Compile Include="Models\SubscriptionKeyVaultsNode.cs" />
     <Compile Include="Models\TenantNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\ShowExplorerCommand.cs" />
@@ -99,7 +105,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSCommandTable.vsct</DependentUpon>
     </Compile>
-    <Compile Include="VSCommandTable.Tenant.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -143,6 +148,9 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.ResourceManager.KeyVault">
+      <Version>1.3.3</Version>
+    </PackageReference>
     <PackageReference Include="Community.VisualStudio.VSCT" Version="16.0.29.6" PrivateAssets="all" />
     <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.549" ExcludeAssets="Runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

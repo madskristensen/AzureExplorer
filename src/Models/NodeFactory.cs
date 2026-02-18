@@ -17,6 +17,7 @@ namespace AzureExplorer.Models
                 ["Microsoft.Web/sites"] = CreateAppServiceNode,
                 ["Microsoft.Web/serverfarms"] = CreateAppServicePlanNode,
                 ["Microsoft.Cdn/profiles"] = CreateFrontDoorNode,
+                ["Microsoft.KeyVault/vaults"] = CreateKeyVaultNode,
             };
 
         /// <summary>
@@ -79,6 +80,18 @@ namespace AzureExplorer.Models
                 resourceGroupName,
                 state: null,
                 hostName: null);
+        }
+
+        private static ExplorerNodeBase CreateKeyVaultNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
+        {
+            // GenericResourceData doesn't carry Key Vault-specific details.
+            // The KeyVaultsNode.LoadChildrenAsync uses KeyVault-specific APIs for full details.
+            return new KeyVaultNode(
+                resource.Name,
+                subscriptionId,
+                resourceGroupName,
+                state: null,
+                vaultUri: null);
         }
     }
 }
