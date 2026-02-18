@@ -63,6 +63,14 @@ namespace AzureExplorer.AppService.Models
 
         private static ImageMoniker GetImageMonikerForFile(string fileName)
         {
+            // ServiceProvider.GlobalProvider requires UI thread access
+            if (!ThreadHelper.CheckAccess())
+            {
+                // If not on UI thread, return fallback icon to avoid cross-thread exception
+                return KnownMonikers.Document;
+            }
+
+            ThreadHelper.ThrowIfNotOnUIThread();
             var imageService = (IVsImageService2)ServiceProvider.GlobalProvider.GetService(typeof(SVsImageService));
             if (imageService != null)
             {

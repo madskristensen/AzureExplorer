@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using System.Windows.Controls;
 
 namespace AzureExplorer.ToolWindows
@@ -86,17 +87,22 @@ namespace AzureExplorer.ToolWindows
 
         private void RefreshFilteredView()
         {
-            _logTextBox?.Clear();
+            if (_logTextBox == null)
+                return;
+
+            // Use StringBuilder to build all text at once instead of repeated AppendText calls
+            var sb = new StringBuilder();
 
             foreach (var line in _allLines)
             {
                 if (string.IsNullOrEmpty(_currentFilter) || MatchesFilter(line, _currentFilter))
                 {
-                    _logTextBox?.AppendText(line + Environment.NewLine);
+                    sb.AppendLine(line);
                 }
             }
 
-            _logTextBox?.ScrollToEnd();
+            _logTextBox.Text = sb.ToString();
+            _logTextBox.ScrollToEnd();
         }
 
         private static bool MatchesFilter(string line, string filter)

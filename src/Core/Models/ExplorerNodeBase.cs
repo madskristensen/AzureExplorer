@@ -17,6 +17,7 @@ namespace AzureExplorer.Core.Models
         private bool _isExpanded;
         private bool _isLoading;
         private bool _isLoaded;
+        private readonly object _loadingLock = new();
 
         public string Label
         {
@@ -94,13 +95,18 @@ namespace AzureExplorer.Core.Models
         /// <summary>
         /// Marks this node as loading. Shows inline "loading..." text on this node
         /// and removes any <see cref="LoadingNode"/> placeholder children.
+        /// Thread-safe: prevents concurrent loading attempts.
         /// </summary>
         protected bool BeginLoading()
         {
-            if (IsLoaded || IsLoading)
-                return false;
+            lock (_loadingLock)
+            {
+                if (IsLoaded || IsLoading)
+                    return false;
 
-            IsLoading = true;
+                IsLoading = true;
+            }
+
             Description = "loading...";
 
             for (var i = Children.Count - 1; i >= 0; i--)

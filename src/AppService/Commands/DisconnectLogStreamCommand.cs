@@ -8,6 +8,8 @@ namespace AzureExplorer.AppService.Commands
     {
         protected override void BeforeQueryStatus(EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             // Enable only when there's an active log window with streaming
             var streamKey = LogDocumentWindow.GetActiveStreamKey();
             Command.Enabled = streamKey != null && LogStreamService.IsStreaming(streamKey);
@@ -15,6 +17,8 @@ namespace AzureExplorer.AppService.Commands
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
             var streamKey = LogDocumentWindow.GetActiveStreamKey();
             if (streamKey != null)
             {

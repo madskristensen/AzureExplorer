@@ -68,6 +68,7 @@ namespace AzureExplorer.AppService.Models
             }
             catch (Exception ex)
             {
+                await ex.LogAsync();
                 if (Children.Count <= 1)
                 {
                     Children.Clear();
