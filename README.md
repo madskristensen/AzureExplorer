@@ -77,7 +77,7 @@ Right-click on an App Service Plan to access these commands:
 
 ## Getting Started
 
-1. Open the Azure Explorer window from **View > Other Windows > Azure Explorer**
+1. Open the Azure Explorer window from **View > Azure Explorer** (next to Server Explorer)
 2. Click **Sign In** to authenticate with your Azure account
 3. Browse your subscriptions and resource groups
 4. Right-click on App Services to manage them

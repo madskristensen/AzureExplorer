@@ -141,11 +141,6 @@
 
     <!-- ==================== GROUPS ==================== -->
     <Groups>
-      <!-- View menu group for the Show Explorer command -->
-      <Group guid="AzureExplorer" id="ViewMenuGroup" priority="0x0600">
-        <Parent guid="VSMainMenu" id="View"/>
-      </Group>
-
       <!-- Toolbar group (single group so buttons appear side-by-side) -->
       <Group guid="AzureExplorer" id="ToolbarGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="ToolWindowToolbar"/>
@@ -259,9 +254,9 @@
     <!-- ==================== BUTTONS ==================== -->
     <Buttons>
 
-      <!-- View > Azure Explorer (opens the tool window) -->
-      <Button guid="AzureExplorer" id="ShowExplorerWindow" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="ViewMenuGroup"/>
+      <!-- View > Azure Explorer (opens the tool window, next to Server Explorer) -->
+      <Button guid="AzureExplorer" id="ShowExplorerWindow" priority="0x0500" type="Button">
+        <Parent guid="VSMainMenu" id="View.ExplorerWindowsGroup"/>
         <Icon guid="ImageCatalogGuid" id="CloudGroup"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
