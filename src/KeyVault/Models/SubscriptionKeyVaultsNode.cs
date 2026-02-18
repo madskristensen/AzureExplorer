@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using Azure.ResourceManager.Resources;
 
 using AzureExplorer.Core.Models;
@@ -24,9 +26,33 @@ namespace AzureExplorer.KeyVault.Models
 
         protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)
         {
-            // GenericResource doesn't have Key Vault specific properties,
-            // so we create with minimal info - details load when expanded
-            return new KeyVaultNode(name, SubscriptionId, resourceGroup, state: null, vaultUri: null);
+            string state = null;
+            string vaultUri = null;
+
+            if (resource.Data.Properties != null)
+            {
+                try
+                {
+                    using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
+                    JsonElement root = doc.RootElement;
+
+                    if (root.TryGetProperty("provisioningState", out JsonElement stateElement))
+                    {
+                        state = stateElement.GetString();
+                    }
+
+                    if (root.TryGetProperty("vaultUri", out JsonElement uriElement))
+                    {
+                        vaultUri = uriElement.GetString();
+                    }
+                }
+                catch
+                {
+                    // Properties parsing failed; continue with null values
+                }
+            }
+
+            return new KeyVaultNode(name, SubscriptionId, resourceGroup, state, vaultUri);
         }
     }
 }

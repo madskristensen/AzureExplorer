@@ -47,7 +47,8 @@ namespace AzureExplorer.Core.Models
                 // Filter by resource type using OData filter
                 string filter = $"resourceType eq '{ResourceType}'";
 
-                await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, cancellationToken: cancellationToken))
+                // Expand to include resource properties (state, etc.)
+                await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, expand: "properties", cancellationToken: cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

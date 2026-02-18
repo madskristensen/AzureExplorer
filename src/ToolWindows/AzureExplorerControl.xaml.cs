@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 
 using AzureExplorer.AppService.Models;
+using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
 
@@ -252,6 +253,22 @@ namespace AzureExplorer.ToolWindows
             else if (node is AppServiceNode appNode && !string.IsNullOrEmpty(appNode.BrowseUrl))
             {
                 Process.Start(appNode.BrowseUrl);
+                e.Handled = true;
+            }
+            else if (node is FileNode fileNode)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    try
+                    {
+                        await FileOpenService.OpenFileInEditorAsync(fileNode);
+                    }
+                    catch (Exception ex)
+                    {
+                        await VS.MessageBox.ShowErrorAsync("Open File", $"Failed to open file: {ex.Message}");
+                    }
+                }).FireAndForget();
+
                 e.Handled = true;
             }
         }

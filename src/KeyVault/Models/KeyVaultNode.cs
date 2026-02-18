@@ -31,8 +31,8 @@ namespace AzureExplorer.KeyVault.Models
             ResourceGroupName = resourceGroupName;
             // Construct URI from vault name if not provided
             VaultUri = vaultUri ?? $"https://{name}.vault.azure.net/";
-            State = ParseState(state);
-            Description = State.ToString();
+            _state = ParseState(state);
+            Description = _state == KeyVaultState.Failed ? _state.ToString() : null;
 
             // Add loading placeholder
             Children.Add(new LoadingNode());
@@ -53,7 +53,9 @@ namespace AzureExplorer.KeyVault.Models
             {
                 if (SetProperty(ref _state, value))
                 {
-                    Description = value.ToString();
+                    // Only show description for non-normal states (Failed)
+                    // Don't show "Unknown" or "Succeeded" as they're not useful
+                    Description = value == KeyVaultState.Failed ? value.ToString() : null;
                     OnPropertyChanged(nameof(IconMoniker));
                 }
             }

@@ -26,8 +26,8 @@ namespace AzureExplorer.FrontDoor.Models
             ResourceGroupName = resourceGroupName;
             HostName = hostName;
             BrowseUrl = string.IsNullOrEmpty(hostName) ? null : $"https://{hostName}";
-            State = ParseState(state);
-            Description = State.ToString();
+            _state = ParseState(state);
+            Description = _state == FrontDoorState.Disabled ? _state.ToString() : null;
         }
 
         public string SubscriptionId { get; }
@@ -46,7 +46,9 @@ namespace AzureExplorer.FrontDoor.Models
             {
                 if (SetProperty(ref _state, value))
                 {
-                    Description = value.ToString();
+                    // Only show description for non-normal states (Disabled)
+                    // Don't show "Unknown" or "Active" as they're not useful
+                    Description = value == FrontDoorState.Disabled ? value.ToString() : null;
                     OnPropertyChanged(nameof(IconMoniker));
                 }
             }

@@ -50,6 +50,12 @@
     <Compile Include="AppService\Dialogs\AppSettingsDialog.xaml.cs">
       <DependentUpon>AppSettingsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AppService\Models\FileNode.cs" />
+    <Compile Include="AppService\Models\FilesNode.cs" />
+    <Compile Include="AppService\Models\FolderNode.cs" />
+    <Compile Include="AppService\Models\VfsEntry.cs" />
+    <Compile Include="AppService\Services\FileOpenService.cs" />
+    <Compile Include="AppService\Services\KuduVfsService.cs" />
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />

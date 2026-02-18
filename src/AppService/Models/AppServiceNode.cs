@@ -1,3 +1,5 @@
+using System.Threading;
+
 using AzureExplorer.Core.Models;
 
 using Microsoft.VisualStudio.Imaging;
@@ -13,7 +15,7 @@ namespace AzureExplorer.AppService.Models
     }
 
     /// <summary>
-    /// Represents an Azure App Service (Web App). Leaf node with context menu actions.
+    /// Represents an Azure App Service (Web App). Expandable node with Files child and context menu actions.
     /// </summary>
     internal sealed class AppServiceNode : ExplorerNodeBase, IPortalResource
     {
@@ -26,8 +28,11 @@ namespace AzureExplorer.AppService.Models
             ResourceGroupName = resourceGroupName;
             DefaultHostName = defaultHostName;
             BrowseUrl = string.IsNullOrEmpty(defaultHostName) ? null : $"https://{defaultHostName}";
-            State = ParseState(state);
-            Description = State.ToString();
+            _state = ParseState(state);
+            Description = _state == AppServiceState.Stopped ? _state.ToString() : null;
+
+            // Add loading placeholder for expandable node
+            Children.Add(new LoadingNode());
         }
 
         public string SubscriptionId { get; }
@@ -46,7 +51,9 @@ namespace AzureExplorer.AppService.Models
             {
                 if (SetProperty(ref _state, value))
                 {
-                    Description = value.ToString();
+                    // Only show description for non-normal states (Stopped)
+                    // Don't show "Unknown" or "Running" as they're not useful
+                    Description = value == AppServiceState.Stopped ? value.ToString() : null;
                     OnPropertyChanged(nameof(IconMoniker));
                 }
             }
@@ -60,7 +67,28 @@ namespace AzureExplorer.AppService.Models
         };
 
         public override int ContextMenuId => PackageIds.AppServiceContextMenu;
-        public override bool SupportsChildren => false;
+        public override bool SupportsChildren => true;
+
+        public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
+        {
+            if (!BeginLoading())
+                return;
+
+            try
+            {
+                AddChild(new FilesNode(SubscriptionId, Label));
+            }
+            catch (Exception ex)
+            {
+                await ex.LogAsync();
+                Children.Clear();
+                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
+            }
+            finally
+            {
+                EndLoading();
+            }
+        }
 
         internal static AppServiceState ParseState(string state)
         {

@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using Azure.ResourceManager.Resources;
 
 using AzureExplorer.Core.Models;
@@ -24,9 +26,28 @@ namespace AzureExplorer.FrontDoor.Models
 
         protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)
         {
-            // GenericResource doesn't have Front Door specific properties,
-            // so we create with minimal info - details load when expanded
-            return new FrontDoorNode(name, SubscriptionId, resourceGroup, state: null, hostName: null);
+            string state = null;
+
+            if (resource.Data.Properties != null)
+            {
+                try
+                {
+                    using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
+                    JsonElement root = doc.RootElement;
+
+                    if (root.TryGetProperty("resourceState", out JsonElement stateElement))
+                    {
+                        state = stateElement.GetString();
+                    }
+                }
+                catch
+                {
+                    // Properties parsing failed; continue with null values
+                }
+            }
+
+            // Note: hostName requires querying endpoints which is not available in generic resource data
+            return new FrontDoorNode(name, SubscriptionId, resourceGroup, state, hostName: null);
         }
     }
 }

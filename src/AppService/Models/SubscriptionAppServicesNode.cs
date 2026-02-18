@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 using Azure.ResourceManager.Resources;
 
 using AzureExplorer.Core.Models;
@@ -24,9 +26,33 @@ namespace AzureExplorer.AppService.Models
 
         protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)
         {
-            // GenericResource doesn't have App Service specific properties,
-            // so we create with minimal info - details load when expanded
-            return new AppServiceNode(name, SubscriptionId, resourceGroup, state: null, defaultHostName: null);
+            string state = null;
+            string defaultHostName = null;
+
+            if (resource.Data.Properties != null)
+            {
+                try
+                {
+                    using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
+                    JsonElement root = doc.RootElement;
+
+                    if (root.TryGetProperty("state", out JsonElement stateElement))
+                    {
+                        state = stateElement.GetString();
+                    }
+
+                    if (root.TryGetProperty("defaultHostName", out JsonElement hostElement))
+                    {
+                        defaultHostName = hostElement.GetString();
+                    }
+                }
+                catch
+                {
+                    // Properties parsing failed; continue with null values
+                }
+            }
+
+            return new AppServiceNode(name, SubscriptionId, resourceGroup, state, defaultHostName);
         }
     }
 }
