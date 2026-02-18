@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,7 +69,7 @@ namespace AzureExplorer.Services
 
         /// <summary>
         /// Yields Azure subscriptions across all accessible tenants as they are discovered.
-        /// Results stream incrementally so callers can update the UI per-item.
+        /// Queries tenants in parallel for faster loading.
         /// </summary>
         public async IAsyncEnumerable<SubscriptionResource> GetSubscriptionsAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -77,69 +78,51 @@ namespace AzureExplorer.Services
                 ?? throw new InvalidOperationException("Not signed in to Azure.");
 
             var client = new ArmClient(credential);
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seen = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
 
-            // Enumerate tenants and list subscriptions per tenant.
-            // GET /subscriptions is cross-tenant (returns ALL user subscriptions
-            // regardless of which tenant issued the token), so we filter by the
-            // subscription's owning TenantId to avoid duplicates.
+            // First, collect all tenants
+            var tenants = new List<TenantResource>();
             await foreach (TenantResource tenant in client.GetTenants().GetAllAsync(cancellationToken))
             {
-                Guid? tenantGuid = tenant.Data.TenantId;
-                if (!tenantGuid.HasValue)
-                    continue;
+                if (tenant.Data.TenantId.HasValue)
+                    tenants.Add(tenant);
+            }
 
-                var tenantId = tenantGuid.Value.ToString();
-                var tenantCredential = new TenantScopedCredential(credential, tenantId);
-                var tenantClient = new ArmClient(tenantCredential);
+            // Query all tenants in parallel, collecting results into a concurrent bag
+            var results = new ConcurrentBag<(SubscriptionResource Sub, string TenantId)>();
 
-                IAsyncEnumerator<SubscriptionResource> enumerator = null;
+            var tasks = tenants.Select(tenant => Task.Run(async () =>
+            {
+                var tenantId = tenant.Data.TenantId.Value.ToString();
                 try
                 {
-                    enumerator = tenantClient.GetSubscriptions().GetAllAsync(cancellationToken).GetAsyncEnumerator(cancellationToken);
+                    var tenantCredential = new TenantScopedCredential(credential, tenantId);
+                    var tenantClient = new ArmClient(tenantCredential);
+
+                    await foreach (SubscriptionResource sub in tenantClient.GetSubscriptions().GetAllAsync(cancellationToken))
+                    {
+                        // Filter to subscriptions owned by this tenant to avoid duplicates
+                        if (sub.Data.TenantId.HasValue && sub.Data.TenantId.Value != tenant.Data.TenantId.Value)
+                            continue;
+
+                        results.Add((sub, tenantId));
+                    }
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"Skipping tenant {tenantId}: {ex.Message}");
-                    continue;
                 }
+            }, cancellationToken)).ToArray();
 
-                if (enumerator != null)
+            await Task.WhenAll(tasks);
+
+            // Yield unique subscriptions
+            foreach (var (sub, tenantId) in results)
+            {
+                if (seen.TryAdd(sub.Data.SubscriptionId, 0))
                 {
-                    try
-                    {
-                        while (true)
-                        {
-                            bool moved;
-                            try
-                            {
-                                moved = await enumerator.MoveNextAsync();
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Skipping tenant {tenantId}: {ex.Message}");
-                                break;
-                            }
-
-                            if (!moved)
-                                break;
-
-                            SubscriptionResource sub = enumerator.Current;
-
-                            if (sub.Data.TenantId.HasValue && sub.Data.TenantId.Value != tenantGuid.Value)
-                                continue;
-
-                            if (seen.Add(sub.Data.SubscriptionId))
-                            {
-                                _subscriptionTenantMap[sub.Data.SubscriptionId] = tenantId;
-                                yield return sub;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        await enumerator.DisposeAsync();
-                    }
+                    _subscriptionTenantMap[sub.Data.SubscriptionId] = tenantId;
+                    yield return sub;
                 }
             }
         }

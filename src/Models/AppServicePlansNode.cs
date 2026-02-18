@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 using Azure.ResourceManager;
@@ -43,16 +46,24 @@ namespace AzureExplorer.Models
                     SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
                 ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
 
+                var plans = new List<AppServicePlanNode>();
+
                 await foreach (AppServicePlanResource plan in rg.GetAppServicePlans().GetAllAsync(cancellationToken: cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    AddChild(new AppServicePlanNode(
+                    plans.Add(new AppServicePlanNode(
                         plan.Data.Name,
                         SubscriptionId,
                         ResourceGroupName,
                         plan.Data.Sku?.Name,
                         plan.Data.Kind,
                         plan.Data.NumberOfSites));
+                }
+
+                // Sort alphabetically by name
+                foreach (var node in plans.OrderBy(p => p.Label, StringComparer.OrdinalIgnoreCase))
+                {
+                    AddChild(node);
                 }
             }
             catch (Exception ex)

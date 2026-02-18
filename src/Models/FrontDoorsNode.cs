@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,6 +47,8 @@ namespace AzureExplorer.Models
                     SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
                 ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
 
+                var frontDoors = new List<FrontDoorNode>();
+
                 // Get Front Door profiles (Azure Front Door Standard/Premium)
                 await foreach (ProfileResource profile in rg.GetProfiles().GetAllAsync(cancellationToken: cancellationToken))
                 {
@@ -65,12 +69,18 @@ namespace AzureExplorer.Models
                         // Endpoint retrieval may fail; continue without hostname
                     }
 
-                    AddChild(new FrontDoorNode(
+                    frontDoors.Add(new FrontDoorNode(
                         profile.Data.Name,
                         SubscriptionId,
                         ResourceGroupName,
                         profile.Data.ResourceState?.ToString(),
                         hostName));
+                }
+
+                // Sort alphabetically by name
+                foreach (var node in frontDoors.OrderBy(f => f.Label, StringComparer.OrdinalIgnoreCase))
+                {
+                    AddChild(node);
                 }
             }
             catch (Exception ex)

@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Azure.ResourceManager.Resources;
+
 using AzureExplorer.Services;
 
 using Microsoft.VisualStudio.Imaging;
@@ -31,10 +35,18 @@ namespace AzureExplorer.Models
 
             try
             {
+                var subscriptions = new List<SubscriptionNode>();
+
                 await foreach (SubscriptionResource sub in AzureResourceService.Instance.GetSubscriptionsAsync(cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    AddChild(new SubscriptionNode(sub.Data.DisplayName, sub.Data.SubscriptionId));
+                    subscriptions.Add(new SubscriptionNode(sub.Data.DisplayName, sub.Data.SubscriptionId));
+                }
+
+                // Sort alphabetically by name
+                foreach (var node in subscriptions.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
+                {
+                    AddChild(node);
                 }
             }
             finally

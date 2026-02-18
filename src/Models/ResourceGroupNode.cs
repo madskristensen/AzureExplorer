@@ -26,18 +26,47 @@ namespace AzureExplorer.Models
         public override int ContextMenuId => PackageIds.ResourceGroupContextMenu;
         public override bool SupportsChildren => true;
 
-        public override Task LoadChildrenAsync(CancellationToken cancellationToken = default)
+        public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {
             if (!BeginLoading())
-                return Task.CompletedTask;
+                return;
 
             // Add category nodes for each resource type
-            AddChild(new AppServicesNode(SubscriptionId, ResourceGroupName));
-            AddChild(new AppServicePlansNode(SubscriptionId, ResourceGroupName));
-            AddChild(new FrontDoorsNode(SubscriptionId, ResourceGroupName));
+            var appServicesNode = new AppServicesNode(SubscriptionId, ResourceGroupName);
+            var appServicePlansNode = new AppServicePlansNode(SubscriptionId, ResourceGroupName);
+            var frontDoorsNode = new FrontDoorsNode(SubscriptionId, ResourceGroupName);
+
+            AddChild(appServicesNode);
+            AddChild(appServicePlansNode);
+            AddChild(frontDoorsNode);
 
             EndLoading();
-            return Task.CompletedTask;
+
+            // Pre-load category children in parallel (fire-and-forget with error handling)
+            _ = PreloadCategoryChildrenAsync(appServicesNode, appServicePlansNode, frontDoorsNode, cancellationToken);
+        }
+
+        private static async Task PreloadCategoryChildrenAsync(
+            AppServicesNode appServicesNode,
+            AppServicePlansNode appServicePlansNode,
+            FrontDoorsNode frontDoorsNode,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await Task.WhenAll(
+                    appServicesNode.LoadChildrenAsync(cancellationToken),
+                    appServicePlansNode.LoadChildrenAsync(cancellationToken),
+                    frontDoorsNode.LoadChildrenAsync(cancellationToken));
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when user navigates away; ignore
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Pre-load failed: {ex.Message}");
+            }
         }
     }
 }

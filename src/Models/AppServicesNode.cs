@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 using Azure.ResourceManager;
@@ -43,15 +46,23 @@ namespace AzureExplorer.Models
                     SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
                 ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
 
+                var appServices = new List<AppServiceNode>();
+
                 await foreach (WebSiteResource site in rg.GetWebSites().GetAllAsync(cancellationToken: cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    AddChild(new AppServiceNode(
+                    appServices.Add(new AppServiceNode(
                         site.Data.Name,
                         SubscriptionId,
                         ResourceGroupName,
                         site.Data.State,
                         site.Data.DefaultHostName));
+                }
+
+                // Sort alphabetically by name
+                foreach (var node in appServices.OrderBy(a => a.Label, StringComparer.OrdinalIgnoreCase))
+                {
+                    AddChild(node);
                 }
             }
             catch (Exception ex)
