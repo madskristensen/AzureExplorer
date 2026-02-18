@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -81,6 +83,48 @@ namespace AzureExplorer.AppService.Services
             };
 
             await site.GetLogsSiteConfig().CreateOrUpdateAsync(WaitUntil.Completed, data, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets all application settings for the specified App Service.
+        /// </summary>
+        public async Task<Dictionary<string, string>> GetAppSettingsAsync(string subscriptionId, string resourceGroupName, string name, CancellationToken cancellationToken = default)
+        {
+            WebSiteResource site = await GetWebSiteAsync(subscriptionId, resourceGroupName, name, cancellationToken);
+            AppServiceConfigurationDictionary settings = await site.GetApplicationSettingsAsync(cancellationToken);
+            return new Dictionary<string, string>(settings.Properties);
+        }
+
+        /// <summary>
+        /// Updates all application settings for the specified App Service.
+        /// </summary>
+        public async Task UpdateAppSettingsAsync(string subscriptionId, string resourceGroupName, string name, IDictionary<string, string> settings, CancellationToken cancellationToken = default)
+        {
+            WebSiteResource site = await GetWebSiteAsync(subscriptionId, resourceGroupName, name, cancellationToken);
+            var configData = new AppServiceConfigurationDictionary();
+            foreach (KeyValuePair<string, string> kvp in settings)
+            {
+                configData.Properties.Add(kvp.Key, kvp.Value);
+            }
+
+            await site.UpdateApplicationSettingsAsync(configData, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the publish profile XML for the specified App Service.
+        /// </summary>
+        public async Task<string> GetPublishProfileAsync(string subscriptionId, string resourceGroupName, string name, CancellationToken cancellationToken = default)
+        {
+            WebSiteResource site = await GetWebSiteAsync(subscriptionId, resourceGroupName, name, cancellationToken);
+            var options = new CsmPublishingProfile
+            {
+                Format = PublishingProfileFormat.WebDeploy
+            };
+
+            Response<Stream> response = await site.GetPublishingProfileXmlWithSecretsAsync(options, cancellationToken);
+            using Stream stream = response.Value;
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
         }
 
         private async Task<WebSiteResource> GetWebSiteAsync(string subscriptionId, string resourceGroupName, string name, CancellationToken cancellationToken)

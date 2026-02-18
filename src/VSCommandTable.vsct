@@ -477,6 +477,28 @@
         </Strings>
       </Button>
 
+      <!-- App Service context: Manage App Settings -->
+      <Button guid="AzureExplorer" id="ManageAppSettings" priority="0x0400" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Settings"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Manage App Settings...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.ManageAppSettings</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service context: Download Publish Profile -->
+      <Button guid="AzureExplorer" id="DownloadPublishProfile" priority="0x0500" type="Button">
+        <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Download"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Download Publish Profile</ButtonText>
+          <LocCanonicalName>.AzureExplorer.DownloadPublishProfile</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- App Service context: Application Log Stream -->
       <Button guid="AzureExplorer" id="StreamLogs" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="StreamingLogsGroup"/>
@@ -666,6 +688,8 @@
       <IDSymbol name="StreamLogs" value="0x0117" />
       <IDSymbol name="StreamHttpLogs" value="0x0118" />
       <IDSymbol name="DisconnectLogStream" value="0x0119" />
+      <IDSymbol name="ManageAppSettings" value="0x011A" />
+      <IDSymbol name="DownloadPublishProfile" value="0x011B" />
       <IDSymbol name="OpenAppServicePlanPortal" value="0x0120" />
       <IDSymbol name="RefreshAppServicesCategory" value="0x0121" />
       <IDSymbol name="RefreshAppServicePlansCategory" value="0x0122" />

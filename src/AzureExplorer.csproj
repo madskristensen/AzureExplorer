@@ -45,6 +45,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppService\Commands\DownloadPublishProfileCommand.cs" />
+    <Compile Include="AppService\Commands\ManageAppSettingsCommand.cs" />
+    <Compile Include="AppService\Dialogs\AppSettingsDialog.xaml.cs">
+      <DependentUpon>AppSettingsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="KeyVault\Commands\AddSecretCommand.cs" />
@@ -134,6 +139,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="AppService\Dialogs\AppSettingsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="KeyVault\Dialogs\AddSecretDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

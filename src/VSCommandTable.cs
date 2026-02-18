@@ -77,6 +77,8 @@ namespace AzureExplorer
         public const int StreamLogs = 0x0117;
         public const int StreamHttpLogs = 0x0118;
         public const int DisconnectLogStream = 0x0119;
+        public const int ManageAppSettings = 0x011A;
+        public const int DownloadPublishProfile = 0x011B;
         public const int OpenAppServicePlanPortal = 0x0120;
         public const int RefreshAppServicesCategory = 0x0121;
         public const int RefreshAppServicePlansCategory = 0x0122;
