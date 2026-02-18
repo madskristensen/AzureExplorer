@@ -367,17 +367,6 @@
         </Strings>
       </Button>
 
-      <!-- Key Vault context: Open in Portal -->
-      <Button guid="AzureExplorer" id="OpenKeyVaultPortal" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="KeyVaultBrowseGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Web"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Open in Portal</ButtonText>
-          <LocCanonicalName>.AzureExplorer.OpenKeyVaultPortal</LocCanonicalName>
-        </Strings>
-      </Button>
-
       <!-- Key Vault context: Copy Vault URI -->
       <Button guid="AzureExplorer" id="CopyVaultUri" priority="0x0200" type="Button">
         <Parent guid="AzureExplorer" id="KeyVaultBrowseGroup"/>
@@ -455,17 +444,6 @@
         </Strings>
       </Button>
 
-      <!-- Front Door context: Open in Portal -->
-      <Button guid="AzureExplorer" id="OpenFrontDoorPortal" priority="0x0200" type="Button">
-        <Parent guid="AzureExplorer" id="FrontDoorBrowseGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Web"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Open in Portal</ButtonText>
-          <LocCanonicalName>.AzureExplorer.OpenFrontDoorPortal</LocCanonicalName>
-        </Strings>
-      </Button>
-
       <!-- Front Door context: Refresh -->
       <Button guid="AzureExplorer" id="RefreshFrontDoor" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="FrontDoorRefreshGroup"/>
@@ -477,17 +455,6 @@
         </Strings>
       </Button>
 
-      <!-- App Service Plan context: Open in Portal -->
-      <Button guid="AzureExplorer" id="OpenAppServicePlanPortal" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="AppServicePlanContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Web"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Open in Portal</ButtonText>
-          <LocCanonicalName>.AzureExplorer.OpenAppServicePlanPortal</LocCanonicalName>
-        </Strings>
-      </Button>
-
       <!-- App Service context: Browse Site -->
       <Button guid="AzureExplorer" id="BrowseSite" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
@@ -496,17 +463,6 @@
         <Strings>
           <ButtonText>Browse Site</ButtonText>
           <LocCanonicalName>.AzureExplorer.BrowseSite</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- App Service context: Open in Portal -->
-      <Button guid="AzureExplorer" id="OpenPortal" priority="0x0200" type="Button">
-        <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Web"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Open in Portal</ButtonText>
-          <LocCanonicalName>.AzureExplorer.OpenPortal</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -603,10 +559,49 @@
         </Strings>
       </Button>
 
+      <!-- Open in Portal (consolidated command for all resource types) -->
+      <Button guid="AzureExplorer" id="OpenInPortal" priority="0x0100" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Web"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Open in Portal</ButtonText>
+          <LocCanonicalName>.AzureExplorer.OpenInPortal</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
+  <!-- Command placements for Open in Portal across all resource context menus -->
+  <CommandPlacements>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0050">
+      <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0050">
+      <Parent guid="AzureExplorer" id="ResourceGroupContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0100">
+      <Parent guid="AzureExplorer" id="AppServiceBrowseGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0100">
+      <Parent guid="AzureExplorer" id="AppServicePlanContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0100">
+      <Parent guid="AzureExplorer" id="FrontDoorBrowseGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0100">
+      <Parent guid="AzureExplorer" id="KeyVaultBrowseGroup"/>
+    </CommandPlacement>
+  </CommandPlacements>
+
+  <!-- Keybindings scoped to Azure Explorer tool window -->
+  <KeyBindings>
+    <KeyBinding guid="AzureExplorer" id="OpenInPortal" editor="AzureExplorerToolWindow" key1="P" mod1="Control Alt"/>
+  </KeyBindings>
+
   <Symbols>
+    <GuidSymbol name="AzureExplorerToolWindow" value="{d4b65484-2b5e-4e73-b5a0-9c9f91e1dc21}"/>
     <GuidSymbol name="AzureExplorer" value="{5e5465aa-805e-4395-b20d-a439f7c92ca1}">
       <!-- Menus -->
       <IDSymbol name="ToolWindowToolbar" value="0x0010" />
@@ -686,6 +681,7 @@
       <IDSymbol name="CopySecretValue" value="0x0145" />
       <IDSymbol name="UpdateSecretValue" value="0x0146" />
       <IDSymbol name="DeleteSecret" value="0x0147" />
+      <IDSymbol name="OpenInPortal" value="0x0150" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

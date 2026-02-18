@@ -8,7 +8,7 @@ namespace AzureExplorer.AppServicePlan.Models
     /// <summary>
     /// Represents an Azure App Service Plan. Leaf node with context menu actions.
     /// </summary>
-    internal sealed class AppServicePlanNode : ExplorerNodeBase
+    internal sealed class AppServicePlanNode : ExplorerNodeBase, IPortalResource
     {
         public AppServicePlanNode(
             string name,
@@ -32,6 +32,10 @@ namespace AzureExplorer.AppServicePlan.Models
         public string Sku { get; }
         public string Kind { get; }
         public int NumberOfSites { get; }
+
+        // IPortalResource
+        public string ResourceName => Label;
+        public string AzureResourceProvider => "Microsoft.Web/serverfarms";
 
         public override ImageMoniker IconMoniker => KnownMonikers.CloudService;
         public override int ContextMenuId => PackageIds.AppServicePlanContextMenu;

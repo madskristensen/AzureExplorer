@@ -20,7 +20,7 @@ namespace AzureExplorer.KeyVault.Models
     /// <summary>
     /// Represents an Azure Key Vault. Expandable node containing secrets directly.
     /// </summary>
-    internal sealed class KeyVaultNode : ExplorerNodeBase
+    internal sealed class KeyVaultNode : ExplorerNodeBase, IPortalResource
     {
         private KeyVaultState _state;
 
@@ -41,6 +41,10 @@ namespace AzureExplorer.KeyVault.Models
         public string SubscriptionId { get; }
         public string ResourceGroupName { get; }
         public string VaultUri { get; }
+
+        // IPortalResource
+        public string ResourceName => Label;
+        public string AzureResourceProvider => "Microsoft.KeyVault/vaults";
 
         public KeyVaultState State
         {

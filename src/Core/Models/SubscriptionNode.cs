@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace AzureExplorer.Core.Models
 {
-    internal sealed class SubscriptionNode : ExplorerNodeBase
+    internal sealed class SubscriptionNode : ExplorerNodeBase, IPortalResource
     {
         public SubscriptionNode(string name, string subscriptionId) : base(name)
         {
@@ -21,6 +21,11 @@ namespace AzureExplorer.Core.Models
         }
 
         public string SubscriptionId { get; }
+
+        // IPortalResource - subscriptions don't have resource group or provider path
+        string IPortalResource.ResourceGroupName => null;
+        string IPortalResource.ResourceName => null;
+        string IPortalResource.AzureResourceProvider => null;
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureSubscriptionKey;
         public override int ContextMenuId => PackageIds.SubscriptionContextMenu;

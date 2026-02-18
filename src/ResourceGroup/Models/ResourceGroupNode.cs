@@ -16,7 +16,7 @@ namespace AzureExplorer.ResourceGroup.Models
     /// Represents an Azure resource group. Contains category nodes for different
     /// resource types (App Services, App Service Plans, etc.).
     /// </summary>
-    internal sealed class ResourceGroupNode : ExplorerNodeBase
+    internal sealed class ResourceGroupNode : ExplorerNodeBase, IPortalResource
     {
         public ResourceGroupNode(string name, string subscriptionId) : base(name)
         {
@@ -27,6 +27,10 @@ namespace AzureExplorer.ResourceGroup.Models
 
         public string SubscriptionId { get; }
         public string ResourceGroupName { get; }
+
+        // IPortalResource - resource groups don't have a provider path
+        string IPortalResource.ResourceName => null;
+        string IPortalResource.AzureResourceProvider => null;
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureResourceGroup;
         public override int ContextMenuId => PackageIds.ResourceGroupContextMenu;

@@ -23,10 +23,11 @@ namespace AzureExplorer.Test.Core.Models
         public void Label_Set_UpdatesValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Initial Label");
-
-            // Act
-            node.Label = "New Label";
+            var node = new TestExplorerNode("Initial Label")
+            {
+                // Act
+                Label = "New Label"
+            };
 
             // Assert
             Assert.AreEqual("New Label", node.Label);
@@ -72,8 +73,10 @@ namespace AzureExplorer.Test.Core.Models
         public void Description_Get_ReturnsCorrectValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.Description = "Test Description";
+            var node = new TestExplorerNode("Label")
+            {
+                Description = "Test Description"
+            };
 
             // Act
             var description = node.Description;
@@ -86,10 +89,11 @@ namespace AzureExplorer.Test.Core.Models
         public void Description_Set_UpdatesValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-
-            // Act
-            node.Description = "New Description";
+            var node = new TestExplorerNode("Label")
+            {
+                // Act
+                Description = "New Description"
+            };
 
             // Assert
             Assert.AreEqual("New Description", node.Description);
@@ -120,8 +124,10 @@ namespace AzureExplorer.Test.Core.Models
         public void Description_SetSameValue_DoesNotRaisePropertyChangedEvent()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.Description = "Same Description";
+            var node = new TestExplorerNode("Label")
+            {
+                Description = "Same Description"
+            };
             var eventRaised = false;
             node.PropertyChanged += (sender, args) => eventRaised = true;
 
@@ -136,8 +142,10 @@ namespace AzureExplorer.Test.Core.Models
         public void IsExpanded_Get_ReturnsCorrectValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.IsExpanded = true;
+            var node = new TestExplorerNode("Label")
+            {
+                IsExpanded = true
+            };
 
             // Act
             var isExpanded = node.IsExpanded;
@@ -150,10 +158,11 @@ namespace AzureExplorer.Test.Core.Models
         public void IsExpanded_Set_UpdatesValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-
-            // Act
-            node.IsExpanded = true;
+            var node = new TestExplorerNode("Label")
+            {
+                // Act
+                IsExpanded = true
+            };
 
             // Assert
             Assert.IsTrue(node.IsExpanded);
@@ -184,8 +193,10 @@ namespace AzureExplorer.Test.Core.Models
         public void IsExpanded_SetSameValue_DoesNotRaisePropertyChangedEvent()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.IsExpanded = true;
+            var node = new TestExplorerNode("Label")
+            {
+                IsExpanded = true
+            };
             var eventRaised = false;
             node.PropertyChanged += (sender, args) => eventRaised = true;
 
@@ -200,8 +211,10 @@ namespace AzureExplorer.Test.Core.Models
         public void IsLoading_Get_ReturnsCorrectValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.IsLoading = true;
+            var node = new TestExplorerNode("Label")
+            {
+                IsLoading = true
+            };
 
             // Act
             var isLoading = node.IsLoading;
@@ -214,10 +227,11 @@ namespace AzureExplorer.Test.Core.Models
         public void IsLoading_Set_UpdatesValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-
-            // Act
-            node.IsLoading = true;
+            var node = new TestExplorerNode("Label")
+            {
+                // Act
+                IsLoading = true
+            };
 
             // Assert
             Assert.IsTrue(node.IsLoading);
@@ -248,8 +262,10 @@ namespace AzureExplorer.Test.Core.Models
         public void IsLoading_SetSameValue_DoesNotRaisePropertyChangedEvent()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.IsLoading = true;
+            var node = new TestExplorerNode("Label")
+            {
+                IsLoading = true
+            };
             var eventRaised = false;
             node.PropertyChanged += (sender, args) => eventRaised = true;
 
@@ -264,8 +280,10 @@ namespace AzureExplorer.Test.Core.Models
         public void IsLoaded_Get_ReturnsCorrectValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.IsLoaded = true;
+            var node = new TestExplorerNode("Label")
+            {
+                IsLoaded = true
+            };
 
             // Act
             var isLoaded = node.IsLoaded;
@@ -278,10 +296,11 @@ namespace AzureExplorer.Test.Core.Models
         public void IsLoaded_Set_UpdatesValue()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-
-            // Act
-            node.IsLoaded = true;
+            var node = new TestExplorerNode("Label")
+            {
+                // Act
+                IsLoaded = true
+            };
 
             // Assert
             Assert.IsTrue(node.IsLoaded);
@@ -312,8 +331,10 @@ namespace AzureExplorer.Test.Core.Models
         public void IsLoaded_SetSameValue_DoesNotRaisePropertyChangedEvent()
         {
             // Arrange
-            var node = new TestExplorerNode("Label");
-            node.IsLoaded = true;
+            var node = new TestExplorerNode("Label")
+            {
+                IsLoaded = true
+            };
             var eventRaised = false;
             node.PropertyChanged += (sender, args) => eventRaised = true;
 
@@ -325,7 +346,7 @@ namespace AzureExplorer.Test.Core.Models
         }
 
         [TestMethod]
-        public async Task LoadChildrenAsync_DefaultImplementation_ReturnsCompletedTask()
+        public async Task LoadChildrenAsync_DefaultImplementation_ReturnsCompletedTaskAsync()
         {
             // Arrange
             var node = new TestExplorerNode("Label");
@@ -338,7 +359,7 @@ namespace AzureExplorer.Test.Core.Models
         }
 
         [TestMethod]
-        public async Task LoadChildrenAsync_WithCancellationToken_ReturnsCompletedTask()
+        public async Task LoadChildrenAsync_WithCancellationToken_ReturnsCompletedTaskAsync()
         {
             // Arrange
             var node = new TestExplorerNode("Label");
@@ -355,10 +376,12 @@ namespace AzureExplorer.Test.Core.Models
         public async Task RefreshAsync_ClearsState_AndCallsLoadChildrenAsync()
         {
             // Arrange
-            var node = new TestExplorerNodeWithLoadTracking("Label");
-            node.IsLoaded = true;
-            node.IsLoading = true;
-            node.Description = "Test Description";
+            var node = new TestExplorerNodeWithLoadTracking("Label")
+            {
+                IsLoaded = true,
+                IsLoading = true,
+                Description = "Test Description"
+            };
             node.Children.Add(new TestExplorerNode("Child1"));
             node.Children.Add(new TestExplorerNode("Child2"));
 
@@ -406,8 +429,10 @@ namespace AzureExplorer.Test.Core.Models
         public void BeginLoading_WhenAlreadyLoaded_ReturnsFalse()
         {
             // Arrange
-            var node = new TestableExplorerNode("Label");
-            node.IsLoaded = true;
+            var node = new TestableExplorerNode("Label")
+            {
+                IsLoaded = true
+            };
 
             // Act
             var result = node.BeginLoadingPublic();
@@ -422,8 +447,10 @@ namespace AzureExplorer.Test.Core.Models
         public void BeginLoading_WhenAlreadyLoading_ReturnsFalse()
         {
             // Arrange
-            var node = new TestableExplorerNode("Label");
-            node.IsLoading = true;
+            var node = new TestableExplorerNode("Label")
+            {
+                IsLoading = true
+            };
 
             // Act
             var result = node.BeginLoadingPublic();
@@ -488,9 +515,11 @@ namespace AzureExplorer.Test.Core.Models
         public void EndLoading_SetsLoadedStateAndClearsDescription()
         {
             // Arrange
-            var node = new TestableExplorerNode("Label");
-            node.IsLoading = true;
-            node.Description = "loading...";
+            var node = new TestableExplorerNode("Label")
+            {
+                IsLoading = true,
+                Description = "loading..."
+            };
 
             // Act
             node.EndLoadingPublic();
@@ -505,8 +534,10 @@ namespace AzureExplorer.Test.Core.Models
         public void EndLoading_WhenNotLoading_StillSetsLoadedState()
         {
             // Arrange
-            var node = new TestableExplorerNode("Label");
-            node.Description = "Some description";
+            var node = new TestableExplorerNode("Label")
+            {
+                Description = "Some description"
+            };
 
             // Act
             node.EndLoadingPublic();
@@ -646,7 +677,7 @@ namespace AzureExplorer.Test.Core.Models
         {
             // Arrange
             var node = new TestableExplorerNode("Label");
-            string? field = "OldValue";
+            var field = "OldValue";
             var eventRaised = false;
             string? raisedPropertyName = null;
             node.PropertyChanged += (sender, args) =>
@@ -711,7 +742,7 @@ namespace AzureExplorer.Test.Core.Models
             var node = new TestableExplorerNode("Label");
             var field = 10;
             var eventRaised = false;
-            string? raisedPropertyName = "NotNull";
+            var raisedPropertyName = "NotNull";
             node.PropertyChanged += (sender, args) =>
             {
                 eventRaised = true;
@@ -755,7 +786,7 @@ namespace AzureExplorer.Test.Core.Models
             // Arrange
             var node = new TestableExplorerNode("Label");
             var eventRaised = false;
-            string? raisedPropertyName = "NotNull";
+            var raisedPropertyName = "NotNull";
             node.PropertyChanged += (sender, args) =>
             {
                 eventRaised = true;
@@ -818,12 +849,8 @@ namespace AzureExplorer.Test.Core.Models
             Assert.AreEqual(3, eventCount);
         }
 
-        private sealed class TestExplorerNode : ExplorerNodeBase
+        private sealed class TestExplorerNode(string label) : ExplorerNodeBase(label)
         {
-            public TestExplorerNode(string label) : base(label)
-            {
-            }
-
             public override ImageMoniker IconMoniker => default;
 
             public override int ContextMenuId => 0;
@@ -831,14 +858,10 @@ namespace AzureExplorer.Test.Core.Models
             public override bool SupportsChildren => false;
         }
 
-        private sealed class TestExplorerNodeWithLoadTracking : ExplorerNodeBase
+        private sealed class TestExplorerNodeWithLoadTracking(string label) : ExplorerNodeBase(label)
         {
             public int LoadChildrenCallCount { get; private set; }
             public CancellationToken LastCancellationToken { get; private set; }
-
-            public TestExplorerNodeWithLoadTracking(string label) : base(label)
-            {
-            }
 
             public override ImageMoniker IconMoniker => default;
 
@@ -854,12 +877,8 @@ namespace AzureExplorer.Test.Core.Models
             }
         }
 
-        private sealed class TestableExplorerNode : ExplorerNodeBase
+        private sealed class TestableExplorerNode(string label) : ExplorerNodeBase(label)
         {
-            public TestableExplorerNode(string label) : base(label)
-            {
-            }
-
             public override ImageMoniker IconMoniker => default;
 
             public override int ContextMenuId => 0;

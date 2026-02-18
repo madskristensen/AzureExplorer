@@ -15,7 +15,7 @@ namespace AzureExplorer.AppService.Models
     /// <summary>
     /// Represents an Azure App Service (Web App). Leaf node with context menu actions.
     /// </summary>
-    internal sealed class AppServiceNode : ExplorerNodeBase
+    internal sealed class AppServiceNode : ExplorerNodeBase, IPortalResource
     {
         private AppServiceState _state;
 
@@ -34,6 +34,10 @@ namespace AzureExplorer.AppService.Models
         public string ResourceGroupName { get; }
         public string DefaultHostName { get; }
         public string BrowseUrl { get; }
+
+        // IPortalResource
+        public string ResourceName => Label;
+        public string AzureResourceProvider => "Microsoft.Web/sites";
 
         public AppServiceState State
         {

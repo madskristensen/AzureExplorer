@@ -92,6 +92,7 @@ namespace AzureExplorer
         public const int CopySecretValue = 0x0145;
         public const int UpdateSecretValue = 0x0146;
         public const int DeleteSecret = 0x0147;
+        public const int OpenInPortal = 0x0150;
         public const int SecretContextMenu = 0x0055;
         public const int SecretActionsGroup = 0x0057;
         public const int SecretDeleteGroup = 0x0058;

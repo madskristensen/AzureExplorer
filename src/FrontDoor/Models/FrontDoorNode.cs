@@ -15,7 +15,7 @@ namespace AzureExplorer.FrontDoor.Models
     /// <summary>
     /// Represents an Azure Front Door profile. Leaf node with context menu actions.
     /// </summary>
-    internal sealed class FrontDoorNode : ExplorerNodeBase
+    internal sealed class FrontDoorNode : ExplorerNodeBase, IPortalResource
     {
         private FrontDoorState _state;
 
@@ -34,6 +34,10 @@ namespace AzureExplorer.FrontDoor.Models
         public string ResourceGroupName { get; }
         public string HostName { get; }
         public string BrowseUrl { get; }
+
+        // IPortalResource
+        public string ResourceName => Label;
+        public string AzureResourceProvider => "Microsoft.Cdn/profiles";
 
         public FrontDoorState State
         {

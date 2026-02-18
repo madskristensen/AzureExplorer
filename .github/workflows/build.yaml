@@ -51,6 +51,9 @@ jobs:
     - name: Build
       run: msbuild /v:m -restore /p:OutDir=\_built
 
+    - name: Install test dependencies
+      run: dotnet add /_built/AzureExplorer.Test.dll package MSTest.TestAdapter --version 3.1.0
+
     - name: Run tests
       run: dotnet vstest /_built/*.Test.dll
 
