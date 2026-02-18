@@ -4,6 +4,7 @@
     <Platform Name="arm64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path="AzureExplorer.Test/AzureExplorer.Test.csproj" Id="89548808-f719-4e3b-9a7e-a2a2486963aa" />
   <Project Path="src/AzureExplorer.csproj" Id="ecda8e90-8c0e-4c71-ae62-ac3708a54c54">
     <Platform Solution="*|arm64" Project="arm64" />
     <Platform Solution="*|x86" Project="x86" />

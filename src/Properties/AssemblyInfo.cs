@@ -1,7 +1,6 @@
-﻿using AzureExplorer;
-
 using System.Reflection;
 using System.Runtime.InteropServices;
+using AzureExplorer;
 
 [assembly: AssemblyTitle(Vsix.Name)]
 [assembly: AssemblyDescription(Vsix.Description)]
@@ -16,6 +15,8 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyVersion(Vsix.Version)]
 [assembly: AssemblyFileVersion(Vsix.Version)]
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("AzureExplorer.Test")]
 
 namespace System.Runtime.CompilerServices
 {

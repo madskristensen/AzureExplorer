@@ -12,16 +12,19 @@ or get the [CI build][vsixgallery].
 
 --------------------------------------
 
-**Manage your Azure App Services directly from Visual Studio.** Azure Explorer provides a lightweight tool window for browsing subscriptions, resource groups, and App Services without leaving your IDE.
+**Manage your Azure resources directly from Visual Studio.** Azure Explorer provides a lightweight tool window for browsing subscriptions, resource groups, App Services, Key Vaults, Front Door profiles, and App Service Plans without leaving your IDE.
 
 ## Features
 
-- **Browse Azure Resources** — View subscriptions, resource groups, and App Services in a tree view
+- **Browse Azure Resources** — View subscriptions, resource groups, and resources in a tree view
 - **App Service Management** — Start, stop, and restart App Services with confirmation dialogs to prevent accidents
-- **Quick Access** — Open the Azure Portal or Kudu console for any App Service
-- **Browse Sites** — Launch App Service URLs directly in your browser
+- **Key Vault Secrets** — Create, update, delete, and copy secret values directly from Visual Studio
+- **Front Door Profiles** — Browse Front Door endpoints and access the Azure Portal
+- **App Service Plans** — View and manage your App Service Plans
+- **Quick Access** — Open the Azure Portal or Kudu console for any resource
+- **Browse Sites** — Launch App Service and Front Door URLs directly in your browser
 - **Streaming Logs** — View real-time HTTP logs from your App Services
-- **Refresh** — Refresh subscriptions, resource groups, or individual App Services
+- **Refresh** — Refresh subscriptions, resource groups, or individual resources
 
 ## App Service Actions
 
@@ -40,6 +43,36 @@ Right-click on an App Service to access these commands:
 ### Confirmation Dialogs
 
 The **Stop** and **Restart** commands display confirmation dialogs to prevent accidental service disruption. This ensures you don't accidentally take down a production site with a misclick.
+
+## Key Vault Actions
+
+Right-click on a Key Vault or secret to access these commands:
+
+| Action             | Description                                        |
+| ------------------ | -------------------------------------------------- |
+| **Add Secret**     | Create a new secret in the Key Vault               |
+| **Update Secret**  | Update an existing secret's value                  |
+| **Delete Secret**  | Delete a secret (with confirmation)                |
+| **Copy Value**     | Copy a secret's value to the clipboard             |
+| **Copy Vault URI** | Copy the Key Vault URI to the clipboard            |
+| **Portal**         | Open the Key Vault blade in the Azure Portal       |
+
+## Front Door Actions
+
+Right-click on a Front Door profile to access these commands:
+
+| Action     | Description                                        |
+| ---------- | -------------------------------------------------- |
+| **Browse** | Open the Front Door endpoint in your browser       |
+| **Portal** | Open the Front Door blade in the Azure Portal      |
+
+## App Service Plan Actions
+
+Right-click on an App Service Plan to access these commands:
+
+| Action     | Description                                        |
+| ---------- | -------------------------------------------------- |
+| **Portal** | Open the App Service Plan blade in the Azure Portal|
 
 ## Getting Started
 
