@@ -1,7 +1,9 @@
+using AzureExplorer.Core.Models;
+
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.AppServicePlan.Models
 {
     /// <summary>
     /// Represents an Azure App Service Plan. Leaf node with context menu actions.

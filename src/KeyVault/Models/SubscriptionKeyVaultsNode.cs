@@ -1,9 +1,11 @@
 using Azure.ResourceManager.Resources;
 
+using AzureExplorer.Core.Models;
+
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.KeyVault.Models
 {
     /// <summary>
     /// Category node that lists all Azure Key Vaults across the entire subscription.

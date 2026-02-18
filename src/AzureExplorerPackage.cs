@@ -5,7 +5,7 @@ global using Microsoft.VisualStudio.Shell;
 global using Task = System.Threading.Tasks.Task;
 using System.Runtime.InteropServices;
 using System.Threading;
-using AzureExplorer.Services;
+using AzureExplorer.AppService.Services;
 using AzureExplorer.ToolWindows;
 using Microsoft.VisualStudio;
 

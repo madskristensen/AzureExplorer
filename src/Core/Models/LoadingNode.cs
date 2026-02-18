@@ -1,7 +1,7 @@
-﻿using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.Core.Models
 {
     /// <summary>
     /// Placeholder node shown while a parent node is loading its children.

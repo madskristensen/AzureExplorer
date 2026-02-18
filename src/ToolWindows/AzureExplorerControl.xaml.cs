@@ -7,8 +7,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
-using AzureExplorer.Models;
-using AzureExplorer.Services;
+using AzureExplorer.AppService.Models;
+using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;

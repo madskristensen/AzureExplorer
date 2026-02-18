@@ -1,9 +1,9 @@
 using System.Diagnostics;
 
-using AzureExplorer.Models;
+using AzureExplorer.AppService.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.AppService.Commands
 {
     [Command(PackageIds.OpenKudu)]
     internal sealed class OpenKuduCommand : BaseCommand<OpenKuduCommand>

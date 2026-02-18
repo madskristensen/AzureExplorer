@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.PlatformUI;
 
-namespace AzureExplorer.Dialogs
+namespace AzureExplorer.KeyVault.Dialogs
 {
     /// <summary>
     /// Dialog for adding a new secret to an Azure Key Vault.

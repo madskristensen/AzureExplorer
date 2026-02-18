@@ -1,7 +1,7 @@
-using AzureExplorer.Services;
+using AzureExplorer.AppService.Services;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.AppService.Commands
 {
     [Command(PackageIds.DisconnectLogStream)]
     internal sealed class DisconnectLogStreamCommand : BaseCommand<DisconnectLogStreamCommand>

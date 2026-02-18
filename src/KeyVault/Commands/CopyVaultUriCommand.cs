@@ -1,9 +1,9 @@
 using System.Windows;
 
-using AzureExplorer.Models;
+using AzureExplorer.KeyVault.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.KeyVault.Commands
 {
     [Command(PackageIds.CopyVaultUri)]
     internal sealed class CopyVaultUriCommand : BaseCommand<CopyVaultUriCommand>

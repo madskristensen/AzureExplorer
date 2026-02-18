@@ -10,7 +10,9 @@ using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 
-namespace AzureExplorer.Services
+using AzureExplorer.KeyVault.Models;
+
+namespace AzureExplorer.Core.Services
 {
     /// <summary>
     /// Provides methods to list Azure subscriptions, resource groups, and resources
@@ -166,7 +168,7 @@ namespace AzureExplorer.Services
         /// <summary>
         /// Yields secrets in the given Key Vault.
         /// </summary>
-        public async IAsyncEnumerable<Models.SecretNode> GetSecretsAsync(
+        public async IAsyncEnumerable<SecretNode> GetSecretsAsync(
             string subscriptionId,
             string vaultUri,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -177,7 +179,7 @@ namespace AzureExplorer.Services
             await foreach (Azure.Security.KeyVault.Secrets.SecretProperties secret in 
                 client.GetPropertiesOfSecretsAsync(cancellationToken))
             {
-                yield return new Models.SecretNode(secret.Name, subscriptionId, vaultUri, secret.Enabled ?? true);
+                yield return new SecretNode(secret.Name, subscriptionId, vaultUri, secret.Enabled ?? true);
             }
         }
 

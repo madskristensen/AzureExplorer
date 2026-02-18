@@ -3,12 +3,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using AzureExplorer.Services;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.Core.Models
 {
     /// <summary>
     /// Root node representing a signed-in Azure account.

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 
-using AzureExplorer.Services;
+using AzureExplorer.AppService.Services;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace AzureExplorer.ToolWindows

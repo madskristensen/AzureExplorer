@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
 
-namespace AzureExplorer.Services
+namespace AzureExplorer.Core.Services
 {
     /// <summary>
     /// Manages Azure authentication state for multiple accounts with persistent token caching.

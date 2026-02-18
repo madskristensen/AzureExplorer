@@ -1,8 +1,8 @@
-using AzureExplorer.Models;
-using AzureExplorer.Services;
+using AzureExplorer.Core.Services;
+using AzureExplorer.KeyVault.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.KeyVault.Commands
 {
     [Command(PackageIds.DeleteSecret)]
     internal sealed class DeleteSecretCommand : BaseCommand<DeleteSecretCommand>

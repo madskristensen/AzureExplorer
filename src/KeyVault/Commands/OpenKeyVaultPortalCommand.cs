@@ -1,9 +1,9 @@
 using System.Diagnostics;
 
-using AzureExplorer.Models;
+using AzureExplorer.KeyVault.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.KeyVault.Commands
 {
     [Command(PackageIds.OpenKeyVaultPortal)]
     internal sealed class OpenKeyVaultPortalCommand : BaseCommand<OpenKeyVaultPortalCommand>

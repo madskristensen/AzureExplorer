@@ -8,12 +8,13 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Cdn;
 using Azure.ResourceManager.Resources;
 
-using AzureExplorer.Services;
+using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.FrontDoor.Models
 {
     /// <summary>
     /// Category node that groups Azure Front Door profiles under a resource group.

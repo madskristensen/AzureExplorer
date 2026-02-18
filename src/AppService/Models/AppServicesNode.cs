@@ -7,12 +7,13 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 
-using AzureExplorer.Services;
+using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.AppService.Models
 {
     /// <summary>
     /// Category node that groups App Services (Web Apps) under a resource group.

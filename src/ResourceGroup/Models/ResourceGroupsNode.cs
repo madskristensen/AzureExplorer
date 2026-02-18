@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 using Azure.ResourceManager.Resources;
 
-using AzureExplorer.Services;
+using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.ResourceGroup.Models
 {
     /// <summary>
     /// Category node that groups all resource groups under a subscription.

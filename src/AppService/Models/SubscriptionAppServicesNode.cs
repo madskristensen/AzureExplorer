@@ -1,9 +1,11 @@
 using Azure.ResourceManager.Resources;
 
+using AzureExplorer.Core.Models;
+
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.AppService.Models
 {
     /// <summary>
     /// Category node that lists all App Services across the entire subscription.

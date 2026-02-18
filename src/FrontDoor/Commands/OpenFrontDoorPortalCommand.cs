@@ -1,9 +1,9 @@
 using System.Diagnostics;
 
-using AzureExplorer.Models;
+using AzureExplorer.FrontDoor.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.FrontDoor.Commands
 {
     [Command(PackageIds.OpenFrontDoorPortal)]
     internal sealed class OpenFrontDoorPortalCommand : BaseCommand<OpenFrontDoorPortalCommand>

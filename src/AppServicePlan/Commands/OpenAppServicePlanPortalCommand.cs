@@ -1,9 +1,9 @@
 using System.Diagnostics;
 
-using AzureExplorer.Models;
+using AzureExplorer.AppServicePlan.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.AppServicePlan.Commands
 {
     [Command(PackageIds.OpenAppServicePlanPortal)]
     internal sealed class OpenAppServicePlanPortalCommand : BaseCommand<OpenAppServicePlanPortalCommand>

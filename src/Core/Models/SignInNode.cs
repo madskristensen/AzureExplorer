@@ -1,7 +1,7 @@
-﻿using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.Core.Models
 {
     /// <summary>
     /// Shown when the user is not signed in to Azure. Double-clicking triggers the sign-in command.

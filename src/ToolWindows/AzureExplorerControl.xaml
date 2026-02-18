@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
              xmlns:platformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-             xmlns:helpers="clr-namespace:AzureExplorer.Helpers"
+             xmlns:helpers="clr-namespace:AzureExplorer.Core.Helpers"
              toolkit:Themes.UseVsTheme="True">
     <UserControl.Resources>
         <helpers:TreeViewItemToIndentConverter x:Key="IndentConverter" />

@@ -1,8 +1,8 @@
-using AzureExplorer.Models;
-using AzureExplorer.Services;
+using AzureExplorer.AppService.Models;
+using AzureExplorer.AppService.Services;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.AppService.Commands
 {
     [Command(PackageIds.RestartAppService)]
     internal sealed class RestartAppServiceCommand : BaseCommand<RestartAppServiceCommand>

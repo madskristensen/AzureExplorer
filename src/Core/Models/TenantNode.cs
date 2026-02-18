@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 using Azure.ResourceManager.Resources;
 
-using AzureExplorer.Services;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.Core.Models
 {
     /// <summary>
     /// Represents an Azure AD tenant in the tree view.

@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace AzureExplorer.Helpers
+namespace AzureExplorer.Core.Helpers
 {
     /// <summary>
     /// Converts a <see cref="TreeViewItem"/> to a <see cref="Thickness"/> whose left value

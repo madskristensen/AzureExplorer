@@ -8,7 +8,9 @@ using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Resources;
 
-namespace AzureExplorer.Services
+using AzureExplorer.Core.Services;
+
+namespace AzureExplorer.AppService.Services
 {
     /// <summary>
     /// Provides App Service specific operations: start, stop, restart, and state queries.

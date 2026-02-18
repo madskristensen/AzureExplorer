@@ -1,6 +1,6 @@
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.Core.Commands
 {
     [Command(PackageIds.ShowExplorerWindow)]
     internal sealed class ShowExplorerCommand : BaseCommand<ShowExplorerCommand>

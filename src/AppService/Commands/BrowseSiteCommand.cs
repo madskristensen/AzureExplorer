@@ -1,9 +1,10 @@
 using System.Diagnostics;
 
-using AzureExplorer.Models;
+using AzureExplorer.AppService.Models;
+using AzureExplorer.AppService.Services;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.AppService.Commands
 {
     [Command(PackageIds.BrowseSite)]
     internal sealed class BrowseSiteCommand : BaseCommand<BrowseSiteCommand>
@@ -19,7 +20,7 @@ namespace AzureExplorer
                 // Try to fetch the hostname if we don't have it
                 try
                 {
-                    var hostName = await Services.AppServiceManager.Instance.GetDefaultHostNameAsync(
+                    var hostName = await AppServiceManager.Instance.GetDefaultHostNameAsync(
                         node.SubscriptionId, node.ResourceGroupName, node.Label);
                     if (!string.IsNullOrEmpty(hostName))
                         url = $"https://{hostName}";

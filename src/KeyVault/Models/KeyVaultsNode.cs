@@ -6,12 +6,13 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.KeyVault;
 using Azure.ResourceManager.Resources;
 
-using AzureExplorer.Services;
+using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.KeyVault.Models
 {
     /// <summary>
     /// Category node that groups Azure Key Vaults under a resource group.

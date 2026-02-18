@@ -1,8 +1,10 @@
-using AzureExplorer.Models;
-using AzureExplorer.Services;
+using AzureExplorer.AppService.Models;
+using AzureExplorer.AppService.Services;
+using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.Core.Commands
 {
     [Command(PackageIds.Refresh)]
     internal sealed class RefreshCommand : BaseCommand<RefreshCommand>

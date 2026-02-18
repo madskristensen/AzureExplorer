@@ -1,9 +1,9 @@
 using System.Diagnostics;
 
-using AzureExplorer.Models;
+using AzureExplorer.AppService.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.AppService.Commands
 {
     [Command(PackageIds.OpenPortal)]
     internal sealed class OpenPortalCommand : BaseCommand<OpenPortalCommand>

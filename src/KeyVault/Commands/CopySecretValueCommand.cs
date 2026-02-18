@@ -1,10 +1,10 @@
 using System.Windows;
 
-using AzureExplorer.Models;
-using AzureExplorer.Services;
+using AzureExplorer.Core.Services;
+using AzureExplorer.KeyVault.Models;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer
+namespace AzureExplorer.KeyVault.Commands
 {
     [Command(PackageIds.CopySecretValue)]
     internal sealed class CopySecretValueCommand : BaseCommand<CopySecretValueCommand>

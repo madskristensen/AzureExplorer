@@ -1,6 +1,6 @@
-using AzureExplorer.Services;
+using AzureExplorer.Core.Services;
 
-namespace AzureExplorer
+namespace AzureExplorer.Core.Commands
 {
     [Command(PackageIds.SignIn)]
     internal sealed class SignInCommand : BaseCommand<SignInCommand>

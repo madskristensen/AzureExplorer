@@ -45,61 +45,61 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Commands\AddSecretCommand.cs" />
-    <Compile Include="Commands\BrowseFrontDoorCommand.cs" />
-    <Compile Include="Commands\CopySecretValueCommand.cs" />
-    <Compile Include="Commands\CopyVaultUriCommand.cs" />
-    <Compile Include="Commands\DeleteSecretCommand.cs" />
-    <Compile Include="Commands\DisconnectLogStreamCommand.cs" />
-    <Compile Include="Commands\OpenAppServicePlanPortalCommand.cs" />
-    <Compile Include="Commands\OpenFrontDoorPortalCommand.cs" />
-    <Compile Include="Commands\OpenKeyVaultPortalCommand.cs" />
-    <Compile Include="Commands\UpdateSecretCommand.cs" />
-    <Compile Include="Dialogs\AddSecretDialog.xaml.cs">
+    <Compile Include="KeyVault\Commands\AddSecretCommand.cs" />
+    <Compile Include="FrontDoor\Commands\BrowseFrontDoorCommand.cs" />
+    <Compile Include="KeyVault\Commands\CopySecretValueCommand.cs" />
+    <Compile Include="KeyVault\Commands\CopyVaultUriCommand.cs" />
+    <Compile Include="KeyVault\Commands\DeleteSecretCommand.cs" />
+    <Compile Include="AppService\Commands\DisconnectLogStreamCommand.cs" />
+    <Compile Include="AppServicePlan\Commands\OpenAppServicePlanPortalCommand.cs" />
+    <Compile Include="FrontDoor\Commands\OpenFrontDoorPortalCommand.cs" />
+    <Compile Include="KeyVault\Commands\OpenKeyVaultPortalCommand.cs" />
+    <Compile Include="KeyVault\Commands\UpdateSecretCommand.cs" />
+    <Compile Include="KeyVault\Dialogs\AddSecretDialog.xaml.cs">
       <DependentUpon>AddSecretDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Dialogs\UpdateSecretDialog.xaml.cs">
+    <Compile Include="KeyVault\Dialogs\UpdateSecretDialog.xaml.cs">
       <DependentUpon>UpdateSecretDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\AppServicePlanNode.cs" />
-    <Compile Include="Models\AppServicePlansNode.cs" />
-    <Compile Include="Models\AppServicesNode.cs" />
-    <Compile Include="Models\FrontDoorNode.cs" />
-    <Compile Include="Models\FrontDoorsNode.cs" />
-    <Compile Include="Models\KeyVaultNode.cs" />
-    <Compile Include="Models\KeyVaultsNode.cs" />
-    <Compile Include="Models\ResourceGroupsNode.cs" />
-    <Compile Include="Models\SecretNode.cs" />
-    <Compile Include="Models\SubscriptionAppServicesNode.cs" />
-    <Compile Include="Models\SubscriptionFrontDoorsNode.cs" />
-    <Compile Include="Models\SubscriptionKeyVaultsNode.cs" />
-    <Compile Include="Models\SubscriptionResourceNodeBase.cs" />
-    <Compile Include="Models\TenantNode.cs" />
+    <Compile Include="AppServicePlan\Models\AppServicePlanNode.cs" />
+    <Compile Include="AppServicePlan\Models\AppServicePlansNode.cs" />
+    <Compile Include="AppService\Models\AppServicesNode.cs" />
+    <Compile Include="FrontDoor\Models\FrontDoorNode.cs" />
+    <Compile Include="FrontDoor\Models\FrontDoorsNode.cs" />
+    <Compile Include="KeyVault\Models\KeyVaultNode.cs" />
+    <Compile Include="KeyVault\Models\KeyVaultsNode.cs" />
+    <Compile Include="ResourceGroup\Models\ResourceGroupsNode.cs" />
+    <Compile Include="KeyVault\Models\SecretNode.cs" />
+    <Compile Include="AppService\Models\SubscriptionAppServicesNode.cs" />
+    <Compile Include="FrontDoor\Models\SubscriptionFrontDoorsNode.cs" />
+    <Compile Include="KeyVault\Models\SubscriptionKeyVaultsNode.cs" />
+    <Compile Include="Core\Models\SubscriptionResourceNodeBase.cs" />
+    <Compile Include="Core\Models\TenantNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\ShowExplorerCommand.cs" />
-    <Compile Include="Commands\SignInCommand.cs" />
-    <Compile Include="Commands\RefreshCommand.cs" />
-    <Compile Include="Commands\BrowseSiteCommand.cs" />
-    <Compile Include="Commands\StartAppServiceCommand.cs" />
-    <Compile Include="Commands\StopAppServiceCommand.cs" />
-    <Compile Include="Commands\OpenPortalCommand.cs" />
-    <Compile Include="Commands\OpenKuduCommand.cs" />
-    <Compile Include="Commands\StreamLogsCommand.cs" />
-    <Compile Include="Commands\StreamHttpLogsCommand.cs" />
-    <Compile Include="Services\LogStreamService.cs" />
-    <Compile Include="Commands\RestartAppServiceCommand.cs" />
-    <Compile Include="Models\ExplorerNodeBase.cs" />
-    <Compile Include="Models\AccountNode.cs" />
-    <Compile Include="Models\SubscriptionNode.cs" />
-    <Compile Include="Models\ResourceGroupNode.cs" />
-    <Compile Include="Models\AppServiceNode.cs" />
-    <Compile Include="Models\SignInNode.cs" />
-    <Compile Include="Models\LoadingNode.cs" />
-    <Compile Include="Models\NodeFactory.cs" />
-    <Compile Include="Helpers\TreeViewItemToIndentConverter.cs" />
-    <Compile Include="Services\AzureAuthService.cs" />
-    <Compile Include="Services\AzureResourceService.cs" />
-    <Compile Include="Services\AppServiceManager.cs" />
+    <Compile Include="Core\Commands\ShowExplorerCommand.cs" />
+    <Compile Include="Core\Commands\SignInCommand.cs" />
+    <Compile Include="Core\Commands\RefreshCommand.cs" />
+    <Compile Include="AppService\Commands\BrowseSiteCommand.cs" />
+    <Compile Include="AppService\Commands\StartAppServiceCommand.cs" />
+    <Compile Include="AppService\Commands\StopAppServiceCommand.cs" />
+    <Compile Include="AppService\Commands\OpenPortalCommand.cs" />
+    <Compile Include="AppService\Commands\OpenKuduCommand.cs" />
+    <Compile Include="AppService\Commands\StreamLogsCommand.cs" />
+    <Compile Include="AppService\Commands\StreamHttpLogsCommand.cs" />
+    <Compile Include="AppService\Services\LogStreamService.cs" />
+    <Compile Include="AppService\Commands\RestartAppServiceCommand.cs" />
+    <Compile Include="Core\Models\ExplorerNodeBase.cs" />
+    <Compile Include="Core\Models\AccountNode.cs" />
+    <Compile Include="Core\Models\SubscriptionNode.cs" />
+    <Compile Include="ResourceGroup\Models\ResourceGroupNode.cs" />
+    <Compile Include="AppService\Models\AppServiceNode.cs" />
+    <Compile Include="Core\Models\SignInNode.cs" />
+    <Compile Include="Core\Models\LoadingNode.cs" />
+    <Compile Include="ResourceGroup\Models\NodeFactory.cs" />
+    <Compile Include="Core\Helpers\TreeViewItemToIndentConverter.cs" />
+    <Compile Include="Core\Services\AzureAuthService.cs" />
+    <Compile Include="Core\Services\AzureResourceService.cs" />
+    <Compile Include="AppService\Services\AppServiceManager.cs" />
     <Compile Include="ToolWindows\AzureExplorerWindow.cs" />
     <Compile Include="ToolWindows\AzureExplorerControl.xaml.cs">
       <DependentUpon>AzureExplorerControl.xaml</DependentUpon>
@@ -136,10 +136,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Dialogs\AddSecretDialog.xaml">
+    <Page Include="KeyVault\Dialogs\AddSecretDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Dialogs\UpdateSecretDialog.xaml">
+    <Page Include="KeyVault\Dialogs\UpdateSecretDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ToolWindows\AzureExplorerControl.xaml">

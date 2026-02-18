@@ -3,7 +3,13 @@ using System.Collections.Generic;
 
 using Azure.ResourceManager.Resources;
 
-namespace AzureExplorer.Models
+using AzureExplorer.AppService.Models;
+using AzureExplorer.AppServicePlan.Models;
+using AzureExplorer.Core.Models;
+using AzureExplorer.FrontDoor.Models;
+using AzureExplorer.KeyVault.Models;
+
+namespace AzureExplorer.ResourceGroup.Models
 {
     /// <summary>
     /// Maps Azure resource types to tree node constructors. Register new resource types here

@@ -5,7 +5,7 @@ using System.Threading;
 
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.Core.Models
 {
     /// <summary>
     /// Abstract base class for all tree nodes in the Azure Explorer tool window.

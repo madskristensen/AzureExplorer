@@ -1,7 +1,9 @@
+using AzureExplorer.Core.Models;
+
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.KeyVault.Models
 {
     /// <summary>
     /// Represents an individual secret within an Azure Key Vault.

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 
-using AzureExplorer.Services;
+using AzureExplorer.Core.Services;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.Core.Models
 {
     /// <summary>
     /// Base class for subscription-level resource category nodes that query resources

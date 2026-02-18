@@ -1,10 +1,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using AzureExplorer.AppService.Models;
+using AzureExplorer.AppServicePlan.Models;
+using AzureExplorer.Core.Models;
+using AzureExplorer.FrontDoor.Models;
+using AzureExplorer.KeyVault.Models;
+
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.Models
+namespace AzureExplorer.ResourceGroup.Models
 {
     /// <summary>
     /// Represents an Azure resource group. Contains category nodes for different

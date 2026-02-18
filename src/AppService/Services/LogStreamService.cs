@@ -8,10 +8,11 @@ using System.Threading;
 
 using Azure.Core;
 
-using AzureExplorer.Models;
+using AzureExplorer.AppService.Models;
+using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 
-namespace AzureExplorer.Services
+namespace AzureExplorer.AppService.Services
 {
     /// <summary>
     /// Shared streaming logic for Kudu <c>/api/logstream</c> endpoints.
