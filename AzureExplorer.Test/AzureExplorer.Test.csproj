@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSTest.Sdk/4.0.2">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
@@ -12,8 +12,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="MSTest.TestAdapter" Version="4.1.0" />
-        <PackageReference Update="MSTest.TestFramework" Version="4.1.0" />
+        <PackageReference Include="MSTest" Version="4.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
     </ItemGroup>
 
 </Project>
