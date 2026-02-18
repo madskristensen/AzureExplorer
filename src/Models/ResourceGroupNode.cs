@@ -1,12 +1,5 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using AzureExplorer.Services;
-
-using Azure.ResourceManager;
-using Azure.ResourceManager.AppService;
-using Azure.ResourceManager.Resources;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -14,9 +7,8 @@ using Microsoft.VisualStudio.Imaging.Interop;
 namespace AzureExplorer.Models
 {
     /// <summary>
-    /// Represents an Azure resource group. Loads App Service web sites directly
-    /// using the App Service SDK (rather than generic resource listing) so that
-    /// state and hostname are immediately available.
+    /// Represents an Azure resource group. Contains category nodes for different
+    /// resource types (App Services, App Service Plans, etc.).
     /// </summary>
     internal sealed class ResourceGroupNode : ExplorerNodeBase
     {
@@ -34,42 +26,18 @@ namespace AzureExplorer.Models
         public override int ContextMenuId => PackageIds.ResourceGroupContextMenu;
         public override bool SupportsChildren => true;
 
-        public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
+        public override Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {
             if (!BeginLoading())
-                return;
+                return Task.CompletedTask;
 
-            try
-            {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
-
-                await foreach (WebSiteResource site in rg.GetWebSites().GetAllAsync(cancellationToken: cancellationToken))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    AddChild(new AppServiceNode(
-                        site.Data.Name,
-                        SubscriptionId,
-                        ResourceGroupName,
-                        site.Data.State,
-                        site.Data.DefaultHostName));
-                }
-            }
-            catch (Exception ex)
-            {
-                if (Children.Count <= 1) // only LoadingNode or empty
-                {
-                    Children.Clear();
-                    Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
-                    IsLoading = false;
-                    IsLoaded = true;
-                    return;
-                }
-            }
+            // Add category nodes for each resource type
+            AddChild(new AppServicesNode(SubscriptionId, ResourceGroupName));
+            AddChild(new AppServicePlansNode(SubscriptionId, ResourceGroupName));
+            AddChild(new FrontDoorsNode(SubscriptionId, ResourceGroupName));
 
             EndLoading();
+            return Task.CompletedTask;
         }
     }
 }

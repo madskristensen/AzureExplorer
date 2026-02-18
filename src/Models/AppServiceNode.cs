@@ -48,9 +48,9 @@ namespace AzureExplorer.Models
 
         public override ImageMoniker IconMoniker => State switch
         {
-            AppServiceState.Running => KnownMonikers.WebApplication,
-            AppServiceState.Stopped => KnownMonikers.ApplicationWarning,
-            _ => KnownMonikers.WebApplication
+            AppServiceState.Running => KnownMonikers.AzureWebSites,
+            AppServiceState.Stopped => KnownMonikers.CloudStopped,
+            _ => KnownMonikers.AzureWebSites
         };
 
         public override int ContextMenuId => PackageIds.AppServiceContextMenu;

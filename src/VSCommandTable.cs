@@ -26,10 +26,21 @@ namespace AzureExplorer
         public const int SubscriptionContextMenu = 0x0020;
         public const int ResourceGroupContextMenu = 0x0021;
         public const int AppServiceContextMenu = 0x0022;
+        public const int AppServicePlanContextMenu = 0x0025;
+        public const int AppServicesCategoryContextMenu = 0x0026;
+        public const int AppServicePlansCategoryContextMenu = 0x0027;
+        public const int FrontDoorContextMenu = 0x0028;
+        public const int FrontDoorsCategoryContextMenu = 0x0029;
         public const int ViewMenuGroup = 0x0030;
         public const int ToolbarGroup = 0x0031;
         public const int SubscriptionContextMenuGroup = 0x0040;
         public const int ResourceGroupContextMenuGroup = 0x0041;
+        public const int AppServicePlanContextMenuGroup = 0x0048;
+        public const int AppServicesCategoryContextMenuGroup = 0x0049;
+        public const int AppServicePlansCategoryContextMenuGroup = 0x004A;
+        public const int FrontDoorBrowseGroup = 0x004B;
+        public const int FrontDoorRefreshGroup = 0x004C;
+        public const int FrontDoorsCategoryContextMenuGroup = 0x004D;
         public const int AppServiceBrowseGroup = 0x0042;
         public const int AppServiceActionsGroup = 0x0043;
         public const int AppServiceDiagnosticsGroup = 0x0045;
@@ -53,5 +64,12 @@ namespace AzureExplorer
         public const int StreamLogs = 0x0117;
         public const int StreamHttpLogs = 0x0118;
         public const int DisconnectLogStream = 0x0119;
+        public const int OpenAppServicePlanPortal = 0x0120;
+        public const int RefreshAppServicesCategory = 0x0121;
+        public const int RefreshAppServicePlansCategory = 0x0122;
+        public const int BrowseFrontDoor = 0x0130;
+        public const int OpenFrontDoorPortal = 0x0131;
+        public const int RefreshFrontDoor = 0x0132;
+        public const int RefreshFrontDoorsCategory = 0x0133;
     }
 }

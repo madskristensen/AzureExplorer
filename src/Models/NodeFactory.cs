@@ -15,6 +15,8 @@ namespace AzureExplorer.Models
             = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["Microsoft.Web/sites"] = CreateAppServiceNode,
+                ["Microsoft.Web/serverfarms"] = CreateAppServicePlanNode,
+                ["Microsoft.Cdn/profiles"] = CreateFrontDoorNode,
             };
 
         /// <summary>
@@ -52,6 +54,31 @@ namespace AzureExplorer.Models
                 resourceGroupName,
                 state: null,
                 defaultHostName: null);
+        }
+
+        private static ExplorerNodeBase CreateAppServicePlanNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
+        {
+            // GenericResourceData doesn't carry plan-specific details, so we use minimal info.
+            // The ResourceGroupNode.LoadChildrenAsync uses AppService-specific APIs for full details.
+            return new AppServicePlanNode(
+                resource.Name,
+                subscriptionId,
+                resourceGroupName,
+                sku: null,
+                kind: null,
+                numberOfSites: null);
+        }
+
+        private static ExplorerNodeBase CreateFrontDoorNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
+        {
+            // GenericResourceData doesn't carry Front Door-specific details.
+            // The FrontDoorsNode.LoadChildrenAsync uses CDN-specific APIs for full details.
+            return new FrontDoorNode(
+                resource.Name,
+                subscriptionId,
+                resourceGroupName,
+                state: null,
+                hostName: null);
         }
     }
 }

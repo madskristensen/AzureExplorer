@@ -38,6 +38,41 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: App Service Plan node -->
+      <Menu guid="AzureExplorer" id="AppServicePlanContextMenu" type="Context">
+        <Strings>
+          <CommandName>App Service Plan</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: App Services category node -->
+      <Menu guid="AzureExplorer" id="AppServicesCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>App Services</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: App Service Plans category node -->
+      <Menu guid="AzureExplorer" id="AppServicePlansCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>App Service Plans</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Front Door node -->
+      <Menu guid="AzureExplorer" id="FrontDoorContextMenu" type="Context">
+        <Strings>
+          <CommandName>Front Door</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Front Doors category node -->
+      <Menu guid="AzureExplorer" id="FrontDoorsCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Front Doors</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Flyout: Streaming Logs (inside App Service context menu) -->
       <Menu guid="AzureExplorer" id="StreamingLogsFlyout" priority="0x0250" type="Menu">
         <Parent guid="AzureExplorer" id="AppServiceDiagnosticsGroup"/>
@@ -75,6 +110,34 @@
       <!-- Resource Group context menu groups -->
       <Group guid="AzureExplorer" id="ResourceGroupContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="ResourceGroupContextMenu"/>
+      </Group>
+
+      <!-- App Services category context menu groups -->
+      <Group guid="AzureExplorer" id="AppServicesCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="AppServicesCategoryContextMenu"/>
+      </Group>
+
+      <!-- App Service Plans category context menu groups -->
+      <Group guid="AzureExplorer" id="AppServicePlansCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="AppServicePlansCategoryContextMenu"/>
+      </Group>
+
+      <!-- Front Door context menu groups -->
+      <Group guid="AzureExplorer" id="FrontDoorBrowseGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="FrontDoorContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="FrontDoorRefreshGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="FrontDoorContextMenu"/>
+      </Group>
+
+      <!-- Front Doors category context menu groups -->
+      <Group guid="AzureExplorer" id="FrontDoorsCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="FrontDoorsCategoryContextMenu"/>
+      </Group>
+
+      <!-- App Service Plan context menu groups -->
+      <Group guid="AzureExplorer" id="AppServicePlanContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="AppServicePlanContextMenu"/>
       </Group>
 
       <!-- App Service context menu groups -->
@@ -155,6 +218,83 @@
         <Strings>
           <ButtonText>Refresh</ButtonText>
           <LocCanonicalName>.AzureExplorer.RefreshResourceGroup</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Services category context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshAppServicesCategory" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="AppServicesCategoryContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshAppServicesCategory</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service Plans category context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshAppServicePlansCategory" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="AppServicePlansCategoryContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshAppServicePlansCategory</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Front Doors category context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshFrontDoorsCategory" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="FrontDoorsCategoryContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshFrontDoorsCategory</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Front Door context: Browse Endpoint -->
+      <Button guid="AzureExplorer" id="BrowseFrontDoor" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="FrontDoorBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="WebURL"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Browse Endpoint</ButtonText>
+          <LocCanonicalName>.AzureExplorer.BrowseFrontDoor</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Front Door context: Open in Portal -->
+      <Button guid="AzureExplorer" id="OpenFrontDoorPortal" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="FrontDoorBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Web"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Open in Portal</ButtonText>
+          <LocCanonicalName>.AzureExplorer.OpenFrontDoorPortal</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Front Door context: Refresh -->
+      <Button guid="AzureExplorer" id="RefreshFrontDoor" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="FrontDoorRefreshGroup"/>
+        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Refresh</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RefreshFrontDoor</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- App Service Plan context: Open in Portal -->
+      <Button guid="AzureExplorer" id="OpenAppServicePlanPortal" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="AppServicePlanContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Web"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Open in Portal</ButtonText>
+          <LocCanonicalName>.AzureExplorer.OpenAppServicePlanPortal</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -283,12 +423,23 @@
       <IDSymbol name="SubscriptionContextMenu" value="0x0020" />
       <IDSymbol name="ResourceGroupContextMenu" value="0x0021" />
       <IDSymbol name="AppServiceContextMenu" value="0x0022" />
+      <IDSymbol name="AppServicePlanContextMenu" value="0x0025" />
+      <IDSymbol name="AppServicesCategoryContextMenu" value="0x0026" />
+      <IDSymbol name="AppServicePlansCategoryContextMenu" value="0x0027" />
+      <IDSymbol name="FrontDoorContextMenu" value="0x0028" />
+      <IDSymbol name="FrontDoorsCategoryContextMenu" value="0x0029" />
 
       <!-- Groups -->
       <IDSymbol name="ViewMenuGroup" value="0x0030" />
       <IDSymbol name="ToolbarGroup" value="0x0031" />
       <IDSymbol name="SubscriptionContextMenuGroup" value="0x0040" />
       <IDSymbol name="ResourceGroupContextMenuGroup" value="0x0041" />
+      <IDSymbol name="AppServicePlanContextMenuGroup" value="0x0048" />
+      <IDSymbol name="AppServicesCategoryContextMenuGroup" value="0x0049" />
+      <IDSymbol name="AppServicePlansCategoryContextMenuGroup" value="0x004A" />
+      <IDSymbol name="FrontDoorBrowseGroup" value="0x004B" />
+      <IDSymbol name="FrontDoorRefreshGroup" value="0x004C" />
+      <IDSymbol name="FrontDoorsCategoryContextMenuGroup" value="0x004D" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
       <IDSymbol name="AppServiceActionsGroup" value="0x0043" />
       <IDSymbol name="AppServiceDiagnosticsGroup" value="0x0045" />
@@ -314,6 +465,13 @@
       <IDSymbol name="StreamLogs" value="0x0117" />
       <IDSymbol name="StreamHttpLogs" value="0x0118" />
       <IDSymbol name="DisconnectLogStream" value="0x0119" />
+      <IDSymbol name="OpenAppServicePlanPortal" value="0x0120" />
+      <IDSymbol name="RefreshAppServicesCategory" value="0x0121" />
+      <IDSymbol name="RefreshAppServicePlansCategory" value="0x0122" />
+      <IDSymbol name="BrowseFrontDoor" value="0x0130" />
+      <IDSymbol name="OpenFrontDoorPortal" value="0x0131" />
+      <IDSymbol name="RefreshFrontDoor" value="0x0132" />
+      <IDSymbol name="RefreshFrontDoorsCategory" value="0x0133" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
