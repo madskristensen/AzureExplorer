@@ -43,7 +43,7 @@ namespace AzureExplorer.AppService.Models
 
         public override ImageMoniker IconMoniker => KnownMonikers.FolderClosed;
 
-        public override int ContextMenuId => 0; // No context menu for now
+        public override int ContextMenuId => PackageIds.FolderContextMenu;
 
         public override bool SupportsChildren => true;
 

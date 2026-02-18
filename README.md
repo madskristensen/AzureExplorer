@@ -17,6 +17,7 @@ or get the [CI build][vsixgallery].
 ## Features
 
 - **Browse Azure Resources** — View subscriptions, resource groups, and resources in a tree view
+- **Subscription-Level Resources** — Browse App Services, Key Vaults, and Front Doors directly under subscriptions without navigating through resource groups
 - **App Service Management** — Start, stop, and restart App Services with confirmation dialogs to prevent accidents
 - **Key Vault Secrets** — Create, update, delete, and copy secret values directly from Visual Studio
 - **Front Door Profiles** — Browse Front Door endpoints and access the Azure Portal

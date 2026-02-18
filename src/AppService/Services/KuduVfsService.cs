@@ -80,6 +80,40 @@ namespace AzureExplorer.AppService.Services
             return await response.Content.ReadAsStreamAsync();
         }
 
+        /// <summary>
+        /// Deletes a file or folder from the App Service file system.
+        /// </summary>
+        /// <param name="subscriptionId">The subscription ID.</param>
+        /// <param name="appName">The App Service name.</param>
+        /// <param name="path">The path relative to site root.</param>
+        /// <param name="isDirectory">True if deleting a directory, false for a file.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task DeleteAsync(
+            string subscriptionId,
+            string appName,
+            string path,
+            bool isDirectory,
+            CancellationToken cancellationToken = default)
+        {
+            using HttpClient client = await CreateAuthenticatedClientAsync(subscriptionId, cancellationToken);
+
+            // For directories, path must end with /
+            var normalizedPath = path.TrimStart('/');
+            if (isDirectory)
+            {
+                normalizedPath = normalizedPath.TrimEnd('/') + "/";
+            }
+
+            var url = $"https://{appName}.scm.azurewebsites.net/api/vfs/{normalizedPath}";
+
+            using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+            // Kudu VFS API requires If-Match header for delete operations
+            request.Headers.Add("If-Match", "*");
+
+            using HttpResponseMessage response = await client.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+        }
+
         private async Task<HttpClient> CreateAuthenticatedClientAsync(string subscriptionId, CancellationToken cancellationToken)
         {
             TokenCredential credential = AzureResourceService.Instance.GetCredential(subscriptionId);

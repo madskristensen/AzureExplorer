@@ -13,6 +13,9 @@ namespace AzureExplorer
     /// </summary>
     internal sealed partial class PackageGuids
     {
+        public const string AzureExplorerToolWindowString = "d4b65484-2b5e-4e73-b5a0-9c9f91e1dc21";
+        public static Guid AzureExplorerToolWindow = new Guid(AzureExplorerToolWindowString);
+
         public const string AzureExplorerString = "5e5465aa-805e-4395-b20d-a439f7c92ca1";
         public static Guid AzureExplorer = new Guid(AzureExplorerString);
     }
@@ -33,8 +36,11 @@ namespace AzureExplorer
         public const int FrontDoorsCategoryContextMenu = 0x0029;
         public const int KeyVaultContextMenu = 0x0050;
         public const int KeyVaultsCategoryContextMenu = 0x0051;
+        public const int SecretContextMenu = 0x0055;
         public const int TenantContextMenu = 0x002A;
         public const int AccountContextMenu = 0x002B;
+        public const int FileContextMenu = 0x002C;
+        public const int FolderContextMenu = 0x002D;
         public const int ViewMenuGroup = 0x0030;
         public const int ToolbarGroup = 0x0031;
         public const int SubscriptionContextMenuGroup = 0x0040;
@@ -49,8 +55,12 @@ namespace AzureExplorer
         public const int KeyVaultActionsGroup = 0x0056;
         public const int KeyVaultRefreshGroup = 0x0053;
         public const int KeyVaultsCategoryContextMenuGroup = 0x0054;
+        public const int SecretActionsGroup = 0x0057;
+        public const int SecretDeleteGroup = 0x0058;
         public const int TenantContextMenuGroup = 0x004E;
         public const int AccountContextMenuGroup = 0x004F;
+        public const int FileContextMenuGroup = 0x0060;
+        public const int FolderContextMenuGroup = 0x0061;
         public const int AppServiceBrowseGroup = 0x0042;
         public const int AppServiceActionsGroup = 0x0043;
         public const int AppServiceDiagnosticsGroup = 0x0045;
@@ -95,9 +105,8 @@ namespace AzureExplorer
         public const int CopySecretValue = 0x0145;
         public const int UpdateSecretValue = 0x0146;
         public const int DeleteSecret = 0x0147;
+        public const int DeleteFile = 0x0148;
+        public const int DeleteFolder = 0x0149;
         public const int OpenInPortal = 0x0150;
-        public const int SecretContextMenu = 0x0055;
-        public const int SecretActionsGroup = 0x0057;
-        public const int SecretDeleteGroup = 0x0058;
     }
 }

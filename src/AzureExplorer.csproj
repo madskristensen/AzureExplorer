@@ -45,6 +45,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppService\Commands\DeleteFileCommand.cs" />
+    <Compile Include="AppService\Commands\DeleteFolderCommand.cs" />
     <Compile Include="AppService\Commands\DownloadPublishProfileCommand.cs" />
     <Compile Include="AppService\Commands\ManageAppSettingsCommand.cs" />
     <Compile Include="AppService\Dialogs\AppSettingsDialog.xaml.cs">

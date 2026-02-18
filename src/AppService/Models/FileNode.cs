@@ -57,7 +57,7 @@ namespace AzureExplorer.AppService.Models
             }
         }
 
-        public override int ContextMenuId => 0; // No context menu for now
+        public override int ContextMenuId => PackageIds.FileContextMenu;
 
         public override bool SupportsChildren => false;
 

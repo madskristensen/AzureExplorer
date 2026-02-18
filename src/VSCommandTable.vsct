@@ -108,6 +108,20 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: File node (App Service files) -->
+      <Menu guid="AzureExplorer" id="FileContextMenu" type="Context">
+        <Strings>
+          <CommandName>File</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Folder node (App Service folders) -->
+      <Menu guid="AzureExplorer" id="FolderContextMenu" type="Context">
+        <Strings>
+          <CommandName>Folder</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Flyout: Streaming Logs (inside App Service context menu) -->
       <Menu guid="AzureExplorer" id="StreamingLogsFlyout" priority="0x0250" type="Menu">
         <Parent guid="AzureExplorer" id="AppServiceDiagnosticsGroup"/>
@@ -202,6 +216,16 @@
       <!-- Account context menu groups -->
       <Group guid="AzureExplorer" id="AccountContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="AccountContextMenu"/>
+      </Group>
+
+      <!-- File context menu groups -->
+      <Group guid="AzureExplorer" id="FileContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="FileContextMenu"/>
+      </Group>
+
+      <!-- Folder context menu groups -->
+      <Group guid="AzureExplorer" id="FolderContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="FolderContextMenu"/>
       </Group>
 
       <!-- App Service Plan context menu groups -->
@@ -493,6 +517,28 @@
         </Strings>
       </Button>
 
+      <!-- Delete File (App Service VFS) -->
+      <Button guid="AzureExplorer" id="DeleteFile" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="FileContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Cancel"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Delete...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.DeleteFile</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Delete Folder (App Service VFS) -->
+      <Button guid="AzureExplorer" id="DeleteFolder" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="FolderContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Cancel"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Delete...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.DeleteFolder</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -574,6 +620,8 @@
       <IDSymbol name="SecretContextMenu" value="0x0055" />
       <IDSymbol name="TenantContextMenu" value="0x002A" />
       <IDSymbol name="AccountContextMenu" value="0x002B" />
+      <IDSymbol name="FileContextMenu" value="0x002C" />
+      <IDSymbol name="FolderContextMenu" value="0x002D" />
 
       <!-- Groups -->
       <IDSymbol name="ViewMenuGroup" value="0x0030" />
@@ -594,6 +642,8 @@
       <IDSymbol name="SecretDeleteGroup" value="0x0058" />
       <IDSymbol name="TenantContextMenuGroup" value="0x004E" />
       <IDSymbol name="AccountContextMenuGroup" value="0x004F" />
+      <IDSymbol name="FileContextMenuGroup" value="0x0060" />
+      <IDSymbol name="FolderContextMenuGroup" value="0x0061" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
       <IDSymbol name="AppServiceActionsGroup" value="0x0043" />
       <IDSymbol name="AppServiceDiagnosticsGroup" value="0x0045" />
@@ -640,6 +690,8 @@
       <IDSymbol name="CopySecretValue" value="0x0145" />
       <IDSymbol name="UpdateSecretValue" value="0x0146" />
       <IDSymbol name="DeleteSecret" value="0x0147" />
+      <IDSymbol name="DeleteFile" value="0x0148" />
+      <IDSymbol name="DeleteFolder" value="0x0149" />
       <IDSymbol name="OpenInPortal" value="0x0150" />
     </GuidSymbol>
   </Symbols>
