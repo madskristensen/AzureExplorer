@@ -87,6 +87,76 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Storage Account node -->
+      <Menu guid="AzureExplorer" id="StorageAccountContextMenu" type="Context">
+        <Strings>
+          <CommandName>Storage Account</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Storage Accounts category node -->
+      <Menu guid="AzureExplorer" id="StorageAccountsCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Storage Accounts</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Function App node -->
+      <Menu guid="AzureExplorer" id="FunctionAppContextMenu" type="Context">
+        <Strings>
+          <CommandName>Function App</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Function Apps category node -->
+      <Menu guid="AzureExplorer" id="FunctionAppsCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Function Apps</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: SQL Server node -->
+      <Menu guid="AzureExplorer" id="SqlServerContextMenu" type="Context">
+        <Strings>
+          <CommandName>SQL Server</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: SQL Servers category node -->
+      <Menu guid="AzureExplorer" id="SqlServersCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>SQL Servers</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: SQL Database node -->
+      <Menu guid="AzureExplorer" id="SqlDatabaseContextMenu" type="Context">
+        <Strings>
+          <CommandName>SQL Database</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Blob Container node -->
+      <Menu guid="AzureExplorer" id="BlobContainerContextMenu" type="Context">
+        <Strings>
+          <CommandName>Blob Container</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Blob node -->
+      <Menu guid="AzureExplorer" id="BlobContextMenu" type="Context">
+        <Strings>
+          <CommandName>Blob</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Blob Folder node -->
+      <Menu guid="AzureExplorer" id="BlobFolderContextMenu" type="Context">
+        <Strings>
+          <CommandName>Blob Folder</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Context menu: Secret node -->
       <Menu guid="AzureExplorer" id="SecretContextMenu" type="Context">
         <Strings>
@@ -193,6 +263,74 @@
       <!-- Key Vaults category context menu groups -->
       <Group guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenu"/>
+      </Group>
+
+      <!-- Storage Account context menu groups -->
+      <Group guid="AzureExplorer" id="StorageAccountActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="StorageAccountContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="StorageAccountRefreshGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="StorageAccountContextMenu"/>
+      </Group>
+
+      <!-- Storage Accounts category context menu groups -->
+      <Group guid="AzureExplorer" id="StorageAccountsCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="StorageAccountsCategoryContextMenu"/>
+      </Group>
+
+      <!-- Function App context menu groups -->
+      <Group guid="AzureExplorer" id="FunctionAppBrowseGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="FunctionAppContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="FunctionAppActionsGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="FunctionAppContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="FunctionAppRefreshGroup" priority="0x0300">
+        <Parent guid="AzureExplorer" id="FunctionAppContextMenu"/>
+      </Group>
+
+      <!-- Function Apps category context menu groups -->
+      <Group guid="AzureExplorer" id="FunctionAppsCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="FunctionAppsCategoryContextMenu"/>
+      </Group>
+
+      <!-- SQL Server context menu groups -->
+      <Group guid="AzureExplorer" id="SqlServerActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SqlServerContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="SqlServerRefreshGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="SqlServerContextMenu"/>
+      </Group>
+
+      <!-- SQL Servers category context menu groups -->
+      <Group guid="AzureExplorer" id="SqlServersCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SqlServersCategoryContextMenu"/>
+      </Group>
+
+      <!-- SQL Database context menu groups -->
+      <Group guid="AzureExplorer" id="SqlDatabaseActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SqlDatabaseContextMenu"/>
+      </Group>
+
+      <!-- Blob Container context menu groups -->
+      <Group guid="AzureExplorer" id="BlobContainerActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="BlobContainerContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="BlobContainerRefreshGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="BlobContainerContextMenu"/>
+      </Group>
+
+      <!-- Blob context menu groups -->
+      <Group guid="AzureExplorer" id="BlobActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="BlobContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="BlobDeleteGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="BlobContextMenu"/>
+      </Group>
+
+      <!-- Blob Folder context menu groups -->
+      <Group guid="AzureExplorer" id="BlobFolderRefreshGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="BlobFolderContextMenu"/>
       </Group>
 
       <!-- Secret context menu groups -->
@@ -534,6 +672,72 @@
         </Strings>
       </Button>
 
+      <!-- Storage Account context: Copy Connection String -->
+      <Button guid="AzureExplorer" id="CopyStorageConnectionString" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="StorageAccountActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Connection String</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyStorageConnectionString</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- SQL Server/Database context: Copy Connection String -->
+      <Button guid="AzureExplorer" id="CopySqlConnectionString" priority="0x0100" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Connection String</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopySqlConnectionString</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Blob context: Copy URL -->
+      <Button guid="AzureExplorer" id="CopyBlobUrl" priority="0x0100" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Copy URL</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyBlobUrl</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Blob context: Delete -->
+      <Button guid="AzureExplorer" id="DeleteBlob" priority="0x0100" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Cancel"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Delete...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.DeleteBlob</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Blob context: Download -->
+      <Button guid="AzureExplorer" id="DownloadBlob" priority="0x0200" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Download"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Download...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.DownloadBlob</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Blob Container/Folder context: Upload -->
+      <Button guid="AzureExplorer" id="UploadBlob" priority="0x0100" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Upload"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Upload...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.UploadBlob</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -590,6 +794,93 @@
     <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
       <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
     </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0100">
+      <Parent guid="AzureExplorer" id="StorageAccountActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="StorageAccountRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="StorageAccountsCategoryContextMenuGroup"/>
+    </CommandPlacement>
+
+    <!-- Function App command placements -->
+    <CommandPlacement guid="AzureExplorer" id="BrowseSite" priority="0x0100">
+      <Parent guid="AzureExplorer" id="FunctionAppBrowseGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenKudu" priority="0x0200">
+      <Parent guid="AzureExplorer" id="FunctionAppBrowseGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0300">
+      <Parent guid="AzureExplorer" id="FunctionAppBrowseGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="StartAppService" priority="0x0100">
+      <Parent guid="AzureExplorer" id="FunctionAppActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="StopAppService" priority="0x0200">
+      <Parent guid="AzureExplorer" id="FunctionAppActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RestartAppService" priority="0x0300">
+      <Parent guid="AzureExplorer" id="FunctionAppActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="FunctionAppRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="FunctionAppsCategoryContextMenuGroup"/>
+    </CommandPlacement>
+
+    <!-- SQL Server command placements -->
+    <CommandPlacement guid="AzureExplorer" id="CopySqlConnectionString" priority="0x0100">
+      <Parent guid="AzureExplorer" id="SqlServerActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0200">
+      <Parent guid="AzureExplorer" id="SqlServerActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="SqlServerRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="SqlServersCategoryContextMenuGroup"/>
+    </CommandPlacement>
+
+    <!-- SQL Database command placements -->
+    <CommandPlacement guid="AzureExplorer" id="CopySqlConnectionString" priority="0x0100">
+      <Parent guid="AzureExplorer" id="SqlDatabaseActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0200">
+      <Parent guid="AzureExplorer" id="SqlDatabaseActionsGroup"/>
+    </CommandPlacement>
+
+    <!-- Blob Container command placements -->
+    <CommandPlacement guid="AzureExplorer" id="CopyBlobUrl" priority="0x0100">
+      <Parent guid="AzureExplorer" id="BlobContainerActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="UploadBlob" priority="0x0200">
+      <Parent guid="AzureExplorer" id="BlobContainerActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="BlobContainerRefreshGroup"/>
+    </CommandPlacement>
+
+    <!-- Blob command placements -->
+    <CommandPlacement guid="AzureExplorer" id="CopyBlobUrl" priority="0x0100">
+      <Parent guid="AzureExplorer" id="BlobActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="DownloadBlob" priority="0x0200">
+      <Parent guid="AzureExplorer" id="BlobActionsGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="DeleteBlob" priority="0x0100">
+      <Parent guid="AzureExplorer" id="BlobDeleteGroup"/>
+    </CommandPlacement>
+
+    <!-- Blob Folder command placements -->
+    <CommandPlacement guid="AzureExplorer" id="UploadBlob" priority="0x0100">
+      <Parent guid="AzureExplorer" id="BlobFolderRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="BlobFolderRefreshGroup"/>
+    </CommandPlacement>
   </CommandPlacements>
 
   <!-- Keybindings scoped to Azure Explorer tool window -->
@@ -612,6 +903,16 @@
       <IDSymbol name="FrontDoorsCategoryContextMenu" value="0x0029" />
       <IDSymbol name="KeyVaultContextMenu" value="0x0050" />
       <IDSymbol name="KeyVaultsCategoryContextMenu" value="0x0051" />
+      <IDSymbol name="StorageAccountContextMenu" value="0x0160" />
+      <IDSymbol name="StorageAccountsCategoryContextMenu" value="0x0161" />
+      <IDSymbol name="FunctionAppContextMenu" value="0x0170" />
+      <IDSymbol name="FunctionAppsCategoryContextMenu" value="0x0171" />
+      <IDSymbol name="SqlServerContextMenu" value="0x0180" />
+      <IDSymbol name="SqlServersCategoryContextMenu" value="0x0181" />
+      <IDSymbol name="SqlDatabaseContextMenu" value="0x0182" />
+      <IDSymbol name="BlobContainerContextMenu" value="0x0190" />
+      <IDSymbol name="BlobContextMenu" value="0x0191" />
+      <IDSymbol name="BlobFolderContextMenu" value="0x0192" />
       <IDSymbol name="SecretContextMenu" value="0x0055" />
       <IDSymbol name="TenantContextMenu" value="0x002A" />
       <IDSymbol name="AccountContextMenu" value="0x002B" />
@@ -633,6 +934,22 @@
       <IDSymbol name="KeyVaultActionsGroup" value="0x0056" />
       <IDSymbol name="KeyVaultRefreshGroup" value="0x0053" />
       <IDSymbol name="KeyVaultsCategoryContextMenuGroup" value="0x0054" />
+      <IDSymbol name="StorageAccountActionsGroup" value="0x0162" />
+      <IDSymbol name="StorageAccountRefreshGroup" value="0x0163" />
+      <IDSymbol name="StorageAccountsCategoryContextMenuGroup" value="0x0164" />
+      <IDSymbol name="FunctionAppBrowseGroup" value="0x0172" />
+      <IDSymbol name="FunctionAppActionsGroup" value="0x0173" />
+      <IDSymbol name="FunctionAppRefreshGroup" value="0x0174" />
+      <IDSymbol name="FunctionAppsCategoryContextMenuGroup" value="0x0175" />
+      <IDSymbol name="SqlServerActionsGroup" value="0x0183" />
+      <IDSymbol name="SqlServerRefreshGroup" value="0x0184" />
+      <IDSymbol name="SqlServersCategoryContextMenuGroup" value="0x0185" />
+      <IDSymbol name="SqlDatabaseActionsGroup" value="0x0186" />
+      <IDSymbol name="BlobContainerActionsGroup" value="0x0193" />
+      <IDSymbol name="BlobContainerRefreshGroup" value="0x0194" />
+      <IDSymbol name="BlobActionsGroup" value="0x0195" />
+      <IDSymbol name="BlobDeleteGroup" value="0x0196" />
+      <IDSymbol name="BlobFolderRefreshGroup" value="0x0197" />
       <IDSymbol name="SecretActionsGroup" value="0x0057" />
       <IDSymbol name="SecretDeleteGroup" value="0x0058" />
       <IDSymbol name="TenantContextMenuGroup" value="0x004E" />
@@ -688,6 +1005,12 @@
       <IDSymbol name="DeleteFile" value="0x0148" />
       <IDSymbol name="DeleteFolder" value="0x0149" />
       <IDSymbol name="OpenInPortal" value="0x0150" />
+      <IDSymbol name="CopyStorageConnectionString" value="0x0165" />
+      <IDSymbol name="CopySqlConnectionString" value="0x0187" />
+      <IDSymbol name="CopyBlobUrl" value="0x0198" />
+      <IDSymbol name="DeleteBlob" value="0x0199" />
+      <IDSymbol name="DownloadBlob" value="0x019A" />
+      <IDSymbol name="UploadBlob" value="0x019B" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

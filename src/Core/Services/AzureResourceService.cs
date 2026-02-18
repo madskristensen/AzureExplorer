@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
+using Azure.ResourceManager.Sql;
 
 using AzureExplorer.KeyVault.Models;
 
@@ -230,6 +231,33 @@ namespace AzureExplorer.Core.Services
             var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
 
             await client.StartDeleteSecretAsync(secretName, cancellationToken);
+        }
+
+        /// <summary>
+        /// Yields databases in the given SQL Server.
+        /// </summary>
+        public async IAsyncEnumerable<Sql.Models.SqlDatabaseNode> GetSqlDatabasesAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string serverName,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+            ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, cancellationToken)).Value;
+            Azure.ResourceManager.Sql.SqlServerResource server = (await rg.GetSqlServers().GetAsync(serverName, cancellationToken: cancellationToken)).Value;
+
+            await foreach (Azure.ResourceManager.Sql.SqlDatabaseResource db in server.GetSqlDatabases().GetAllAsync(cancellationToken: cancellationToken))
+            {
+                yield return new Sql.Models.SqlDatabaseNode(
+                    db.Data.Name,
+                    subscriptionId,
+                    resourceGroupName,
+                    serverName,
+                    db.Data.Status?.ToString(),
+                    db.Data.RequestedServiceObjectiveName?.ToString(),
+                    db.Data.CurrentServiceObjectiveName);
+            }
         }
 
         /// <summary>

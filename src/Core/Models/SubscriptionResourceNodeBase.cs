@@ -52,6 +52,10 @@ namespace AzureExplorer.Core.Models
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    // Allow derived classes to filter resources (e.g., by kind)
+                    if (!ShouldIncludeResource(resource))
+                        continue;
+
                     string name = resource.Data.Name;
                     string resourceGroup = resource.Id.ResourceGroupName;
 
@@ -77,6 +81,12 @@ namespace AzureExplorer.Core.Models
                 EndLoading();
             }
         }
+
+        /// <summary>
+        /// Determines whether a resource should be included in the results.
+        /// Override to filter resources beyond the resource type (e.g., by kind).
+        /// </summary>
+        protected virtual bool ShouldIncludeResource(GenericResource resource) => true;
 
         /// <summary>
         /// Creates a child node from the generic resource.

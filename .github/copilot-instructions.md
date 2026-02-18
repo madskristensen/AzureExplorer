@@ -67,6 +67,8 @@ General.Instance.Save(); // Save options
 | Settings not persisting | Call `.Save()` after changes |
 | Error List line numbers | API is 0-based, most tools output 1-based |
 | External process hangs | Use async process with cancellation |
+| Fail to write to .csproj files | Always use NuGet MCP server to add/update packages |
+| PackageIDs doesn't contain the member | When modifying the .vsct file, also update the VSCommandTable.cs file |
 
 ## External Processes
 

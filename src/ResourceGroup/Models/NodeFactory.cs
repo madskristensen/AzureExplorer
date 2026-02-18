@@ -7,7 +7,10 @@ using AzureExplorer.AppService.Models;
 using AzureExplorer.AppServicePlan.Models;
 using AzureExplorer.Core.Models;
 using AzureExplorer.FrontDoor.Models;
+using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.KeyVault.Models;
+using AzureExplorer.Sql.Models;
+using AzureExplorer.Storage.Models;
 
 namespace AzureExplorer.ResourceGroup.Models
 {
@@ -21,9 +24,11 @@ namespace AzureExplorer.ResourceGroup.Models
             = new(StringComparer.OrdinalIgnoreCase)
             {
                 ["Microsoft.Web/sites"] = CreateAppServiceNode,
-                ["Microsoft.Web/serverfarms"] = CreateAppServicePlanNode,
-                ["Microsoft.Cdn/profiles"] = CreateFrontDoorNode,
-                ["Microsoft.KeyVault/vaults"] = CreateKeyVaultNode,
+                        ["Microsoft.Web/serverfarms"] = CreateAppServicePlanNode,
+                        ["Microsoft.Cdn/profiles"] = CreateFrontDoorNode,
+                        ["Microsoft.KeyVault/vaults"] = CreateKeyVaultNode,
+                        ["Microsoft.Storage/storageAccounts"] = CreateStorageAccountNode,
+                        ["Microsoft.Sql/servers"] = CreateSqlServerNode,
             };
 
         /// <summary>
@@ -53,8 +58,18 @@ namespace AzureExplorer.ResourceGroup.Models
 
         private static ExplorerNodeBase CreateAppServiceNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
         {
-            // GenericResourceData doesn't carry app-specific state, so we default to Unknown.
-            // The ResourceGroupNode.LoadChildrenAsync will be enhanced later to use AppService-specific APIs.
+            // Check if this is a Function App based on the kind property
+            if (FunctionAppNode.IsFunctionApp(resource.Kind))
+            {
+                return new FunctionAppNode(
+                    resource.Name,
+                    subscriptionId,
+                    resourceGroupName,
+                    state: null,
+                    defaultHostName: null);
+            }
+
+            // Regular App Service (Web App)
             return new AppServiceNode(
                 resource.Name,
                 subscriptionId,
@@ -98,6 +113,31 @@ namespace AzureExplorer.ResourceGroup.Models
                 resourceGroupName,
                 state: null,
                 vaultUri: null);
+        }
+
+        private static ExplorerNodeBase CreateStorageAccountNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
+        {
+            // GenericResourceData doesn't carry Storage Account-specific details.
+            // The StorageAccountsNode.LoadChildrenAsync uses Storage-specific APIs for full details.
+            return new StorageAccountNode(
+                resource.Name,
+                subscriptionId,
+                resourceGroupName,
+                state: null,
+                kind: null,
+                skuName: null);
+        }
+
+        private static ExplorerNodeBase CreateSqlServerNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
+        {
+            // GenericResourceData doesn't carry SQL Server-specific details.
+            // The SqlServersNode.LoadChildrenAsync uses Sql-specific APIs for full details.
+            return new SqlServerNode(
+                resource.Name,
+                subscriptionId,
+                resourceGroupName,
+                state: null,
+                fullyQualifiedDomainName: null);
         }
     }
 }

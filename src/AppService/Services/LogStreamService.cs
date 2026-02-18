@@ -8,7 +8,7 @@ using System.Threading;
 
 using Azure.Core;
 
-using AzureExplorer.AppService.Models;
+using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 
@@ -26,7 +26,7 @@ namespace AzureExplorer.AppService.Services
         /// Toggles log streaming for the given node and stream path.
         /// Returns <c>true</c> if a new stream was started, <c>false</c> if an existing one was stopped.
         /// </summary>
-        internal static async System.Threading.Tasks.Task<bool> ToggleAsync(AppServiceNode node, string streamPath, string label)
+        internal static async System.Threading.Tasks.Task<bool> ToggleAsync(IWebSiteNode node, string streamPath, string label)
         {
             var key = $"{node.Label}|{streamPath}";
 
@@ -72,7 +72,7 @@ namespace AzureExplorer.AppService.Services
             _streams.Clear();
         }
 
-        private static async Task StreamAsync(AppServiceNode node, string streamPath, string label, string key, CancellationToken ct)
+        private static async Task StreamAsync(IWebSiteNode node, string streamPath, string label, string key, CancellationToken ct)
         {
             LogDocumentWindow logWindow = null;
 

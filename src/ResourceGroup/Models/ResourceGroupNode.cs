@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -5,7 +6,10 @@ using AzureExplorer.AppService.Models;
 using AzureExplorer.AppServicePlan.Models;
 using AzureExplorer.Core.Models;
 using AzureExplorer.FrontDoor.Models;
+using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.KeyVault.Models;
+using AzureExplorer.Sql.Models;
+using AzureExplorer.Storage.Models;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -44,25 +48,36 @@ namespace AzureExplorer.ResourceGroup.Models
             // Add category nodes for each resource type
             var appServicesNode = new AppServicesNode(SubscriptionId, ResourceGroupName);
             var appServicePlansNode = new AppServicePlansNode(SubscriptionId, ResourceGroupName);
+            var functionAppsNode = new FunctionAppsNode(SubscriptionId, ResourceGroupName);
             var frontDoorsNode = new FrontDoorsNode(SubscriptionId, ResourceGroupName);
             var keyVaultsNode = new KeyVaultsNode(SubscriptionId, ResourceGroupName);
+            var sqlServersNode = new SqlServersNode(SubscriptionId, ResourceGroupName);
+            var storageAccountsNode = new StorageAccountsNode(SubscriptionId, ResourceGroupName);
 
             AddChild(appServicesNode);
             AddChild(appServicePlansNode);
             AddChild(frontDoorsNode);
+            AddChild(functionAppsNode);
             AddChild(keyVaultsNode);
+            AddChild(sqlServersNode);
+            AddChild(storageAccountsNode);
 
             EndLoading();
 
             // Pre-load category children in parallel (fire-and-forget with error handling)
-            _ = PreloadCategoryChildrenAsync(appServicesNode, appServicePlansNode, frontDoorsNode, keyVaultsNode, cancellationToken);
+            _ = PreloadCategoryChildrenAsync(
+                appServicesNode, appServicePlansNode, functionAppsNode, frontDoorsNode, 
+                keyVaultsNode, sqlServersNode, storageAccountsNode, cancellationToken);
         }
 
         private static async Task PreloadCategoryChildrenAsync(
             AppServicesNode appServicesNode,
             AppServicePlansNode appServicePlansNode,
+            FunctionAppsNode functionAppsNode,
             FrontDoorsNode frontDoorsNode,
             KeyVaultsNode keyVaultsNode,
+            SqlServersNode sqlServersNode,
+            StorageAccountsNode storageAccountsNode,
             CancellationToken cancellationToken)
         {
             try
@@ -70,8 +85,11 @@ namespace AzureExplorer.ResourceGroup.Models
                 await Task.WhenAll(
                     appServicesNode.LoadChildrenAsync(cancellationToken),
                     appServicePlansNode.LoadChildrenAsync(cancellationToken),
+                    functionAppsNode.LoadChildrenAsync(cancellationToken),
                     frontDoorsNode.LoadChildrenAsync(cancellationToken),
-                    keyVaultsNode.LoadChildrenAsync(cancellationToken));
+                    keyVaultsNode.LoadChildrenAsync(cancellationToken),
+                    sqlServersNode.LoadChildrenAsync(cancellationToken),
+                    storageAccountsNode.LoadChildrenAsync(cancellationToken));
             }
             catch (OperationCanceledException)
             {

@@ -1,5 +1,7 @@
 using AzureExplorer.AppService.Models;
 using AzureExplorer.AppService.Services;
+using AzureExplorer.Core.Models;
+using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.ToolWindows;
 
 namespace AzureExplorer.AppService.Commands
@@ -9,13 +11,18 @@ namespace AzureExplorer.AppService.Commands
     {
         protected override void BeforeQueryStatus(EventArgs e)
         {
-            // Only visible when the selected App Service is Running
-            Command.Visible = AzureExplorerControl.SelectedNode is AppServiceNode node && node.State == AppServiceState.Running;
+            // Only visible when the selected site is Running
+            Command.Visible = AzureExplorerControl.SelectedNode switch
+            {
+                AppServiceNode node => node.State == AppServiceState.Running,
+                FunctionAppNode node => node.State == FunctionAppState.Running,
+                _ => false
+            };
         }
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not AppServiceNode node) return;
+            if (AzureExplorerControl.SelectedNode is not IWebSiteNode node) return;
 
             var confirmed = await VS.MessageBox.ShowConfirmAsync(
                 "Stop App Service",
@@ -27,7 +34,13 @@ namespace AzureExplorer.AppService.Commands
             {
                 await VS.StatusBar.ShowMessageAsync($"Stopping {node.Label}...");
                 await AppServiceManager.Instance.StopAsync(node.SubscriptionId, node.ResourceGroupName, node.Label);
-                node.State = AppServiceState.Stopped;
+
+                // Update state on the concrete node type
+                if (AzureExplorerControl.SelectedNode is AppServiceNode appNode)
+                    appNode.State = AppServiceState.Stopped;
+                else if (AzureExplorerControl.SelectedNode is FunctionAppNode funcNode)
+                    funcNode.State = FunctionAppState.Stopped;
+
                 await VS.StatusBar.ShowMessageAsync($"{node.Label} stopped.");
             }
             catch (Exception ex)

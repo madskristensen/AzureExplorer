@@ -1,4 +1,4 @@
-using AzureExplorer.AppService.Models;
+using AzureExplorer.Core.Models;
 using AzureExplorer.AppService.Services;
 using AzureExplorer.ToolWindows;
 
@@ -9,7 +9,7 @@ namespace AzureExplorer.AppService.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not AppServiceNode node) return;
+            if (AzureExplorerControl.SelectedNode is not IWebSiteNode node) return;
 
             await LogStreamService.ToggleAsync(node, "application", "application logs");
         }

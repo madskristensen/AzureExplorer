@@ -36,6 +36,16 @@ namespace AzureExplorer
         public const int FrontDoorsCategoryContextMenu = 0x0029;
         public const int KeyVaultContextMenu = 0x0050;
         public const int KeyVaultsCategoryContextMenu = 0x0051;
+        public const int StorageAccountContextMenu = 0x0160;
+        public const int StorageAccountsCategoryContextMenu = 0x0161;
+        public const int FunctionAppContextMenu = 0x0170;
+        public const int FunctionAppsCategoryContextMenu = 0x0171;
+        public const int SqlServerContextMenu = 0x0180;
+        public const int SqlServersCategoryContextMenu = 0x0181;
+        public const int SqlDatabaseContextMenu = 0x0182;
+        public const int BlobContainerContextMenu = 0x0190;
+        public const int BlobContextMenu = 0x0191;
+        public const int BlobFolderContextMenu = 0x0192;
         public const int SecretContextMenu = 0x0055;
         public const int TenantContextMenu = 0x002A;
         public const int AccountContextMenu = 0x002B;
@@ -55,6 +65,22 @@ namespace AzureExplorer
         public const int KeyVaultActionsGroup = 0x0056;
         public const int KeyVaultRefreshGroup = 0x0053;
         public const int KeyVaultsCategoryContextMenuGroup = 0x0054;
+        public const int StorageAccountActionsGroup = 0x0162;
+        public const int StorageAccountRefreshGroup = 0x0163;
+        public const int StorageAccountsCategoryContextMenuGroup = 0x0164;
+        public const int FunctionAppBrowseGroup = 0x0172;
+        public const int FunctionAppActionsGroup = 0x0173;
+        public const int FunctionAppRefreshGroup = 0x0174;
+        public const int FunctionAppsCategoryContextMenuGroup = 0x0175;
+        public const int SqlServerActionsGroup = 0x0183;
+        public const int SqlServerRefreshGroup = 0x0184;
+        public const int SqlServersCategoryContextMenuGroup = 0x0185;
+        public const int SqlDatabaseActionsGroup = 0x0186;
+        public const int BlobContainerActionsGroup = 0x0193;
+        public const int BlobContainerRefreshGroup = 0x0194;
+        public const int BlobActionsGroup = 0x0195;
+        public const int BlobDeleteGroup = 0x0196;
+        public const int BlobFolderRefreshGroup = 0x0197;
         public const int SecretActionsGroup = 0x0057;
         public const int SecretDeleteGroup = 0x0058;
         public const int TenantContextMenuGroup = 0x004E;
@@ -108,5 +134,11 @@ namespace AzureExplorer
         public const int DeleteFile = 0x0148;
         public const int DeleteFolder = 0x0149;
         public const int OpenInPortal = 0x0150;
+        public const int CopyStorageConnectionString = 0x0165;
+        public const int CopySqlConnectionString = 0x0187;
+        public const int CopyBlobUrl = 0x0198;
+        public const int DeleteBlob = 0x0199;
+        public const int DownloadBlob = 0x019A;
+        public const int UploadBlob = 0x019B;
     }
 }

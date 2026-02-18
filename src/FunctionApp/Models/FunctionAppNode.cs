@@ -1,13 +1,14 @@
 using System.Threading;
 
+using AzureExplorer.AppService.Models;
 using AzureExplorer.Core.Models;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace AzureExplorer.AppService.Models
+namespace AzureExplorer.FunctionApp.Models
 {
-    internal enum AppServiceState
+    internal enum FunctionAppState
     {
         Unknown,
         Running,
@@ -15,13 +16,13 @@ namespace AzureExplorer.AppService.Models
     }
 
     /// <summary>
-    /// Represents an Azure App Service (Web App). Expandable node with Files child and context menu actions.
+    /// Represents an Azure Function App. Similar to App Service but with Function-specific icon and context.
     /// </summary>
-    internal sealed class AppServiceNode : ExplorerNodeBase, IPortalResource, IWebSiteNode
+    internal sealed class FunctionAppNode : ExplorerNodeBase, IPortalResource, IWebSiteNode
     {
-        private AppServiceState _state;
+        private FunctionAppState _state;
 
-        public AppServiceNode(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName)
+        public FunctionAppNode(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName)
             : base(name)
         {
             SubscriptionId = subscriptionId;
@@ -29,7 +30,7 @@ namespace AzureExplorer.AppService.Models
             DefaultHostName = defaultHostName;
             BrowseUrl = string.IsNullOrEmpty(defaultHostName) ? null : $"https://{defaultHostName}";
             _state = ParseState(state);
-            Description = _state == AppServiceState.Stopped ? _state.ToString() : null;
+            Description = _state == FunctionAppState.Stopped ? _state.ToString() : null;
 
             // Add loading placeholder for expandable node
             Children.Add(new LoadingNode());
@@ -44,16 +45,14 @@ namespace AzureExplorer.AppService.Models
         public string ResourceName => Label;
         public string AzureResourceProvider => "Microsoft.Web/sites";
 
-        public AppServiceState State
+        public FunctionAppState State
         {
             get => _state;
             set
             {
                 if (SetProperty(ref _state, value))
                 {
-                    // Only show description for non-normal states (Stopped)
-                    // Don't show "Unknown" or "Running" as they're not useful
-                    Description = value == AppServiceState.Stopped ? value.ToString() : null;
+                    Description = value == FunctionAppState.Stopped ? value.ToString() : null;
                     OnPropertyChanged(nameof(IconMoniker));
                 }
             }
@@ -61,12 +60,12 @@ namespace AzureExplorer.AppService.Models
 
         public override ImageMoniker IconMoniker => State switch
         {
-            AppServiceState.Running => KnownMonikers.AzureWebSites,
-            AppServiceState.Stopped => KnownMonikers.CloudStopped,
-            _ => KnownMonikers.AzureWebSites
+            FunctionAppState.Running => KnownMonikers.AzureFunctionsApp,
+            FunctionAppState.Stopped => KnownMonikers.CloudStopped,
+            _ => KnownMonikers.AzureFunctionsApp
         };
 
-        public override int ContextMenuId => PackageIds.AppServiceContextMenu;
+        public override int ContextMenuId => PackageIds.FunctionAppContextMenu;
         public override bool SupportsChildren => true;
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
@@ -76,6 +75,7 @@ namespace AzureExplorer.AppService.Models
 
             try
             {
+                // Function Apps also support file browsing via Kudu
                 AddChild(new FilesNode(SubscriptionId, Label));
             }
             catch (Exception ex)
@@ -90,18 +90,30 @@ namespace AzureExplorer.AppService.Models
             }
         }
 
-        internal static AppServiceState ParseState(string state)
+        internal static FunctionAppState ParseState(string state)
         {
             if (string.IsNullOrEmpty(state))
-                return AppServiceState.Unknown;
+                return FunctionAppState.Unknown;
 
-            if (state.Equals("Running", System.StringComparison.OrdinalIgnoreCase))
-                return AppServiceState.Running;
+            if (state.Equals("Running", StringComparison.OrdinalIgnoreCase))
+                return FunctionAppState.Running;
 
-            if (state.Equals("Stopped", System.StringComparison.OrdinalIgnoreCase))
-                return AppServiceState.Stopped;
+            if (state.Equals("Stopped", StringComparison.OrdinalIgnoreCase))
+                return FunctionAppState.Stopped;
 
-            return AppServiceState.Unknown;
+            return FunctionAppState.Unknown;
+        }
+
+        /// <summary>
+        /// Determines if a site kind represents a Function App.
+        /// </summary>
+        internal static bool IsFunctionApp(string kind)
+        {
+            if (string.IsNullOrEmpty(kind))
+                return false;
+
+            // Function Apps have kind containing "functionapp" (e.g., "functionapp", "functionapp,linux")
+            return kind.IndexOf("functionapp", StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

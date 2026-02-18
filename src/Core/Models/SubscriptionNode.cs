@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 
 using AzureExplorer.AppService.Models;
 using AzureExplorer.FrontDoor.Models;
+using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.KeyVault.Models;
 using AzureExplorer.ResourceGroup.Models;
+using AzureExplorer.Sql.Models;
+using AzureExplorer.Storage.Models;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -42,19 +45,28 @@ namespace AzureExplorer.Core.Models
                 // These allow users to see resources they have direct access to,
                 // even without list permissions on the containing resource group
                 var appServicesNode = new SubscriptionAppServicesNode(SubscriptionId);
+                var functionAppsNode = new SubscriptionFunctionAppsNode(SubscriptionId);
                 var frontDoorsNode = new SubscriptionFrontDoorsNode(SubscriptionId);
                 var keyVaultsNode = new SubscriptionKeyVaultsNode(SubscriptionId);
+                var storageAccountsNode = new SubscriptionStorageAccountsNode(SubscriptionId);
+                var sqlServersNode = new SubscriptionSqlServersNode(SubscriptionId);
 
                 AddChild(appServicesNode);
+                AddChild(functionAppsNode);
                 AddChild(frontDoorsNode);
                 AddChild(keyVaultsNode);
+                AddChild(sqlServersNode);
+                AddChild(storageAccountsNode);
 
                 // Add resource groups under a parent node
                 var resourceGroupsNode = new ResourceGroupsNode(SubscriptionId);
                 AddChild(resourceGroupsNode);
 
                 // Pre-load subscription-level categories and resource groups in parallel
-                _ = PreloadChildrenAsync(appServicesNode, frontDoorsNode, keyVaultsNode, resourceGroupsNode, cancellationToken);
+                _ = PreloadChildrenAsync(
+                    appServicesNode, functionAppsNode, frontDoorsNode, 
+                    keyVaultsNode, storageAccountsNode, sqlServersNode,
+                    resourceGroupsNode, cancellationToken);
             }
             finally
             {
@@ -64,8 +76,11 @@ namespace AzureExplorer.Core.Models
 
         private static async Task PreloadChildrenAsync(
             SubscriptionAppServicesNode appServicesNode,
+            SubscriptionFunctionAppsNode functionAppsNode,
             SubscriptionFrontDoorsNode frontDoorsNode,
             SubscriptionKeyVaultsNode keyVaultsNode,
+            SubscriptionStorageAccountsNode storageAccountsNode,
+            SubscriptionSqlServersNode sqlServersNode,
             ResourceGroupsNode resourceGroupsNode,
             CancellationToken cancellationToken)
         {
@@ -73,8 +88,11 @@ namespace AzureExplorer.Core.Models
             {
                 await Task.WhenAll(
                     appServicesNode.LoadChildrenAsync(cancellationToken),
+                    functionAppsNode.LoadChildrenAsync(cancellationToken),
                     frontDoorsNode.LoadChildrenAsync(cancellationToken),
                     keyVaultsNode.LoadChildrenAsync(cancellationToken),
+                    storageAccountsNode.LoadChildrenAsync(cancellationToken),
+                    sqlServersNode.LoadChildrenAsync(cancellationToken),
                     resourceGroupsNode.LoadChildrenAsync(cancellationToken));
             }
             catch (OperationCanceledException)
