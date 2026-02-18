@@ -11,7 +11,7 @@ namespace AzureExplorer.Models
     }
 
     /// <summary>
-    /// Represents an Azure Key Vault. Leaf node with context menu actions.
+    /// Represents an Azure Key Vault. Expandable node containing secrets, keys, and certificates.
     /// </summary>
     internal sealed class KeyVaultNode : ExplorerNodeBase
     {
@@ -22,9 +22,13 @@ namespace AzureExplorer.Models
         {
             SubscriptionId = subscriptionId;
             ResourceGroupName = resourceGroupName;
-            VaultUri = vaultUri;
+            // Construct URI from vault name if not provided
+            VaultUri = vaultUri ?? $"https://{name}.vault.azure.net/";
             State = ParseState(state);
             Description = State.ToString();
+
+            // Add child category nodes
+            Children.Add(new SecretsNode(subscriptionId, name, VaultUri));
         }
 
         public string SubscriptionId { get; }
@@ -46,13 +50,13 @@ namespace AzureExplorer.Models
 
         public override ImageMoniker IconMoniker => State switch
         {
-            KeyVaultState.Succeeded => KnownMonikers.Key,
+            KeyVaultState.Succeeded => KnownMonikers.AzureKeyVault,
             KeyVaultState.Failed => KnownMonikers.ApplicationWarning,
             _ => KnownMonikers.Key
         };
 
         public override int ContextMenuId => PackageIds.KeyVaultContextMenu;
-        public override bool SupportsChildren => false;
+        public override bool SupportsChildren => true;
 
         internal static KeyVaultState ParseState(string state)
         {

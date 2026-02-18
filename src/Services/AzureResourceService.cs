@@ -164,6 +164,24 @@ namespace AzureExplorer.Services
         }
 
         /// <summary>
+        /// Yields secrets in the given Key Vault.
+        /// </summary>
+        public async IAsyncEnumerable<Models.SecretNode> GetSecretsAsync(
+            string subscriptionId,
+            string vaultUri,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = GetCredential(subscriptionId);
+            var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
+
+            await foreach (Azure.Security.KeyVault.Secrets.SecretProperties secret in 
+                client.GetPropertiesOfSecretsAsync(cancellationToken))
+            {
+                yield return new Models.SecretNode(secret.Name, vaultUri, secret.Enabled ?? true);
+            }
+        }
+
+        /// <summary>
         /// Wraps a <see cref="TokenCredential"/> to inject a specific tenant ID
         /// into every token request, enabling multi-tenant token acquisition.
         /// </summary>

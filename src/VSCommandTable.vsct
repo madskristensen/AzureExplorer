@@ -87,6 +87,13 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Secret node -->
+      <Menu guid="AzureExplorer" id="SecretContextMenu" type="Context">
+        <Strings>
+          <CommandName>Secret</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Context menu: Tenant node -->
       <Menu guid="AzureExplorer" id="TenantContextMenu" type="Context">
         <Strings>
@@ -360,6 +367,17 @@
         </Strings>
       </Button>
 
+      <!-- Key Vault context: Copy Vault URI -->
+      <Button guid="AzureExplorer" id="CopyVaultUri" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="KeyVaultBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Vault URI</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyVaultUri</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Key Vault context: Refresh -->
       <Button guid="AzureExplorer" id="RefreshKeyVault" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
@@ -547,6 +565,7 @@
       <IDSymbol name="FrontDoorsCategoryContextMenu" value="0x0029" />
       <IDSymbol name="KeyVaultContextMenu" value="0x0050" />
       <IDSymbol name="KeyVaultsCategoryContextMenu" value="0x0051" />
+      <IDSymbol name="SecretContextMenu" value="0x0055" />
       <IDSymbol name="TenantContextMenu" value="0x002A" />
       <IDSymbol name="AccountContextMenu" value="0x002B" />
 
@@ -604,6 +623,7 @@
       <IDSymbol name="OpenKeyVaultPortal" value="0x0140" />
       <IDSymbol name="RefreshKeyVault" value="0x0141" />
       <IDSymbol name="RefreshKeyVaultsCategory" value="0x0142" />
+      <IDSymbol name="CopyVaultUri" value="0x0143" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

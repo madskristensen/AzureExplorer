@@ -86,5 +86,7 @@ namespace AzureExplorer
         public const int OpenKeyVaultPortal = 0x0140;
         public const int RefreshKeyVault = 0x0141;
         public const int RefreshKeyVaultsCategory = 0x0142;
+        public const int CopyVaultUri = 0x0143;
+        public const int SecretContextMenu = 0x0055;
     }
 }
