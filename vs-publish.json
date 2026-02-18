@@ -7,8 +7,20 @@
   },
   "assetFiles": [
     {
-      "pathOnDisk": "art/collapsed.png",
-      "targetPath": "art/collapsed.png"
+      "pathOnDisk": "art/azure-explorer.png",
+      "targetPath": "art/azure-explorer.png"
+    },
+    {
+      "pathOnDisk": "art/app-service-context-menu.png",
+      "targetPath": "art/app-service-context-menu.png"
+    },
+    {
+      "pathOnDisk": "art/key-vault-context-menu.png",
+      "targetPath": "art/key-vault-context-menu.png"
+    },
+    {
+      "pathOnDisk": "art/welcome.png",
+      "targetPath": "art/welcome.png"
     }
   ],
   "overview": "README.md",

@@ -189,12 +189,22 @@ namespace AzureExplorer.Core.Services
         /// </summary>
         public void SignOut(string accountId)
         {
+            bool noAccountsRemaining;
             lock (_lock)
             {
                 _accounts.Remove(accountId);
+                noAccountsRemaining = _accounts.Count == 0;
             }
 
             DeleteAuthRecord(accountId);
+
+            // When the last account is signed out, also delete legacy auth record
+            // to prevent it from being restored on next startup
+            if (noAccountsRemaining)
+            {
+                DeleteLegacyAuthRecord();
+            }
+
             AzureResourceService.Instance.ClearClientCache();
             AuthStateChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -204,17 +214,15 @@ namespace AzureExplorer.Core.Services
         /// </summary>
         public void SignOutAll()
         {
-            List<string> accountIds;
             lock (_lock)
             {
-                accountIds = _accounts.Keys.ToList();
                 _accounts.Clear();
             }
 
-            foreach (var accountId in accountIds)
-            {
-                DeleteAuthRecord(accountId);
-            }
+            // Delete ALL auth record files, not just those in memory.
+            // This handles cases where silent auth failed during startup
+            // but the auth record file still exists on disk.
+            DeleteAllAuthRecords();
 
             // Also delete legacy auth record if it exists
             DeleteLegacyAuthRecord();
@@ -345,6 +353,31 @@ namespace AzureExplorer.Core.Services
 
                 if (File.Exists(filePath))
                     File.Delete(filePath);
+            }
+            catch
+            {
+                // Best effort cleanup
+            }
+        }
+
+        private static void DeleteAllAuthRecords()
+        {
+            try
+            {
+                if (Directory.Exists(_accountsDir))
+                {
+                    foreach (var file in Directory.GetFiles(_accountsDir, "*.bin"))
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch
+                        {
+                            // Best effort cleanup for individual files
+                        }
+                    }
+                }
             }
             catch
             {

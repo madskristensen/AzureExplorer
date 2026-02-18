@@ -7,91 +7,85 @@
 [![Build](https://github.com/madskristensen/AzureExplorer/actions/workflows/build.yaml/badge.svg)](https://github.com/madskristensen/AzureExplorer/actions/workflows/build.yaml)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/madskristensen)
 
-Download this extension from the [Visual Studio Marketplace][marketplace]
-or get the [CI build][vsixgallery].
+Download from the [Visual Studio Marketplace][marketplace] or get the latest [CI build][vsixgallery].
 
---------------------------------------
+---
 
-**Manage your Azure resources directly from Visual Studio.** Azure Explorer provides a lightweight tool window for browsing subscriptions, resource groups, App Services, Key Vaults, Front Door profiles, and App Service Plans without leaving your IDE.
+**Stop context-switching.** Manage your Azure resources without ever leaving Visual Studio.
+
+Azure Explorer brings your cloud infrastructure into your IDE with a fast, lightweight tool window. Browse subscriptions, manage App Services, access Key Vault secrets, and stream live logs — all from the comfort of Visual Studio.
+
+![Azure Explorer tool window](art/azure-explorer.png)
+
+## Why Azure Explorer?
+
+- **Lightweight & Fast** — No heavy SDKs or bloated dependencies, just a clean tree view
+- **Secure by Design** — Uses your existing Azure credentials with modern authentication
+- **Real-time Logs** — Stream HTTP logs from App Services directly in VS
+- **Context Menu Actions** — Right-click to start, stop, restart, browse, or open in Portal
+- **Key Vault Integration** — Create, update, and copy secrets without touching the Portal
 
 ## Features
 
-- **Browse Azure Resources** — View subscriptions, resource groups, and resources in a tree view
-- **Subscription-Level Resources** — Browse App Services, Key Vaults, and Front Doors directly under subscriptions without navigating through resource groups
-- **App Service Management** — Start, stop, and restart App Services with confirmation dialogs to prevent accidents
-- **Key Vault Secrets** — Create, update, delete, and copy secret values directly from Visual Studio
-- **Front Door Profiles** — Browse Front Door endpoints and access the Azure Portal
-- **App Service Plans** — View and manage your App Service Plans
-- **Quick Access** — Open the Azure Portal or Kudu console for any resource
-- **Browse Sites** — Launch App Service and Front Door URLs directly in your browser
-- **Streaming Logs** — View real-time HTTP logs from your App Services
-- **Refresh** — Refresh subscriptions, resource groups, or individual resources
+### Browse Your Azure Resources
 
-## App Service Actions
+Navigate your entire Azure estate in a familiar tree view. Expand subscriptions to see resource groups, or jump straight to App Services, Key Vaults, and Front Doors at the subscription level.
 
-Right-click on an App Service to access these commands:
+<!-- TODO: Add screenshot showing the tree view with expanded subscriptions -->
 
-| Action      | Description                                      |
-| ----------- | ------------------------------------------------ |
-| **Start**   | Start a stopped App Service                      |
-| **Stop**    | Stop a running App Service (with confirmation)   |
-| **Restart** | Restart an App Service (with confirmation)       |
-| **Browse**  | Open the App Service URL in your default browser |
-| **Portal**  | Open the App Service blade in the Azure Portal   |
-| **Kudu**    | Open the Kudu console for advanced diagnostics   |
-| **Logs**    | Stream HTTP logs in real-time                    |
+### App Service Management
 
-### Confirmation Dialogs
+Take control of your web apps without leaving your code:
 
-The **Stop** and **Restart** commands display confirmation dialogs to prevent accidental service disruption. This ensures you don't accidentally take down a production site with a misclick.
+- **Start / Stop / Restart** — Manage app lifecycle with safety confirmations
+- **Browse** — Launch your site in the default browser
+- **Portal** — Jump directly to the Azure Portal blade
+- **Kudu** — Access advanced diagnostics and console
+- **Stream Logs** — Watch HTTP logs in real-time
 
-## Key Vault Actions
+![App Service Context Menu](art/app-service-context-menu.png)
 
-Right-click on a Key Vault or secret to access these commands:
+### Key Vault Secrets
 
-| Action             | Description                                        |
-| ------------------ | -------------------------------------------------- |
-| **Add Secret**     | Create a new secret in the Key Vault               |
-| **Update Secret**  | Update an existing secret's value                  |
-| **Delete Secret**  | Delete a secret (with confirmation)                |
-| **Copy Value**     | Copy a secret's value to the clipboard             |
-| **Copy Vault URI** | Copy the Key Vault URI to the clipboard            |
-| **Portal**         | Open the Key Vault blade in the Azure Portal       |
+Securely manage your application secrets:
 
-## Front Door Actions
+- **Add Secret** — Create new secrets directly from VS
+- **Update Value** — Modify existing secret values
+- **Copy Value** — One-click copy to clipboard
+- **Delete** — Remove secrets with confirmation
 
-Right-click on a Front Door profile to access these commands:
+![Key Vault Context Menu](art/key-vault-context-menu.png)
 
-| Action     | Description                                        |
-| ---------- | -------------------------------------------------- |
-| **Browse** | Open the Front Door endpoint in your browser       |
-| **Portal** | Open the Front Door blade in the Azure Portal      |
+### Front Door & App Service Plans
 
-## App Service Plan Actions
-
-Right-click on an App Service Plan to access these commands:
-
-| Action     | Description                                        |
-| ---------- | -------------------------------------------------- |
-| **Portal** | Open the App Service Plan blade in the Azure Portal|
+Browse Front Door profiles and endpoints, view your hosting plans, and quickly access the Portal for advanced configuration.
 
 ## Getting Started
 
-1. Open the Azure Explorer window from **View > Azure Explorer** (next to Server Explorer)
-2. Click **Sign In** to authenticate with your Azure account
-3. Browse your subscriptions and resource groups
-4. Right-click on App Services to manage them
+1. **Install** the extension from the [Visual Studio Marketplace][marketplace]
+2. **Open** Azure Explorer from **View → Azure Explorer** (next to Server Explorer)
+3. **Sign in** with your Azure account
+4. **Explore** your subscriptions and resources
 
-## License
+![Welcome screen](art/welcome.png)
+
+## Tips
+
+- **Double-click** an App Service to open it in your browser
+- **Double-click** a file in App Service to open it in the editor
+- **Right-click** anywhere for context-specific actions
+- Use the **toolbar refresh** button to sync with Azure
+
+## Contributing
+
+This is a passion project, and contributions are welcome!
+
+- **Found a bug?** [Open an issue][repo]
+- **Have an idea?** [Start a discussion][repo]
+- **Want to contribute?** Pull requests are always welcome
+
+If Azure Explorer saves you time, consider [rating it on the Marketplace][marketplace] or [sponsoring on GitHub](https://github.com/sponsors/madskristensen).
+
+## 📄 License
 
 [Apache 2.0](LICENSE.txt)
-
-## How can I help?
-
-If you enjoy using the extension, please give it a ★★★★★ rating on the [Visual Studio Marketplace][marketplace].
-
-Should you encounter bugs or have feature requests, head over to the [GitHub repo][repo] to open an issue if one doesn't already exist.
-
-Pull requests are also very welcome, as I can't always get around to fixing all bugs myself. This is a personal passion project, so my time is limited.
-
-Another way to help out is to [sponsor me on GitHub](https://github.com/sponsors/madskristensen).

@@ -115,12 +115,15 @@ namespace AzureExplorer.ToolWindows
             var accounts = AzureAuthService.Instance.Accounts;
             if (accounts.Count == 0)
             {
-                RootNodes.Add(new SignInNode());
-                EmptyMessage.Visibility = Visibility.Collapsed;
+                // Show empty state panel, hide tree view
+                ExplorerTree.Visibility = Visibility.Collapsed;
+                EmptyStatePanel.Visibility = Visibility.Visible;
                 return;
             }
 
-            EmptyMessage.Visibility = Visibility.Collapsed;
+            // Show tree view, hide empty state panel
+            ExplorerTree.Visibility = Visibility.Visible;
+            EmptyStatePanel.Visibility = Visibility.Collapsed;
 
             // Create an AccountNode for each signed-in account
             foreach (var account in accounts.OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase))
@@ -177,6 +180,26 @@ namespace AzureExplorer.ToolWindows
             {
                 _instance = null;
             }
+        }
+
+        private void SignInButton_Click(object sender, RoutedEventArgs e)
+        {
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await AzureAuthService.Instance.AddAccountAsync();
+                    await VS.StatusBar.ShowMessageAsync("Signed in to Azure successfully.");
+                }
+                catch (OperationCanceledException)
+                {
+                    await VS.StatusBar.ShowMessageAsync("Azure sign-in was cancelled.");
+                }
+                catch (Exception ex)
+                {
+                    await VS.MessageBox.ShowErrorAsync("Azure Sign In", ex.Message);
+                }
+            }).FireAndForget();
         }
 
         private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)

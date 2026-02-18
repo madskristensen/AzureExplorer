@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
              xmlns:platformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:helpers="clr-namespace:AzureExplorer.Core.Helpers"
              toolkit:Themes.UseVsTheme="True">
     <UserControl.Resources>
@@ -138,11 +140,73 @@
             </TreeView.ItemContainerStyle>
         </TreeView>
 
-        <TextBlock x:Name="EmptyMessage"
-                   Text="Click Sign In on the toolbar to connect to Azure."
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Opacity="0.5"
-                   Visibility="Collapsed" />
+        <!-- Empty state panel shown when not signed in -->
+        <Grid x:Name="EmptyStatePanel" Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" 
+                        VerticalAlignment="Center"
+                        MaxWidth="280"
+                        Margin="20">
+
+                <!-- Azure cloud icon -->
+                <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.CloudGroup}"
+                                    Width="48" Height="48"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,0,0,16"/>
+
+                <!-- Welcome text -->
+                <TextBlock Text="Welcome to Azure Explorer"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8"/>
+
+                <TextBlock Text="Browse and manage your Azure resources directly from Visual Studio."
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           Opacity="0.7"
+                           Margin="0,0,0,20"/>
+
+                <!-- Sign In button -->
+                <Button x:Name="SignInButton"
+                        Content="Sign in to Azure"
+                        Click="SignInButton_Click"
+                        Padding="24,10"
+                        FontSize="14"
+                        HorizontalAlignment="Center"
+                        Cursor="Hand"
+                        Margin="0,0,0,24"/>
+
+                <!-- Feature list -->
+                <StackPanel Opacity="0.7">
+                    <TextBlock Text="What you can do:" 
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,8"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.AzureAppService}"
+                                            Width="16" Height="16" Margin="0,0,8,0"/>
+                        <TextBlock Text="Manage App Services"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.AzureKeyVault}"
+                                            Width="16" Height="16" Margin="0,0,8,0"/>
+                        <TextBlock Text="Access Key Vault secrets"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.Log}"
+                                            Width="16" Height="16" Margin="0,0,8,0"/>
+                        <TextBlock Text="Stream real-time logs"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <imaging:CrispImage Moniker="{x:Static catalog:KnownMonikers.AzureResourceGroup}"
+                                            Width="16" Height="16" Margin="0,0,8,0"/>
+                        <TextBlock Text="Browse resource groups"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

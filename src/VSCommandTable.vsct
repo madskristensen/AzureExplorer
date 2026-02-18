@@ -261,14 +261,14 @@
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Azure Explorer</ButtonText>
-          <LocCanonicalName>.AzureExplorer.ShowExplorerWindow</LocCanonicalName>
+          <LocCanonicalName>.View.ShowExplorerWindow</LocCanonicalName>
         </Strings>
       </Button>
 
       <!-- Toolbar: Sign In -->
       <Button guid="AzureExplorer" id="SignIn" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="ToolbarGroup"/>
-        <Icon guid="ImageCatalogGuid" id="AddUser"/>
+        <Icon guid="ImageCatalogGuid" id="AddConnection"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Sign In</ButtonText>
@@ -279,7 +279,7 @@
       <!-- Toolbar: Refresh -->
       <Button guid="AzureExplorer" id="Refresh" priority="0x0200" type="Button">
         <Parent guid="AzureExplorer" id="ToolbarGroup"/>
-        <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
+        <Icon guid="ImageCatalogGuid" id="Refresh"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Refresh</ButtonText>

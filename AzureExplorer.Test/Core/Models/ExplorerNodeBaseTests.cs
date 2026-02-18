@@ -346,33 +346,6 @@ namespace AzureExplorer.Test.Core.Models
         }
 
         [TestMethod]
-        public async Task LoadChildrenAsync_DefaultImplementation_ReturnsCompletedTaskAsync()
-        {
-            // Arrange
-            var node = new TestExplorerNode("Label");
-
-            // Act
-            await node.LoadChildrenAsync(TestContext.CancellationToken);
-
-            // Assert
-            Assert.IsTrue(true); // Task completed successfully
-        }
-
-        [TestMethod]
-        public async Task LoadChildrenAsync_WithCancellationToken_ReturnsCompletedTaskAsync()
-        {
-            // Arrange
-            var node = new TestExplorerNode("Label");
-            var cancellationToken = new CancellationToken();
-
-            // Act
-            await node.LoadChildrenAsync(cancellationToken);
-
-            // Assert
-            Assert.IsTrue(true); // Task completed successfully
-        }
-
-        [TestMethod]
         public async Task RefreshAsync_ClearsState_AndCallsLoadChildrenAsync()
         {
             // Arrange
