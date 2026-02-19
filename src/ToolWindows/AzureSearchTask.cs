@@ -1,5 +1,5 @@
 using System.Threading;
-using System.Threading.Tasks;
+
 using AzureExplorer.Core.Search;
 
 using Microsoft.VisualStudio;
@@ -10,21 +10,14 @@ namespace AzureExplorer.ToolWindows;
 /// <summary>
 /// Search task that performs parallel Azure resource search across all accounts.
 /// </summary>
-internal sealed class AzureSearchTask : VsSearchTask
+internal sealed class AzureSearchTask(
+    uint dwCookie,
+    IVsSearchQuery pSearchQuery,
+    IVsSearchCallback pSearchCallback,
+    AzureExplorerWindow.Pane toolWindow) : VsSearchTask(dwCookie, pSearchQuery, pSearchCallback)
 {
-    private readonly AzureExplorerWindow.Pane _toolWindow;
-    private readonly CancellationTokenSource _cts;
-
-    public AzureSearchTask(
-        uint dwCookie,
-        IVsSearchQuery pSearchQuery,
-        IVsSearchCallback pSearchCallback,
-        AzureExplorerWindow.Pane toolWindow)
-        : base(dwCookie, pSearchQuery, pSearchCallback)
-    {
-        _toolWindow = toolWindow;
-        _cts = new CancellationTokenSource();
-    }
+    private readonly CancellationTokenSource _cts = new();
+    private readonly string _searchText = pSearchQuery?.SearchString?.Trim();
 
     protected override void OnStartSearch()
     {
@@ -33,50 +26,50 @@ internal sealed class AzureSearchTask : VsSearchTask
 
         try
         {
-            var searchText = SearchQuery.SearchString?.Trim();
-
-            if (string.IsNullOrEmpty(searchText))
+            if (string.IsNullOrEmpty(_searchText))
             {
                 SearchResults = 0;
                 base.OnStartSearch();
                 return;
             }
 
-            // Clear previous results on UI thread
-            ThreadHelper.Generic.Invoke(() =>
+            // Clear previous results on UI thread using JoinableTaskFactory
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                _toolWindow.ClearSearchResults();
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                toolWindow.ClearSearchResults();
             });
 
-            // Run the async search synchronously on this background thread
-            // The search task is already on a background thread, so we can block here
-            Task<uint> searchTask = AzureSearchService.Instance.SearchAllResourcesAsync(
-                searchText,
-                onResultFound: result =>
-                {
-                    if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
-                        return;
-
-                    // Add result to UI on main thread
-                    ThreadHelper.Generic.Invoke(() =>
+            // Run the async search using JoinableTaskFactory to avoid deadlocks
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await AzureSearchService.Instance.SearchAllResourcesAsync(
+                    _searchText,
+                    onResultFound: result =>
                     {
-                        _toolWindow.AddSearchResult(result);
-                    });
+                        if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
+                            return;
 
-                    Interlocked.Increment(ref resultCount);
-                },
-                onProgress: (searched, total) =>
-                {
-                    if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
-                        return;
+                        // Add result to UI on main thread
+                        ThreadHelper.JoinableTaskFactory.Run(async () =>
+                        {
+                            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                            toolWindow.AddSearchResult(result);
+                        });
 
-                    // Report progress to VS search host
-                    SearchCallback.ReportProgress(this, searched, total);
-                },
-                cancellationToken: _cts.Token);
+                        Interlocked.Increment(ref resultCount);
+                    },
+                    onProgress: (searched, total) =>
+                    {
+                        ThreadHelper.ThrowIfNotOnUIThread();
+                        if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
+                            return;
 
-            // Wait for completion (we're already on background thread)
-            searchTask.GetAwaiter().GetResult();
+                        // Report progress (callback is thread-safe per VS SDK docs)
+                        SearchCallback.ReportProgress(this, searched, total);
+                    },
+                    cancellationToken: _cts.Token);
+            });
 
             SearchResults = (uint)resultCount;
         }
