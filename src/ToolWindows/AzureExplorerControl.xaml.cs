@@ -180,14 +180,12 @@ namespace AzureExplorer.ToolWindows
                 var accountNode = new AccountNode(account.AccountId, account.Username);
                 RootNodes.Add(accountNode);
 
-                // Load children first, then expand
+                // Load children in background (don't expand automatically)
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     try
                     {
                         await accountNode.LoadChildrenAsync();
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        accountNode.IsExpanded = true;
                     }
                     catch (Exception ex)
                     {

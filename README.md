@@ -132,6 +132,25 @@ Organize and filter your Azure resources using tags:
 - **Copy Tags** — Copy all tags as JSON or individual tag values
 - **Auto-complete** — Tag keys and values auto-populate from previously used tags
 
+### Activity Log
+
+Track your actions with the built-in Activity Log panel:
+
+- **Recent Actions** — See a history of operations performed through Azure Explorer
+- **Status Tracking** — View success/failure status for each action
+- **Quick Navigation** — Click any entry to navigate to the related resource
+- **Persistent History** — Activity log is saved between sessions
+- **Toggle Visibility** — Show/hide the panel via the toolbar or View menu
+
+### Hide Subscriptions & Tenants
+
+Focus on what matters by hiding subscriptions or tenants you don't need:
+
+- **Hide Subscription** — Right-click any subscription and select "Hide" to remove it from view
+- **Hide Tenant** — Hide entire tenants to declutter your tree
+- **Show All** — Toggle "Show All" in the toolbar to reveal hidden items
+- **Persistent Settings** — Your visibility preferences are remembered
+
 ### Virtual Machine Management
 
 Manage your Azure VMs without leaving Visual Studio:
