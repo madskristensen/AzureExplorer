@@ -13,13 +13,13 @@ namespace AzureExplorer.VirtualMachine.Commands
         protected override void BeforeQueryStatus(EventArgs e)
         {
             // Only visible for Windows VMs
-            Command.Visible = AzureExplorerControl.SelectedNode is VirtualMachineNode node &&
+            Command.Visible = AzureExplorerControl.SelectedNode?.ActualNode is VirtualMachineNode node &&
                               node.OsType == VirtualMachineOsType.Windows;
         }
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not VirtualMachineNode node)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not VirtualMachineNode node)
                 return;
 
             try

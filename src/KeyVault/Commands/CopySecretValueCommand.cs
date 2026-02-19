@@ -11,7 +11,7 @@ namespace AzureExplorer.KeyVault.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not SecretNode node) return;
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not SecretNode node) return;
 
             try
             {

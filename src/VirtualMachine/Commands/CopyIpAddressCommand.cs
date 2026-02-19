@@ -11,7 +11,7 @@ namespace AzureExplorer.VirtualMachine.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not VirtualMachineNode node)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not VirtualMachineNode node)
                 return;
 
             try

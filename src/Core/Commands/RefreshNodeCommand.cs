@@ -12,7 +12,7 @@ namespace AzureExplorer.Core.Commands
     {
         protected override void BeforeQueryStatus(EventArgs e)
         {
-            ExplorerNodeBase node = AzureExplorerControl.SelectedNode;
+            ExplorerNodeBase node = AzureExplorerControl.SelectedNode?.ActualNode;
             Command.Enabled = node != null && node.SupportsChildren;
         }
 
@@ -20,7 +20,7 @@ namespace AzureExplorer.Core.Commands
         {
             try
             {
-                if (AzureExplorerControl.SelectedNode is ExplorerNodeBase node && node.SupportsChildren)
+                if (AzureExplorerControl.SelectedNode?.ActualNode is ExplorerNodeBase node && node.SupportsChildren)
                 {
                     await VS.StatusBar.ShowMessageAsync($"Refreshing {node.Label}...");
                     await node.RefreshAsync();

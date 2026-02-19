@@ -10,7 +10,7 @@ namespace AzureExplorer.FrontDoor.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not FrontDoorNode node) return;
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not FrontDoorNode node) return;
 
             if (string.IsNullOrEmpty(node.BrowseUrl))
             {

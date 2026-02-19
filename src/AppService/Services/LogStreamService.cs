@@ -157,6 +157,8 @@ namespace AzureExplorer.AppService.Services
                             if (attempt == 0)
                             {
                                 await logWindow.AppendLineAsync("Connected. Run command again to disconnect.");
+                                await logWindow.AppendLineAsync("Note: There may be a delay of a few minutes before logs start appearing.");
+                                await logWindow.AppendLineAsync("");
                                 await VS.StatusBar.ShowMessageAsync($"Streaming {label} for {node.Label}...");
                             }
 

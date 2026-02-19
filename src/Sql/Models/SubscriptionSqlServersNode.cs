@@ -33,7 +33,7 @@ namespace AzureExplorer.Sql.Models
             {
                 try
                 {
-                    using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
+                    using var doc = JsonDocument.Parse(resource.Data.Properties);
                     JsonElement root = doc.RootElement;
 
                     if (root.TryGetProperty("state", out JsonElement stateElement))

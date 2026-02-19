@@ -14,12 +14,12 @@ namespace AzureExplorer.Core.Commands
     {
         protected override void BeforeQueryStatus(EventArgs e)
         {
-            Command.Enabled = AzureExplorerControl.SelectedNode is IPortalResource;
+            Command.Enabled = AzureExplorerControl.SelectedNode?.ActualNode is IPortalResource;
         }
 
         protected override Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is IPortalResource resource)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is IPortalResource resource)
             {
                 Process.Start(resource.GetPortalUrl());
             }

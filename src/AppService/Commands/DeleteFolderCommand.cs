@@ -9,7 +9,7 @@ namespace AzureExplorer.AppService.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not FolderNode node) return;
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not FolderNode node) return;
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

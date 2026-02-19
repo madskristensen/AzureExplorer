@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Threading.Tasks;
 
 using Azure.Storage.Blobs;
 
@@ -17,11 +15,11 @@ namespace AzureExplorer.Storage.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not BlobNode blobNode || blobNode.IsDirectory)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not BlobNode blobNode || blobNode.IsDirectory)
                 return;
 
             // Show save file dialog
-            SaveFileDialog dialog = new SaveFileDialog
+            var dialog = new SaveFileDialog
             {
                 FileName = blobNode.Label,
                 Title = "Download Blob",
@@ -59,8 +57,8 @@ namespace AzureExplorer.Storage.Commands
         private static async Task DownloadBlobAsync(BlobNode blobNode, string destinationPath)
         {
             Azure.Core.TokenCredential credential = AzureResourceService.Instance.GetCredential(blobNode.SubscriptionId);
-            Uri serviceUri = new Uri($"https://{blobNode.AccountName}.blob.core.windows.net");
-            BlobServiceClient serviceClient = new BlobServiceClient(serviceUri, credential);
+            var serviceUri = new Uri($"https://{blobNode.AccountName}.blob.core.windows.net");
+            var serviceClient = new BlobServiceClient(serviceUri, credential);
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(blobNode.ContainerName);
             BlobClient blobClient = containerClient.GetBlobClient(blobNode.BlobPath);
 

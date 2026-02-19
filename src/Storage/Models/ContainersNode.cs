@@ -86,7 +86,7 @@ namespace AzureExplorer.Storage.Models
             Azure.Core.TokenCredential credential = AzureResourceService.Instance.GetCredential(SubscriptionId);
 
             // Build the blob service URI
-            Uri serviceUri = new Uri($"https://{AccountName}.blob.core.windows.net");
+            var serviceUri = new Uri($"https://{AccountName}.blob.core.windows.net");
 
             return new BlobServiceClient(serviceUri, credential);
         }

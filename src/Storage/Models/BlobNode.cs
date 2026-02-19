@@ -155,8 +155,8 @@ namespace AzureExplorer.Storage.Models
         private async Task<BlobContainerClient> GetContainerClientAsync()
         {
             Azure.Core.TokenCredential credential = AzureResourceService.Instance.GetCredential(SubscriptionId);
-            Uri serviceUri = new Uri($"https://{AccountName}.blob.core.windows.net");
-            BlobServiceClient serviceClient = new BlobServiceClient(serviceUri, credential);
+            var serviceUri = new Uri($"https://{AccountName}.blob.core.windows.net");
+            var serviceClient = new BlobServiceClient(serviceUri, credential);
             return serviceClient.GetBlobContainerClient(ContainerName);
         }
 

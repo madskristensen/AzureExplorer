@@ -58,6 +58,11 @@ internal sealed class SearchResultNode : ExplorerNodeBase
 
     public override bool SupportsChildren => _actualNode?.SupportsChildren ?? false;
 
+    /// <summary>
+    /// Returns the underlying actual node so commands can check its type and perform operations.
+    /// </summary>
+    public override ExplorerNodeBase ActualNode => _actualNode ?? this;
+
     public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
     {
         if (_actualNode == null)

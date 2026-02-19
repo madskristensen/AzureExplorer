@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Threading.Tasks;
 
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -26,7 +24,7 @@ namespace AzureExplorer.Storage.Commands
             string containerName = null;
             string prefix = null;
 
-            if (AzureExplorerControl.SelectedNode is ContainerNode containerNode)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is ContainerNode containerNode)
             {
                 subscriptionId = containerNode.SubscriptionId;
                 resourceGroupName = containerNode.ResourceGroupName;
@@ -34,7 +32,7 @@ namespace AzureExplorer.Storage.Commands
                 containerName = containerNode.Label;
                 prefix = "";
             }
-            else if (AzureExplorerControl.SelectedNode is BlobNode blobNode && blobNode.IsDirectory)
+            else if (AzureExplorerControl.SelectedNode?.ActualNode is BlobNode blobNode && blobNode.IsDirectory)
             {
                 subscriptionId = blobNode.SubscriptionId;
                 resourceGroupName = blobNode.ResourceGroupName;
@@ -48,7 +46,7 @@ namespace AzureExplorer.Storage.Commands
             }
 
             // Show open file dialog
-            OpenFileDialog dialog = new OpenFileDialog
+            var dialog = new OpenFileDialog
             {
                 Title = "Upload Blob",
                 Filter = "All Files (*.*)|*.*",
@@ -88,8 +86,8 @@ namespace AzureExplorer.Storage.Commands
             string[] filePaths)
         {
             Azure.Core.TokenCredential credential = AzureResourceService.Instance.GetCredential(subscriptionId);
-            Uri serviceUri = new Uri($"https://{accountName}.blob.core.windows.net");
-            BlobServiceClient serviceClient = new BlobServiceClient(serviceUri, credential);
+            var serviceUri = new Uri($"https://{accountName}.blob.core.windows.net");
+            var serviceClient = new BlobServiceClient(serviceUri, credential);
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
 
             foreach (var filePath in filePaths)
@@ -102,7 +100,7 @@ namespace AzureExplorer.Storage.Commands
                 // Detect content type
                 var contentType = GetContentType(fileName);
 
-                BlobUploadOptions options = new BlobUploadOptions();
+                var options = new BlobUploadOptions();
                 if (!string.IsNullOrEmpty(contentType))
                 {
                     options.HttpHeaders = new BlobHttpHeaders { ContentType = contentType };

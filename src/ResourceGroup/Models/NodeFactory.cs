@@ -152,7 +152,7 @@ namespace AzureExplorer.ResourceGroup.Models
             {
                 try
                 {
-                    using JsonDocument doc = JsonDocument.Parse(resource.Properties);
+                    using var doc = JsonDocument.Parse(resource.Properties);
                     JsonElement root = doc.RootElement;
 
                     if (root.TryGetProperty("hardwareProfile", out JsonElement hardwareProfile) &&

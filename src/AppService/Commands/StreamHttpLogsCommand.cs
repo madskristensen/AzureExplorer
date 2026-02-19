@@ -9,7 +9,8 @@ namespace AzureExplorer.AppService.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not IWebSiteNode node) return;
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not IWebSiteNode node)
+                return;
 
             await LogStreamService.ToggleAsync(node, "http", "HTTP logs");
         }

@@ -15,12 +15,12 @@ namespace AzureExplorer.Storage.Commands
             string name = null;
 
             // Handle both BlobNode and ContainerNode
-            if (AzureExplorerControl.SelectedNode is BlobNode blobNode && !blobNode.IsDirectory)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is BlobNode blobNode && !blobNode.IsDirectory)
             {
                 url = blobNode.BlobUrl;
                 name = blobNode.Label;
             }
-            else if (AzureExplorerControl.SelectedNode is ContainerNode containerNode)
+            else if (AzureExplorerControl.SelectedNode?.ActualNode is ContainerNode containerNode)
             {
                 url = containerNode.ContainerUrl;
                 name = containerNode.Label;

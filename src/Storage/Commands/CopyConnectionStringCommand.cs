@@ -18,7 +18,7 @@ namespace AzureExplorer.Storage.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not StorageAccountNode node)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not StorageAccountNode node)
                 return;
 
             try

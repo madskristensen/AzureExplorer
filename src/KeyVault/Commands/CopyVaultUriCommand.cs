@@ -10,7 +10,7 @@ namespace AzureExplorer.KeyVault.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not KeyVaultNode node) return;
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not KeyVaultNode node) return;
 
             if (!string.IsNullOrEmpty(node.VaultUri))
             {

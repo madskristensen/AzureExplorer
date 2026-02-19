@@ -12,7 +12,7 @@ namespace AzureExplorer.AppService.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not IWebSiteNode node)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not IWebSiteNode node)
                 return;
 
             try

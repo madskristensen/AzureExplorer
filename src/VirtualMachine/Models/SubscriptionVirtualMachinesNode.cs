@@ -33,7 +33,7 @@ namespace AzureExplorer.VirtualMachine.Models
             {
                 try
                 {
-                    using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
+                    using var doc = JsonDocument.Parse(resource.Data.Properties);
                     JsonElement root = doc.RootElement;
 
                     // Get VM size from hardwareProfile

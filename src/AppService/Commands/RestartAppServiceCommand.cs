@@ -11,7 +11,7 @@ namespace AzureExplorer.AppService.Commands
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            if (AzureExplorerControl.SelectedNode is not IWebSiteNode node) return;
+            if (AzureExplorerControl.SelectedNode?.ActualNode is not IWebSiteNode node) return;
 
             var confirmed = await VS.MessageBox.ShowConfirmAsync(
                 "Restart App Service",
@@ -25,9 +25,9 @@ namespace AzureExplorer.AppService.Commands
                 await AppServiceManager.Instance.RestartAsync(node.SubscriptionId, node.ResourceGroupName, node.Label);
 
                 // Update state on the concrete node type
-                if (AzureExplorerControl.SelectedNode is AppServiceNode appNode)
+                if (AzureExplorerControl.SelectedNode?.ActualNode is AppServiceNode appNode)
                     appNode.State = AppServiceState.Running;
-                else if (AzureExplorerControl.SelectedNode is FunctionAppNode funcNode)
+                else if (AzureExplorerControl.SelectedNode?.ActualNode is FunctionAppNode funcNode)
                     funcNode.State = FunctionAppState.Running;
 
                 await VS.StatusBar.ShowMessageAsync($"{node.Label} restarted.");

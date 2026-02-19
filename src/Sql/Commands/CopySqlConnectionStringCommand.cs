@@ -16,12 +16,12 @@ namespace AzureExplorer.Sql.Commands
             string databaseName = null;
 
             // Handle both SQL Server and SQL Database nodes
-            if (AzureExplorerControl.SelectedNode is SqlDatabaseNode dbNode)
+            if (AzureExplorerControl.SelectedNode?.ActualNode is SqlDatabaseNode dbNode)
             {
                 serverName = dbNode.ServerName;
                 databaseName = dbNode.Label;
             }
-            else if (AzureExplorerControl.SelectedNode is SqlServerNode serverNode)
+            else if (AzureExplorerControl.SelectedNode?.ActualNode is SqlServerNode serverNode)
             {
                 serverName = serverNode.FullyQualifiedDomainName ?? $"{serverNode.Label}.database.windows.net";
                 databaseName = "master"; // Default to master for server-level connection

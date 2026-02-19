@@ -49,6 +49,13 @@ namespace AzureExplorer.Core.Models
         /// </summary>
         public abstract bool SupportsChildren { get; }
 
+        /// <summary>
+        /// Gets the actual node for command operations. For wrapper nodes like SearchResultNode,
+        /// this returns the underlying wrapped node. For regular nodes, returns this instance.
+        /// Commands should use this property when checking node types or performing operations.
+        /// </summary>
+        public virtual ExplorerNodeBase ActualNode => this;
+
         public ObservableCollection<ExplorerNodeBase> Children { get; } = [];
 
         public bool IsExpanded
