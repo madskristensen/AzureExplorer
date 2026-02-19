@@ -62,6 +62,11 @@
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="Core\Models\IWebSiteNode.cs" />
+    <Compile Include="Core\Search\AzureSearchResult.cs" />
+    <Compile Include="Core\Search\AzureSearchService.cs" />
+    <Compile Include="Core\Search\SearchAccountNode.cs" />
+    <Compile Include="Core\Search\SearchResultNode.cs" />
+    <Compile Include="Core\Search\SearchSubscriptionNode.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppNode.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppsNode.cs" />
     <Compile Include="FunctionApp\Models\SubscriptionFunctionAppsNode.cs" />
@@ -142,6 +147,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
+    <Compile Include="ToolWindows\AzureSearchTask.cs" />
     <Compile Include="ToolWindows\LogDocumentControl.xaml.cs">
       <DependentUpon>LogDocumentControl.xaml</DependentUpon>
     </Compile>

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Windows.Media;
 using AzureExplorer.AppService.Models;
 using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Search;
 using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
@@ -20,6 +22,8 @@ namespace AzureExplorer.ToolWindows
     public partial class AzureExplorerControl : UserControl
     {
         private static AzureExplorerControl _instance;
+        private readonly List<ExplorerNodeBase> _savedRootNodes = new List<ExplorerNodeBase>();
+        private bool _isSearchActive;
 
         public AzureExplorerControl()
         {
@@ -316,7 +320,97 @@ namespace AzureExplorer.ToolWindows
                 }
             };
 
-            shell.ShowContextMenu(0, ref guid, menuId, points, null);
-        }
-    }
-}
+                    shell.ShowContextMenu(0, ref guid, menuId, points, null);
+                    }
+
+                    /// <summary>
+                    /// Shows the tree view and restores original nodes after search is cleared.
+                    /// </summary>
+                    internal void ShowTreeView()
+                    {
+                        if (_isSearchActive && _savedRootNodes.Count > 0)
+                        {
+                            // Restore saved nodes
+                            RootNodes.Clear();
+                            foreach (var node in _savedRootNodes)
+                            {
+                                RootNodes.Add(node);
+                            }
+                            _savedRootNodes.Clear();
+                        }
+
+                        _isSearchActive = false;
+
+                        if (RootNodes.Count > 0)
+                        {
+                            ExplorerTree.Visibility = Visibility.Visible;
+                            EmptyStatePanel.Visibility = Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            ExplorerTree.Visibility = Visibility.Collapsed;
+                            EmptyStatePanel.Visibility = Visibility.Visible;
+                        }
+                    }
+
+                    /// <summary>
+                    /// Prepares the tree view for search results by saving current nodes.
+                    /// </summary>
+                    internal void BeginSearch()
+                    {
+                        if (!_isSearchActive)
+                        {
+                            // Save current nodes before clearing for search
+                            _savedRootNodes.Clear();
+                            foreach (var node in RootNodes)
+                            {
+                                _savedRootNodes.Add(node);
+                            }
+                            RootNodes.Clear();
+                            _isSearchActive = true;
+                        }
+                        else
+                        {
+                            // Already in search mode, just clear results
+                            RootNodes.Clear();
+                        }
+
+                        ExplorerTree.Visibility = Visibility.Visible;
+                        EmptyStatePanel.Visibility = Visibility.Collapsed;
+                    }
+
+                    /// <summary>
+                    /// Adds a search result node to the tree view, maintaining Account > Subscription hierarchy.
+                    /// </summary>
+                    internal void AddSearchResultNode(SearchResultNode resultNode)
+                    {
+                        if (!_isSearchActive)
+                            return;
+
+                        // Find or create the account node
+                        SearchAccountNode accountNode = null;
+                        foreach (var node in RootNodes)
+                        {
+                            if (node is SearchAccountNode acct && acct.Label == resultNode.AccountName)
+                            {
+                                accountNode = acct;
+                                break;
+                            }
+                        }
+
+                        if (accountNode == null)
+                        {
+                            accountNode = new SearchAccountNode(resultNode.AccountName, resultNode.AccountName);
+                            RootNodes.Add(accountNode);
+                        }
+
+                        // Find or create the subscription node under the account
+                        var subscriptionNode = accountNode.GetOrCreateSubscription(
+                            resultNode.SubscriptionId,
+                            resultNode.SubscriptionName);
+
+                        // Add the result under the subscription
+                        subscriptionNode.AddResult(resultNode);
+                    }
+                }
+            }

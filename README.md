@@ -108,20 +108,6 @@ Manage your Azure VMs without leaving Visual Studio:
 - **View Status** — See running, stopped, or deallocated state at a glance
 - **Open in Portal** — Jump to full VM management in Azure Portal
 
-## Roadmap
-
-We're actively working on expanding Azure Explorer. Here's what's coming:
-
-| Resource Type | Planned Features | Status |
-|---------------|------------------|--------|
-| **Cosmos DB** | Browse accounts, databases, containers; Copy connection strings | 🔜 Coming Soon |
-| **Container Apps** | Browse, Start/Stop, View logs | 📋 Planned |
-| **Service Bus** | Browse queues, topics; Send/peek messages | 📋 Planned |
-| **Redis Cache** | View cache info, copy connection strings | 📋 Planned |
-| **Application Insights** | Quick access to logs and metrics | 💡 Considering |
-
-Have a feature request? [Open an issue][repo] and let us know!
-
 ## Getting Started
 
 1. **Install** the extension from the [Visual Studio Marketplace][marketplace]
