@@ -26,6 +26,7 @@ namespace AzureExplorer.ToolWindows
         private static AzureExplorerControl _instance;
         private readonly List<ExplorerNodeBase> _savedRootNodes = [];
         private bool _isSearchActive;
+        private static ExplorerNodeBase _rightClickedNode;
 
         public AzureExplorerControl()
         {
@@ -57,6 +58,13 @@ namespace AzureExplorer.ToolWindows
         }
 
         internal ObservableCollection<ExplorerNodeBase> RootNodes { get; }
+
+        /// <summary>
+        /// Gets the node that was right-clicked for context menu operations.
+        /// This is more reliable than SelectedNode because it's set synchronously
+        /// during the right-click event, before BeforeQueryStatus runs.
+        /// </summary>
+        internal static ExplorerNodeBase RightClickedNode => _rightClickedNode;
 
         internal static ExplorerNodeBase SelectedNode => _instance?.ExplorerTree.SelectedItem as ExplorerNodeBase;
 
@@ -287,7 +295,17 @@ namespace AzureExplorer.ToolWindows
             {
                 item.IsSelected = true;
                 item.Focus();
+
+                // Store the right-clicked node for context menu commands.
+                // This is set synchronously before BeforeQueryStatus runs,
+                // ensuring commands see the correct node.
+                _rightClickedNode = item.DataContext as ExplorerNodeBase;
+
                 e.Handled = true;
+            }
+            else
+            {
+                _rightClickedNode = null;
             }
         }
 
@@ -350,6 +368,10 @@ namespace AzureExplorer.ToolWindows
             var shell = (IVsUIShell)ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
             if (shell == null)
                 return;
+
+            // Force VS to refresh command states before showing the menu.
+            // Without this, BeforeQueryStatus is only called once and cached.
+            shell.UpdateCommandUI(1); // 1 = fImmediateUpdate
 
             UIElement source = e.OriginalSource as UIElement ?? this;
             Point screenPoint = source.PointToScreen(e.GetPosition(source));

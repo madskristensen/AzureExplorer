@@ -15,7 +15,9 @@ namespace AzureExplorer.Core.Commands
         {
             Command.Visible = false;
 
-            ExplorerNodeBase selectedNode = AzureExplorerControl.SelectedNode?.ActualNode;
+            // Use RightClickedNode instead of SelectedNode to avoid timing issues
+            // where SelectedItem hasn't updated yet when BeforeQueryStatus runs
+            ExplorerNodeBase selectedNode = AzureExplorerControl.RightClickedNode?.ActualNode;
             if (selectedNode is not TenantNode tenantNode)
             {
                 return;
@@ -29,7 +31,8 @@ namespace AzureExplorer.Core.Commands
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            ExplorerNodeBase selectedNode = AzureExplorerControl.SelectedNode?.ActualNode;
+            // Use RightClickedNode for consistency with BeforeQueryStatus
+            ExplorerNodeBase selectedNode = AzureExplorerControl.RightClickedNode?.ActualNode;
             if (selectedNode is not TenantNode tenantNode)
             {
                 return;
