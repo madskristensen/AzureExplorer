@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -235,7 +233,7 @@ namespace AzureExplorer.Core.Services
             TokenCredential credential = GetCredential(subscriptionId);
             var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
 
-            await foreach (Azure.Security.KeyVault.Secrets.SecretProperties secret in 
+            await foreach (Azure.Security.KeyVault.Secrets.SecretProperties secret in
                 client.GetPropertiesOfSecretsAsync(cancellationToken))
             {
                 yield return new SecretNode(secret.Name, subscriptionId, vaultUri, secret.Enabled ?? true);
@@ -270,7 +268,7 @@ namespace AzureExplorer.Core.Services
             TokenCredential credential = GetCredential(subscriptionId);
             var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
 
-            Azure.Response<Azure.Security.KeyVault.Secrets.KeyVaultSecret> response = 
+            Azure.Response<Azure.Security.KeyVault.Secrets.KeyVaultSecret> response =
                 await client.GetSecretAsync(secretName, cancellationToken: cancellationToken);
 
             return response.Value.Value;
@@ -324,14 +322,32 @@ namespace AzureExplorer.Core.Services
         /// </summary>
         private sealed class TenantScopedCredential(TokenCredential inner, string tenantId) : TokenCredential
         {
+            private static readonly TimeSpan _syncTokenTimeout = TimeSpan.FromSeconds(30);
+
             public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
             {
-                var scoped = new TokenRequestContext(
-                    requestContext.Scopes,
-                    requestContext.ParentRequestId,
-                    requestContext.Claims,
-                    tenantId);
-                return inner.GetToken(scoped, cancellationToken);
+                // Add timeout to prevent indefinite blocking when offline
+                using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                {
+                    cts.CancelAfter(_syncTokenTimeout);
+
+                    var scoped = new TokenRequestContext(
+                        requestContext.Scopes,
+                        requestContext.ParentRequestId,
+                        requestContext.Claims,
+                        tenantId);
+
+                    try
+                    {
+                        return inner.GetToken(scoped, cts.Token);
+                    }
+                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        throw new TimeoutException(
+                            $"Token acquisition timed out after {_syncTokenTimeout.TotalSeconds:F0} seconds. " +
+                            "Check your network connection and try again.");
+                    }
+                }
             }
 
             public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)

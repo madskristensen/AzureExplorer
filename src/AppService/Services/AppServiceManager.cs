@@ -129,11 +129,14 @@ namespace AzureExplorer.AppService.Services
 
         private async Task<WebSiteResource> GetWebSiteAsync(string subscriptionId, string resourceGroupName, string name, CancellationToken cancellationToken)
         {
-            ArmClient client = AzureResourceService.Instance.GetClient(subscriptionId);
-            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
-            ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, cancellationToken)).Value;
-            WebSiteCollection webSites = rg.GetWebSites();
-            return (await webSites.GetAsync(name, cancellationToken: cancellationToken)).Value;
+            return await AsyncHelper.WithTimeoutAsync(async ct =>
+            {
+                ArmClient client = AzureResourceService.Instance.GetClient(subscriptionId);
+                SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, ct)).Value;
+                WebSiteCollection webSites = rg.GetWebSites();
+                return (await webSites.GetAsync(name, cancellationToken: ct)).Value;
+            }, cancellationToken: cancellationToken);
         }
     }
 }

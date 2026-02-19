@@ -145,42 +145,60 @@ namespace AzureExplorer.AppService.Services
                     // on disk. Retry a few times to give the logging infrastructure
                     // time to flush the first entry from the warmup request above.
                     const int maxAttempts = 5;
+                    var connectionTimeout = TimeSpan.FromSeconds(30);
 
                     for (var attempt = 0; attempt < maxAttempts && !ct.IsCancellationRequested; attempt++)
                     {
                         DateTime sessionStart = DateTime.UtcNow;
 
-                        using (HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct))
+                        // Use a connection timeout for the initial request to avoid hanging when offline
+                        using (var connectionCts = CancellationTokenSource.CreateLinkedTokenSource(ct))
                         {
-                            response.EnsureSuccessStatusCode();
+                            connectionCts.CancelAfter(connectionTimeout);
 
-                            if (attempt == 0)
+                            HttpResponseMessage response;
+                            try
                             {
-                                await logWindow.AppendLineAsync("Connected. Run command again to disconnect.");
-                                await logWindow.AppendLineAsync("Note: There may be a delay of a few minutes before logs start appearing.");
-                                await logWindow.AppendLineAsync("");
-                                await VS.StatusBar.ShowMessageAsync($"Streaming {label} for {node.Label}...");
+                                response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, connectionCts.Token);
+                            }
+                            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                            {
+                                await logWindow.AppendLineAsync($"Connection timed out after {connectionTimeout.TotalSeconds:F0} seconds. Check your network connection.");
+                                return;
                             }
 
-                            using (Stream stream = await response.Content.ReadAsStreamAsync())
-                            // Use a small buffer (128 bytes) to balance real-time streaming
-                            // with CPU efficiency. A 1-byte buffer causes excessive system calls.
-                            using (var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 128))
+                            using (response)
                             {
-                                while (!ct.IsCancellationRequested)
+                                response.EnsureSuccessStatusCode();
+
+                                if (attempt == 0)
                                 {
-                                    System.Threading.Tasks.Task<string> readTask = reader.ReadLineAsync();
-                                    var cancelTask = Task.Delay(Timeout.Infinite, ct);
-                                    Task completed = await Task.WhenAny(readTask, cancelTask);
+                                    await logWindow.AppendLineAsync("Connected. Run command again to disconnect.");
+                                    await logWindow.AppendLineAsync("Note: There may be a delay of a few minutes before logs start appearing.");
+                                    await logWindow.AppendLineAsync("");
+                                    await VS.StatusBar.ShowMessageAsync($"Streaming {label} for {node.Label}...");
+                                }
 
-                                    if (completed == cancelTask)
-                                        break;
+                                using (Stream stream = await response.Content.ReadAsStreamAsync())
+                                // Use a small buffer (128 bytes) to balance real-time streaming
+                                // with CPU efficiency. A 1-byte buffer causes excessive system calls.
+                                using (var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 128))
+                                {
+                                    while (!ct.IsCancellationRequested)
+                                    {
+                                        System.Threading.Tasks.Task<string> readTask = reader.ReadLineAsync();
+                                        var cancelTask = Task.Delay(Timeout.Infinite, ct);
+                                        Task completed = await Task.WhenAny(readTask, cancelTask);
 
-                                    var line = await readTask;
-                                    if (line == null)
-                                        break;
+                                        if (completed == cancelTask)
+                                            break;
 
-                                    await logWindow.AppendLineAsync(line);
+                                        var line = await readTask;
+                                        if (line == null)
+                                            break;
+
+                                        await logWindow.AppendLineAsync(line);
+                                    }
                                 }
                             }
                         }

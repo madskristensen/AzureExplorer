@@ -67,6 +67,7 @@
     <Compile Include="Core\Search\SearchAccountNode.cs" />
     <Compile Include="Core\Search\SearchResultNode.cs" />
     <Compile Include="Core\Search\SearchSubscriptionNode.cs" />
+    <Compile Include="Core\Services\AsyncHelper.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppNode.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppsNode.cs" />
     <Compile Include="FunctionApp\Models\SubscriptionFunctionAppsNode.cs" />

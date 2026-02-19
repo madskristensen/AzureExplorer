@@ -1,7 +1,10 @@
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
+
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging.Interop;
 
@@ -88,7 +91,7 @@ namespace AzureExplorer.Core.Models
         }
 
         /// <summary>
-        /// Resets loaded state and reloads children.
+        /// Resets loaded state and reloads children with timeout protection.
         /// </summary>
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
@@ -96,7 +99,18 @@ namespace AzureExplorer.Core.Models
             IsLoading = false;
             Description = null;
             Children.Clear();
-            await LoadChildrenAsync(cancellationToken);
+
+            try
+            {
+                await AsyncHelper.WithTimeoutAsync(
+                    ct => LoadChildrenAsync(ct),
+                    cancellationToken: cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                Description = "Timed out - check connection";
+                EndLoading();
+            }
         }
 
         /// <summary>
