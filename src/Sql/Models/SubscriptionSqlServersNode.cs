@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System.Text.Json;
-
-using Azure.ResourceManager.Resources;
-
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -20,38 +16,18 @@ namespace AzureExplorer.Sql.Models
         public override ImageMoniker IconMoniker => KnownMonikers.AzureSqlDatabase;
         public override int ContextMenuId => PackageIds.SqlServersCategoryContextMenu;
 
-        protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)
+        protected override ExplorerNodeBase CreateNodeFromGraphResult(ResourceGraphResult resource)
         {
-            string state = null;
-            string fqdn = null;
+            var state = resource.GetProperty("state");
+            var fqdn = resource.GetProperty("fullyQualifiedDomainName");
 
-            if (resource.Data.Properties != null)
-            {
-                try
-                {
-                    using var doc = JsonDocument.Parse(resource.Data.Properties);
-                    JsonElement root = doc.RootElement;
-
-                    if (root.TryGetProperty("state", out JsonElement stateElement))
-                    {
-                        state = stateElement.GetString();
-                    }
-
-                    if (root.TryGetProperty("fullyQualifiedDomainName", out JsonElement fqdnElement))
-                    {
-                        fqdn = fqdnElement.GetString();
-                    }
-                }
-                catch
-                {
-                    // Properties parsing failed; continue with null values
-                }
-            }
-
-            // Extract tags from resource
-            IDictionary<string, string> tags = resource.Data.Tags;
-
-            return new SqlServerNode(name, SubscriptionId, resourceGroup, state, fqdn, tags);
+            return new SqlServerNode(
+                resource.Name,
+                SubscriptionId,
+                resource.ResourceGroup,
+                state,
+                fqdn,
+                resource.Tags);
         }
     }
 }

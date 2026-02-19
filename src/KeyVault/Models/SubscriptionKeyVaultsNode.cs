@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System.Text.Json;
-
-using Azure.ResourceManager.Resources;
-
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -20,38 +16,18 @@ namespace AzureExplorer.KeyVault.Models
         public override ImageMoniker IconMoniker => KnownMonikers.AzureKeyVault;
         public override int ContextMenuId => PackageIds.KeyVaultsCategoryContextMenu;
 
-        protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)
+        protected override ExplorerNodeBase CreateNodeFromGraphResult(ResourceGraphResult resource)
         {
-            string state = null;
-            string vaultUri = null;
+            var state = resource.GetProperty("provisioningState");
+            var vaultUri = resource.GetProperty("vaultUri");
 
-            if (resource.Data.Properties != null)
-            {
-                try
-                {
-                    using var doc = JsonDocument.Parse(resource.Data.Properties);
-                    JsonElement root = doc.RootElement;
-
-                    if (root.TryGetProperty("provisioningState", out JsonElement stateElement))
-                    {
-                        state = stateElement.GetString();
-                    }
-
-                    if (root.TryGetProperty("vaultUri", out JsonElement uriElement))
-                    {
-                        vaultUri = uriElement.GetString();
-                    }
-                }
-                catch
-                {
-                    // Properties parsing failed; continue with null values
-                }
-            }
-
-            // Extract tags from resource
-            IDictionary<string, string> tags = resource.Data.Tags;
-
-            return new KeyVaultNode(name, SubscriptionId, resourceGroup, state, vaultUri, tags);
+            return new KeyVaultNode(
+                resource.Name,
+                SubscriptionId,
+                resource.ResourceGroup,
+                state,
+                vaultUri,
+                resource.Tags);
         }
     }
 }

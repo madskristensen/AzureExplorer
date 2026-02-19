@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using Azure.ResourceManager;
-using Azure.ResourceManager.AppService;
-using Azure.ResourceManager.Resources;
-
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
+using AzureExplorer.FunctionApp.Models;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -42,42 +38,38 @@ namespace AzureExplorer.AppService.Models
 
             try
             {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
+                // Use Azure Resource Graph for fast loading
+                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    "Microsoft.Web/sites",
+                    ResourceGroupName,
+                    cancellationToken);
 
-                var appServices = new List<AppServiceNode>();
-
-                await foreach (WebSiteResource site in rg.GetWebSites().GetAllAsync(cancellationToken: cancellationToken))
+                foreach (ResourceGraphResult resource in resources.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    appServices.Add(new AppServiceNode(
-                        site.Data.Name,
+
+                    // Skip Function Apps (they have their own category)
+                    if (FunctionAppNode.IsFunctionApp(resource.Kind))
+                        continue;
+
+                    var state = resource.GetProperty("state");
+                    var defaultHostName = resource.GetProperty("defaultHostName");
+
+                    AddChild(new AppServiceNode(
+                        resource.Name,
                         SubscriptionId,
                         ResourceGroupName,
-                        site.Data.State,
-                        site.Data.DefaultHostName,
-                        site.Data.Tags));
-                }
-
-                // Sort alphabetically by name
-                foreach (AppServiceNode node in appServices.OrderBy(a => a.Label, StringComparer.OrdinalIgnoreCase))
-                {
-                    AddChild(node);
+                        state,
+                        defaultHostName,
+                        resource.Tags));
                 }
             }
             catch (Exception ex)
             {
                 await ex.LogAsync();
-                if (Children.Count <= 1)
-                {
-                    Children.Clear();
-                    Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
-                    IsLoading = false;
-                    IsLoaded = true;
-                    return;
-                }
+                Children.Clear();
+                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
             }
 
             EndLoading();

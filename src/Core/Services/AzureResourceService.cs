@@ -86,6 +86,34 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Gets the account ID and tenant ID for a subscription (if known).
+        /// Returns null if the subscription hasn't been loaded yet.
+        /// </summary>
+        internal (string AccountId, string TenantId)? GetSubscriptionContext(string subscriptionId)
+        {
+            if (_subscriptionAccountMap.TryGetValue(subscriptionId, out var accountId) &&
+                _subscriptionTenantMap.TryGetValue(subscriptionId, out var tenantId))
+            {
+                return (accountId, tenantId);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets an ArmClient with the correct tenant context for Resource Graph queries.
+        /// </summary>
+        internal ArmClient GetClientForResourceGraph(string subscriptionId)
+        {
+            (string AccountId, string TenantId)? context = GetSubscriptionContext(subscriptionId);
+            if (context.HasValue)
+            {
+                return GetSilentClient(context.Value.AccountId, context.Value.TenantId);
+            }
+            // Fall back to the regular client if we don't have context
+            return GetClient(subscriptionId);
+        }
+
+        /// <summary>
         /// Yields all accessible Azure AD tenants for a specific account.
         /// </summary>
         public async IAsyncEnumerable<TenantInfo> GetTenantsAsync(

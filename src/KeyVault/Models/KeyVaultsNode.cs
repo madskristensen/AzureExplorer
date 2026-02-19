@@ -2,10 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using Azure.ResourceManager;
-using Azure.ResourceManager.KeyVault;
-using Azure.ResourceManager.Resources;
-
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
 
@@ -41,30 +37,27 @@ namespace AzureExplorer.KeyVault.Models
 
             try
             {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
+                // Use Azure Resource Graph for fast loading
+                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    "Microsoft.KeyVault/vaults",
+                    ResourceGroupName,
+                    cancellationToken);
 
-                var keyVaults = new List<KeyVaultNode>();
-
-                await foreach (KeyVaultResource vault in rg.GetKeyVaults().GetAllAsync(cancellationToken: cancellationToken))
+                foreach (ResourceGraphResult resource in resources.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    keyVaults.Add(new KeyVaultNode(
-                        vault.Data.Name,
+                    var state = resource.GetProperty("provisioningState");
+                    var vaultUri = resource.GetProperty("vaultUri");
+
+                    AddChild(new KeyVaultNode(
+                        resource.Name,
                         SubscriptionId,
                         ResourceGroupName,
-                        vault.Data.Properties.ProvisioningState?.ToString(),
-                        vault.Data.Properties.VaultUri?.ToString(),
-                        vault.Data.Tags));
-                }
-
-                // Sort alphabetically by name
-                foreach (KeyVaultNode node in keyVaults.OrderBy(k => k.Label, StringComparer.OrdinalIgnoreCase))
-                {
-                    AddChild(node);
+                        state,
+                        vaultUri,
+                        resource.Tags));
                 }
             }
             catch (Exception ex)

@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System.Text.Json;
-
-using Azure.ResourceManager.Resources;
-
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -20,41 +16,18 @@ namespace AzureExplorer.Storage.Models
         public override ImageMoniker IconMoniker => KnownMonikers.AzureStorageAccount;
         public override int ContextMenuId => PackageIds.StorageAccountsCategoryContextMenu;
 
-        protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)
+        protected override ExplorerNodeBase CreateNodeFromGraphResult(ResourceGraphResult resource)
         {
-            string state = null;
-            string kind = null;
-            string skuName = null;
+            var state = resource.GetProperty("provisioningState");
 
-            if (resource.Data.Properties != null)
-            {
-                try
-                {
-                    using var doc = JsonDocument.Parse(resource.Data.Properties);
-                    JsonElement root = doc.RootElement;
-
-                    if (root.TryGetProperty("provisioningState", out JsonElement stateElement))
-                    {
-                        state = stateElement.GetString();
-                    }
-                }
-                catch
-                {
-                    // Properties parsing failed; continue with null values
-                }
-            }
-
-            // Kind and SKU are available from the resource data directly
-            kind = resource.Data.Kind;
-            if (resource.Data.Sku != null)
-            {
-                skuName = resource.Data.Sku.Name;
-            }
-
-            // Extract tags from resource
-            IDictionary<string, string> tags = resource.Data.Tags;
-
-            return new StorageAccountNode(name, SubscriptionId, resourceGroup, state, kind, skuName, tags);
+            return new StorageAccountNode(
+                resource.Name,
+                SubscriptionId,
+                resource.ResourceGroup,
+                state,
+                resource.Kind,
+                resource.SkuName,
+                resource.Tags);
         }
     }
 }

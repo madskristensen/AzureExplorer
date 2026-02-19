@@ -1,8 +1,6 @@
-using System.Text.Json;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-
-using Azure.ResourceManager;
-using Azure.ResourceManager.Resources;
 
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
@@ -39,49 +37,22 @@ namespace AzureExplorer.VirtualMachine.Models
 
             try
             {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
+                // Use Azure Resource Graph for fast loading
+                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    "Microsoft.Compute/virtualMachines",
+                    ResourceGroupName,
+                    cancellationToken);
 
-                // Query VMs in this resource group
-                var filter = "resourceType eq 'Microsoft.Compute/virtualMachines'";
-                await foreach (GenericResource resource in rg.GetGenericResourcesAsync(filter: filter, expand: "properties", cancellationToken: cancellationToken))
+                foreach (ResourceGraphResult resource in resources.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var name = resource.Data.Name;
-                    string vmSize = null;
-                    string osType = null;
+                    var vmSize = resource.GetProperty("hardwareProfile.vmSize");
+                    var osType = resource.GetProperty("storageProfile.osDisk.osType");
 
-                    if (resource.Data.Properties != null)
-                    {
-                        try
-                        {
-                            using var doc = JsonDocument.Parse(resource.Data.Properties);
-                            JsonElement root = doc.RootElement;
-
-                            if (root.TryGetProperty("hardwareProfile", out JsonElement hardwareProfile) &&
-                                hardwareProfile.TryGetProperty("vmSize", out JsonElement sizeElement))
-                            {
-                                vmSize = sizeElement.GetString();
-                            }
-
-                            if (root.TryGetProperty("storageProfile", out JsonElement storageProfile) &&
-                                storageProfile.TryGetProperty("osDisk", out JsonElement osDisk) &&
-                                osDisk.TryGetProperty("osType", out JsonElement osTypeElement))
-                            {
-                                osType = osTypeElement.GetString();
-                            }
-                        }
-                        catch
-                        {
-                            // Properties parsing failed; continue with null values
-                        }
-                    }
-
-                    var node = new VirtualMachineNode(
-                        name,
+                    AddChild(new VirtualMachineNode(
+                        resource.Name,
                         SubscriptionId,
                         ResourceGroupName,
                         state: null,
@@ -89,9 +60,7 @@ namespace AzureExplorer.VirtualMachine.Models
                         osType,
                         publicIpAddress: null,
                         privateIpAddress: null,
-                        tags: resource.Data.Tags);
-
-                    InsertChildSorted(node);
+                        resource.Tags));
                 }
             }
             catch (Exception ex)
@@ -104,20 +73,6 @@ namespace AzureExplorer.VirtualMachine.Models
             {
                 EndLoading();
             }
-        }
-
-        /// <summary>
-        /// Inserts a child node in alphabetically sorted order by label.
-        /// </summary>
-        private void InsertChildSorted(ExplorerNodeBase node)
-        {
-            var index = 0;
-            while (index < Children.Count &&
-                   string.Compare(Children[index].Label, node.Label, StringComparison.OrdinalIgnoreCase) < 0)
-            {
-                index++;
-            }
-            Children.Insert(index, node);
         }
     }
 }

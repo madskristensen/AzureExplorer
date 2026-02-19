@@ -2,10 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using Azure.ResourceManager;
-using Azure.ResourceManager.Resources;
-using Azure.ResourceManager.Sql;
-
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
 
@@ -41,30 +37,27 @@ namespace AzureExplorer.Sql.Models
 
             try
             {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
+                // Use Azure Resource Graph for fast loading
+                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    "Microsoft.Sql/servers",
+                    ResourceGroupName,
+                    cancellationToken);
 
-                var sqlServers = new List<SqlServerNode>();
-
-                await foreach (SqlServerResource server in rg.GetSqlServers().GetAllAsync(cancellationToken: cancellationToken))
+                foreach (ResourceGraphResult resource in resources.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    sqlServers.Add(new SqlServerNode(
-                        server.Data.Name,
+                    var state = resource.GetProperty("state");
+                    var fqdn = resource.GetProperty("fullyQualifiedDomainName");
+
+                    AddChild(new SqlServerNode(
+                        resource.Name,
                         SubscriptionId,
                         ResourceGroupName,
-                        server.Data.State?.ToString(),
-                        server.Data.FullyQualifiedDomainName,
-                        server.Data.Tags));
-                }
-
-                // Sort alphabetically by name
-                foreach (SqlServerNode node in sqlServers.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
-                {
-                    AddChild(node);
+                        state,
+                        fqdn,
+                        resource.Tags));
                 }
             }
             catch (Exception ex)

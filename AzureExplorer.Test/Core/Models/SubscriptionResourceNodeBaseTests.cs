@@ -1,5 +1,5 @@
-using Azure.ResourceManager.Resources;
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace AzureExplorer.Test.Core.Models
@@ -217,22 +217,17 @@ namespace AzureExplorer.Test.Core.Models
 
         #region Helper Classes
 
-        private sealed class TestSubscriptionResourceNode : SubscriptionResourceNodeBase
+        private sealed class TestSubscriptionResourceNode(string label, string subscriptionId) : SubscriptionResourceNodeBase(label, subscriptionId)
         {
-            public TestSubscriptionResourceNode(string label, string subscriptionId)
-                : base(label, subscriptionId)
-            {
-            }
-
             public override ImageMoniker IconMoniker => default;
 
             public override int ContextMenuId => 0;
 
             protected override string ResourceType => "Microsoft.Test/resources";
 
-            protected override ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource)
+            protected override ExplorerNodeBase CreateNodeFromGraphResult(ResourceGraphResult resource)
             {
-                return new TestResourceNode(name);
+                return new TestResourceNode(resource.Name);
             }
 
             public void InsertChildSortedPublic(ExplorerNodeBase node)
@@ -241,12 +236,8 @@ namespace AzureExplorer.Test.Core.Models
             }
         }
 
-        private sealed class TestResourceNode : ExplorerNodeBase
+        private sealed class TestResourceNode(string label) : ExplorerNodeBase(label)
         {
-            public TestResourceNode(string label) : base(label)
-            {
-            }
-
             public override ImageMoniker IconMoniker => default;
 
             public override int ContextMenuId => 0;

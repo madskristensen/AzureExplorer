@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +12,8 @@ namespace AzureExplorer.Core.Models
 {
     /// <summary>
     /// Base class for subscription-level resource category nodes that query resources
-    /// across the entire subscription using the generic resources API.
+    /// across the entire subscription. Uses Azure Resource Graph for fast loading with
+    /// fallback to ARM API when Resource Graph returns no results.
     /// </summary>
     internal abstract class SubscriptionResourceNodeBase : ExplorerNodeBase
     {
@@ -38,43 +40,52 @@ namespace AzureExplorer.Core.Models
 
             try
             {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
+                // Try Azure Resource Graph first for fast loading
+                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    ResourceType,
+                    resourceGroup: null,
+                    cancellationToken);
 
-                var count = 0;
-
-                // Filter by resource type using OData filter
-                var filter = $"resourceType eq '{ResourceType}'";
-
-                // Expand to include resource properties (state, etc.)
-                await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, expand: "properties", cancellationToken: cancellationToken))
+                if (resources.Count > 0)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // Allow derived classes to filter resources (e.g., by kind)
-                    if (!ShouldIncludeResource(resource))
-                        continue;
-
-                    var name = resource.Data.Name;
-                    var resourceGroup = resource.Id.ResourceGroupName;
-
-                    ExplorerNodeBase node = CreateNodeFromResource(name, resourceGroup, resource);
-                    if (node != null)
+                    // Resource Graph worked - use its results
+                    var count = 0;
+                    foreach (ResourceGraphResult resource in resources)
                     {
-                        InsertChildSorted(node);
-                        count++;
-                        Description = $"loading... ({count} found)";
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        if (!ShouldIncludeResource(resource))
+                            continue;
+
+                        ExplorerNodeBase node = CreateNodeFromGraphResult(resource);
+                        if (node != null)
+                        {
+                            InsertChildSorted(node);
+                            count++;
+                            Description = $"loading... ({count} found)";
+                        }
                     }
                 }
-
-                System.Diagnostics.Debug.WriteLine($"Subscription query for {ResourceType}: found {count} resources");
+                else
+                {
+                    // Resource Graph returned 0 results - fall back to ARM API
+                    await LoadChildrenViaArmApiAsync(cancellationToken);
+                }
             }
-            catch (Exception ex)
+            catch
             {
-                await ex.LogAsync();
-                Children.Clear();
-                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
+                // Resource Graph failed - fall back to ARM API
+                try
+                {
+                    await LoadChildrenViaArmApiAsync(cancellationToken);
+                }
+                catch (Exception armEx)
+                {
+                    await armEx.LogAsync();
+                    Children.Clear();
+                    Children.Add(new LoadingNode { Label = $"Error: {armEx.Message}" });
+                }
             }
             finally
             {
@@ -83,15 +94,58 @@ namespace AzureExplorer.Core.Models
         }
 
         /// <summary>
-        /// Determines whether a resource should be included in the results.
-        /// Override to filter resources beyond the resource type (e.g., by kind).
+        /// Fallback method that loads resources using the traditional ARM API.
         /// </summary>
-        protected virtual bool ShouldIncludeResource(GenericResource resource) => true;
+        private async Task LoadChildrenViaArmApiAsync(CancellationToken cancellationToken)
+        {
+            ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(
+                SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
+
+            var count = 0;
+            var filter = $"resourceType eq '{ResourceType}'";
+
+            await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, expand: "properties", cancellationToken: cancellationToken))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!ShouldIncludeResourceArm(resource))
+                    continue;
+
+                ExplorerNodeBase node = CreateNodeFromArmResource(resource);
+                if (node != null)
+                {
+                    InsertChildSorted(node);
+                    count++;
+                    Description = $"loading... ({count} found)";
+                }
+            }
+        }
 
         /// <summary>
-        /// Creates a child node from the generic resource.
+        /// Determines whether a resource should be included (Resource Graph version).
         /// </summary>
-        protected abstract ExplorerNodeBase CreateNodeFromResource(string name, string resourceGroup, GenericResource resource);
+        protected virtual bool ShouldIncludeResource(ResourceGraphResult resource) => true;
+
+        /// <summary>
+        /// Determines whether a resource should be included (ARM API version).
+        /// </summary>
+        protected virtual bool ShouldIncludeResourceArm(GenericResource resource) => true;
+
+        /// <summary>
+        /// Creates a child node from the Resource Graph result.
+        /// </summary>
+        protected abstract ExplorerNodeBase CreateNodeFromGraphResult(ResourceGraphResult resource);
+
+        /// <summary>
+        /// Creates a child node from an ARM API GenericResource.
+        /// Override this to provide ARM API fallback support.
+        /// </summary>
+        protected virtual ExplorerNodeBase CreateNodeFromArmResource(GenericResource resource)
+        {
+            // Default implementation - derived classes should override for full support
+            return null;
+        }
 
         /// <summary>
         /// Inserts a child node in alphabetically sorted order by label.

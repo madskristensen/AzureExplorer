@@ -2,10 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using Azure.ResourceManager;
-using Azure.ResourceManager.AppService;
-using Azure.ResourceManager.Resources;
-
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
 
@@ -42,34 +38,31 @@ namespace AzureExplorer.FunctionApp.Models
 
             try
             {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
+                // Use Azure Resource Graph for fast loading
+                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    "Microsoft.Web/sites",
+                    ResourceGroupName,
+                    cancellationToken);
 
-                var functionApps = new List<FunctionAppNode>();
-
-                await foreach (WebSiteResource site in rg.GetWebSites().GetAllAsync(cancellationToken: cancellationToken))
+                foreach (ResourceGraphResult resource in resources.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Filter to only include Function Apps
-                    if (!FunctionAppNode.IsFunctionApp(site.Data.Kind))
+                    if (!FunctionAppNode.IsFunctionApp(resource.Kind))
                         continue;
 
-                    functionApps.Add(new FunctionAppNode(
-                        site.Data.Name,
+                    var state = resource.GetProperty("state");
+                    var defaultHostName = resource.GetProperty("defaultHostName");
+
+                    AddChild(new FunctionAppNode(
+                        resource.Name,
                         SubscriptionId,
                         ResourceGroupName,
-                        site.Data.State,
-                        site.Data.DefaultHostName,
-                        site.Data.Tags));
-                }
-
-                // Sort alphabetically by name
-                foreach (FunctionAppNode node in functionApps.OrderBy(f => f.Label, StringComparer.OrdinalIgnoreCase))
-                {
-                    AddChild(node);
+                        state,
+                        defaultHostName,
+                        resource.Tags));
                 }
             }
             catch (Exception ex)

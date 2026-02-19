@@ -1,12 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-
-using Azure.ResourceManager;
-using Azure.ResourceManager.Resources;
-using Azure.ResourceManager.Storage;
 
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
@@ -43,31 +37,27 @@ namespace AzureExplorer.Storage.Models
 
             try
             {
-                ArmClient client = AzureResourceService.Instance.GetClient(SubscriptionId);
-                SubscriptionResource sub = client.GetSubscriptionResource(
-                    SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
-                ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
+                // Use Azure Resource Graph for fast loading
+                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    "Microsoft.Storage/storageAccounts",
+                    ResourceGroupName,
+                    cancellationToken);
 
-                var storageAccounts = new List<StorageAccountNode>();
-
-                await foreach (StorageAccountResource account in rg.GetStorageAccounts().GetAllAsync(cancellationToken: cancellationToken))
+                foreach (ResourceGraphResult resource in resources.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    storageAccounts.Add(new StorageAccountNode(
-                        account.Data.Name,
+                    var state = resource.GetProperty("provisioningState");
+
+                    AddChild(new StorageAccountNode(
+                        resource.Name,
                         SubscriptionId,
                         ResourceGroupName,
-                        account.Data.ProvisioningState?.ToString(),
-                        account.Data.Kind?.ToString(),
-                        account.Data.Sku?.Name.ToString(),
-                        account.Data.Tags));
-                }
-
-                // Sort alphabetically by name
-                foreach (StorageAccountNode node in storageAccounts.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
-                {
-                    AddChild(node);
+                        state,
+                        resource.Kind,
+                        resource.SkuName,
+                        resource.Tags));
                 }
             }
             catch (Exception ex)
