@@ -107,7 +107,7 @@ namespace AzureExplorer.Core.Models
                 return false;
 
             // Case-insensitive key lookup
-            foreach (var kvp in tags)
+            foreach (KeyValuePair<string, string> kvp in tags)
             {
                 if (kvp.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
                 {

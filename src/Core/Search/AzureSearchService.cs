@@ -5,13 +5,11 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Azure.Identity;
+using Azure;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ResourceGraph;
 using Azure.ResourceManager.ResourceGraph.Models;
 using Azure.ResourceManager.Resources;
-
 using AzureExplorer.AppService.Models;
 using AzureExplorer.AppServicePlan.Models;
 using AzureExplorer.Core.Models;
@@ -49,7 +47,7 @@ internal sealed class ParsedSearchQuery
             return result;
 
         // Extract tag filter if present
-        var match = _tagPattern.Match(searchText);
+        Match match = _tagPattern.Match(searchText);
         if (match.Success)
         {
             result.TagKey = match.Groups[1].Value;
@@ -298,24 +296,24 @@ internal sealed class AzureSearchService
         var accountsSearched = 0;
 
         // Search each account in parallel
-        var accountTasks = accounts.Select(async account =>
+        IEnumerable<Task> accountTasks = accounts.Select(async account =>
         {
             try
             {
                 // Get tenants for this account
                 var tenants = new List<TenantInfo>();
-                await foreach (var tenant in AzureResourceService.Instance.GetTenantsForSearchAsync(account.AccountId, cancellationToken))
+                await foreach (TenantInfo tenant in AzureResourceService.Instance.GetTenantsForSearchAsync(account.AccountId, cancellationToken))
                 {
                     tenants.Add(tenant);
                 }
 
                 // Search each tenant
-                foreach (var tenant in tenants)
+                foreach (TenantInfo tenant in tenants)
                 {
                     try
                     {
-                        var client = AzureResourceService.Instance.GetSilentClient(account.AccountId, tenant.TenantId);
-                        var tenantResource = client.GetTenants().FirstOrDefault();
+                        ArmClient client = AzureResourceService.Instance.GetSilentClient(account.AccountId, tenant.TenantId);
+                        TenantResource tenantResource = client.GetTenants().FirstOrDefault();
                         if (tenantResource == null)
                             continue;
 
@@ -325,16 +323,16 @@ internal sealed class AzureSearchService
                         var queryContent = new ResourceQueryContent(kustoQuery);
 
                         // Execute Resource Graph query
-                        var response = await tenantResource.GetResourcesAsync(queryContent, cancellationToken);
-                        var result = response.Value;
+                        Response<ResourceQueryResult> response = await tenantResource.GetResourcesAsync(queryContent, cancellationToken);
+                        ResourceQueryResult result = response.Value;
 
                         // Parse the response data as JSON
                         using var dataDoc = JsonDocument.Parse(result.Data.ToString());
-                        var dataElement = dataDoc.RootElement;
+                        JsonElement dataElement = dataDoc.RootElement;
 
                         if (dataElement.ValueKind == JsonValueKind.Array)
                         {
-                            foreach (var item in dataElement.EnumerateArray())
+                            foreach (JsonElement item in dataElement.EnumerateArray())
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -349,22 +347,22 @@ internal sealed class AzureSearchService
                                     continue;
 
                                 // Get metadata for this resource type
-                                if (!_resourceTypeLookup.TryGetValue(type, out var metadata))
+                                if (!_resourceTypeLookup.TryGetValue(type, out (string DisplayName, ImageMoniker Icon) metadata))
                                     continue;
 
                                 // Parse tags from result
                                 IDictionary<string, string> tags = null;
-                                if (item.TryGetProperty("tags", out var tagsElement) && tagsElement.ValueKind == JsonValueKind.Object)
+                                if (item.TryGetProperty("tags", out JsonElement tagsElement) && tagsElement.ValueKind == JsonValueKind.Object)
                                 {
                                     tags = new Dictionary<string, string>();
-                                    foreach (var tag in tagsElement.EnumerateObject())
+                                    foreach (JsonProperty tag in tagsElement.EnumerateObject())
                                     {
                                         tags[tag.Name] = tag.Value.GetString();
                                     }
                                 }
 
                                 // Create node with tags
-                                var actualNode = CreateNodeFromResourceGraph(type, name, subscriptionId, resourceGroup, tags, item);
+                                ExplorerNodeBase actualNode = CreateNodeFromResourceGraph(type, name, subscriptionId, resourceGroup, tags, item);
 
                                 // Double-check name filter if specified (Resource Graph 'contains' is case-insensitive, but verify)
                                 if (!string.IsNullOrEmpty(query.TextQuery) &&
@@ -464,7 +462,7 @@ internal sealed class AzureSearchService
         try
         {
             string kind = null;
-            if (item.TryGetProperty("kind", out var kindElement))
+            if (item.TryGetProperty("kind", out JsonElement kindElement))
                 kind = kindElement.GetString();
 
             return resourceType.ToLowerInvariant() switch
@@ -493,148 +491,5 @@ internal sealed class AzureSearchService
             return new FunctionAppNode(name, subscriptionId, resourceGroup, null, null, tags);
         }
         return new AppServiceNode(name, subscriptionId, resourceGroup, null, null, tags);
-    }
-
-    private async Task SearchSubscriptionAsync(
-        SubscriptionSearchInfo subInfo,
-        string searchText,
-        ConcurrentDictionary<string, byte> foundResourceIds,
-        Action<SearchResultNode> onResultFound,
-        Action onSubscriptionComplete,
-        SemaphoreSlim semaphore,
-        CancellationToken cancellationToken)
-    {
-        var query = ParsedSearchQuery.Parse(searchText);
-
-        await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            // Use silent client to avoid interactive authentication prompts during search
-            ArmClient client = AzureResourceService.Instance.GetSilentClient(subInfo.AccountId, subInfo.TenantId);
-            SubscriptionResource sub = client.GetSubscriptionResource(
-                SubscriptionResource.CreateResourceIdentifier(subInfo.SubscriptionId));
-
-            // Single API call with combined filter for all resource types (7x fewer API calls)
-            await foreach (GenericResource resource in sub.GetGenericResourcesAsync(
-                filter: _combinedResourceTypeFilter,
-                cancellationToken: cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var resourceName = resource.Data.Name;
-
-                // Look up resource type metadata
-                var resourceType = resource.Data.ResourceType.ToString();
-                if (!_resourceTypeLookup.TryGetValue(resourceType, out (string DisplayName, ImageMoniker Icon) metadata))
-                    continue;
-
-                // Deduplicate: skip if already found in local search
-                var resourceId = resource.Id.ToString();
-                if (!foundResourceIds.TryAdd(resourceId.ToLowerInvariant(), 0))
-                    continue;
-
-                var resourceGroup = resource.Id.ResourceGroupName;
-
-                // Create a lightweight resource node (properties load on expand)
-                ExplorerNodeBase actualNode = CreateResourceNodeLightweight(
-                    resourceType,
-                    resourceName,
-                    subInfo.SubscriptionId,
-                    resourceGroup,
-                    resource);
-
-                // Check if the resource matches the query (name and/or tag filter)
-                var taggable = actualNode as ITaggableResource;
-                if (!query.Matches(resourceName, taggable))
-                    continue;
-
-                var resultNode = new SearchResultNode(
-                    resourceName,
-                    metadata.DisplayName,
-                    resourceId,
-                    subInfo.SubscriptionId,
-                    subInfo.SubscriptionName,
-                    subInfo.AccountName,
-                    metadata.Icon,
-                    actualNode);
-
-                onResultFound?.Invoke(resultNode);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (AuthenticationRequiredException)
-        {
-            // Silent auth failed - skip this subscription without prompting
-            System.Diagnostics.Debug.WriteLine($"Search: Skipping subscription {subInfo.SubscriptionId} - authentication required");
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Search: Failed to search subscription {subInfo.SubscriptionId}: {ex.Message}");
-        }
-        finally
-        {
-            semaphore.Release();
-            onSubscriptionComplete?.Invoke();
-        }
-    }
-
-    /// <summary>
-    /// Creates a lightweight resource node without full properties (faster for search).
-    /// Includes tags for tag-based searching.
-    /// </summary>
-    private static ExplorerNodeBase CreateResourceNodeLightweight(
-        string resourceType,
-        string name,
-        string subscriptionId,
-        string resourceGroup,
-        GenericResource resource)
-    {
-        try
-        {
-            var tags = resource.Data.Tags;
-
-            // Create nodes with minimal data but include tags for search filtering
-            return resourceType switch
-            {
-                "Microsoft.Web/sites" => CreateWebSiteNodeLightweight(name, subscriptionId, resourceGroup, resource),
-                "Microsoft.Web/serverfarms" => new AppServicePlanNode(name, subscriptionId, resourceGroup, resource.Data.Sku?.Name, resource.Data.Kind, null),
-                "Microsoft.Storage/storageAccounts" => new StorageAccountNode(name, subscriptionId, resourceGroup, null, resource.Data.Kind, resource.Data.Sku?.Name, tags),
-                "Microsoft.KeyVault/vaults" => new KeyVaultNode(name, subscriptionId, resourceGroup, null, null, tags),
-                "Microsoft.Sql/servers" => new SqlServerNode(name, subscriptionId, resourceGroup, null, null, tags),
-                "Microsoft.Compute/virtualMachines" => new VirtualMachineNode(name, subscriptionId, resourceGroup, null, null, null, null, null, tags),
-                "Microsoft.Cdn/profiles/endpoints" => new FrontDoorNode(name, subscriptionId, resourceGroup, null, null),
-                _ => null
-            };
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Search: Failed to create node for {resourceType}/{name}: {ex.Message}");
-            return null;
-        }
-    }
-
-    private static ExplorerNodeBase CreateWebSiteNodeLightweight(string name, string subscriptionId, string resourceGroup, GenericResource resource)
-    {
-        // Check if it's a Function App (kind contains "functionapp")
-        var kind = resource.Data.Kind;
-        var tags = resource.Data.Tags;
-
-        if (!string.IsNullOrEmpty(kind) && kind.IndexOf("functionapp", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            return new FunctionAppNode(name, subscriptionId, resourceGroup, null, null, tags);
-        }
-        return new AppServiceNode(name, subscriptionId, resourceGroup, null, null, tags);
-    }
-
-    private sealed class SubscriptionSearchInfo(string accountId, string accountName, string subscriptionId, string subscriptionName, string tenantId)
-    {
-        public string AccountId { get; } = accountId;
-        public string AccountName { get; } = accountName;
-        public string SubscriptionId { get; } = subscriptionId;
-        public string SubscriptionName { get; } = subscriptionName;
-        public string TenantId { get; } = tenantId;
     }
 }
