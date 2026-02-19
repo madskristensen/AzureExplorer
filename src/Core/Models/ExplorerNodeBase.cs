@@ -182,6 +182,23 @@ namespace AzureExplorer.Core.Models
             Children.Add(child);
         }
 
+        /// <summary>
+        /// Inserts a child node in alphabetically sorted order by label.
+        /// </summary>
+        protected void InsertChildSorted(ExplorerNodeBase node)
+        {
+            node.Parent = this;
+
+            var index = 0;
+            while (index < Children.Count &&
+                   string.Compare(Children[index].Label, node.Label, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                index++;
+            }
+
+            Children.Insert(index, node);
+        }
+
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;

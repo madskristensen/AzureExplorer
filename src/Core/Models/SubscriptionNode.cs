@@ -1,8 +1,10 @@
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 
 using AzureExplorer.AppService.Models;
+using AzureExplorer.Core.Options;
+using AzureExplorer.Core.Services;
 using AzureExplorer.FrontDoor.Models;
 using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.KeyVault.Models;
@@ -40,65 +42,180 @@ namespace AzureExplorer.Core.Models
             if (!BeginLoading())
                 return;
 
-            try
+            // Create subscription-level category nodes
+            var appServicesNode = new SubscriptionAppServicesNode(SubscriptionId);
+            var functionAppsNode = new SubscriptionFunctionAppsNode(SubscriptionId);
+            var frontDoorsNode = new SubscriptionFrontDoorsNode(SubscriptionId);
+            var keyVaultsNode = new SubscriptionKeyVaultsNode(SubscriptionId);
+            var storageAccountsNode = new SubscriptionStorageAccountsNode(SubscriptionId);
+            var sqlServersNode = new SubscriptionSqlServersNode(SubscriptionId);
+            var virtualMachinesNode = new SubscriptionVirtualMachinesNode(SubscriptionId);
+            var resourceGroupsNode = new ResourceGroupsNode(SubscriptionId);
+
+            ExplorerNodeBase[] resourceTypeNodes =
+            [
+                appServicesNode, functionAppsNode, frontDoorsNode,
+                keyVaultsNode, sqlServersNode, storageAccountsNode, virtualMachinesNode
+            ];
+
+            if (GeneralOptions.Instance.HideEmptyResourceTypes)
             {
-                // Add subscription-level category nodes first
-                // These allow users to see resources they have direct access to,
-                // even without list permissions on the containing resource group
-                var appServicesNode = new SubscriptionAppServicesNode(SubscriptionId);
-                var functionAppsNode = new SubscriptionFunctionAppsNode(SubscriptionId);
-                var frontDoorsNode = new SubscriptionFrontDoorsNode(SubscriptionId);
-                var keyVaultsNode = new SubscriptionKeyVaultsNode(SubscriptionId);
-                var storageAccountsNode = new SubscriptionStorageAccountsNode(SubscriptionId);
-                var sqlServersNode = new SubscriptionSqlServersNode(SubscriptionId);
-                var virtualMachinesNode = new SubscriptionVirtualMachinesNode(SubscriptionId);
-
-                AddChild(appServicesNode);
-                AddChild(functionAppsNode);
-                AddChild(frontDoorsNode);
-                AddChild(keyVaultsNode);
-                AddChild(sqlServersNode);
-                AddChild(storageAccountsNode);
-                AddChild(virtualMachinesNode);
-
-                // Add resource groups under a parent node
-                var resourceGroupsNode = new ResourceGroupsNode(SubscriptionId);
+                // Keep loading indicator visible - EndLoading will be called by LoadAndAddNonEmptyNodesAsync
+                _ = LoadAndAddNonEmptyNodesAsync(this, resourceTypeNodes, resourceGroupsNode, cancellationToken);
+            }
+            else
+            {
+                // Add all nodes immediately, then load children in background
+                foreach (ExplorerNodeBase node in resourceTypeNodes)
+                {
+                    AddChild(node);
+                }
                 AddChild(resourceGroupsNode);
 
-                // Pre-load subscription-level categories and resource groups in parallel
-                _ = PreloadChildrenAsync(
-                    appServicesNode, functionAppsNode, frontDoorsNode, 
-                    keyVaultsNode, storageAccountsNode, sqlServersNode,
-                    virtualMachinesNode, resourceGroupsNode, cancellationToken);
-            }
-            finally
-            {
                 EndLoading();
+
+                _ = PreloadChildrenAsync(resourceTypeNodes, resourceGroupsNode, cancellationToken);
             }
         }
 
-        private static async Task PreloadChildrenAsync(
-            SubscriptionAppServicesNode appServicesNode,
-            SubscriptionFunctionAppsNode functionAppsNode,
-            SubscriptionFrontDoorsNode frontDoorsNode,
-            SubscriptionKeyVaultsNode keyVaultsNode,
-            SubscriptionStorageAccountsNode storageAccountsNode,
-            SubscriptionSqlServersNode sqlServersNode,
-            SubscriptionVirtualMachinesNode virtualMachinesNode,
+        private static async Task LoadAndAddNonEmptyNodesAsync(
+            SubscriptionNode parent,
+            ExplorerNodeBase[] resourceTypeNodes,
             ResourceGroupsNode resourceGroupsNode,
             CancellationToken cancellationToken)
         {
             try
             {
-                await Task.WhenAll(
-                    appServicesNode.LoadChildrenAsync(cancellationToken),
-                    functionAppsNode.LoadChildrenAsync(cancellationToken),
-                    frontDoorsNode.LoadChildrenAsync(cancellationToken),
-                    keyVaultsNode.LoadChildrenAsync(cancellationToken),
-                    storageAccountsNode.LoadChildrenAsync(cancellationToken),
-                    sqlServersNode.LoadChildrenAsync(cancellationToken),
-                    virtualMachinesNode.LoadChildrenAsync(cancellationToken),
-                    resourceGroupsNode.LoadChildrenAsync(cancellationToken));
+                // Collect unique resource types for the batched query
+                // Note: Multiple nodes may share the same type (e.g., App Services and Function Apps both use Microsoft.Web/sites)
+                var resourceTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var subscriptionResourceNodes = new List<SubscriptionResourceNodeBase>();
+
+                foreach (ExplorerNodeBase node in resourceTypeNodes)
+                {
+                    if (node is SubscriptionResourceNodeBase resourceNode)
+                    {
+                        resourceTypes.Add(resourceNode.GetResourceType());
+                        subscriptionResourceNodes.Add(resourceNode);
+                    }
+                }
+
+                // Start loading resource groups in parallel (separate query)
+                Task resourceGroupsTask = LoadAndAddNodeAsync(parent, resourceGroupsNode, cancellationToken);
+
+                // Single batched query for ALL resource types
+                IReadOnlyList<ResourceGraphResult> allResources = await ResourceGraphService.Instance.QueryResourcesAsync(
+                    parent.SubscriptionId,
+                    resourceTypes,
+                    resourceGroup: null,
+                    cancellationToken);
+
+                // Group results by resource type
+                ILookup<string, ResourceGraphResult> resourcesByType = allResources.ToLookup(
+                    r => r.Type,
+                    StringComparer.OrdinalIgnoreCase);
+
+                // Populate each node from batched results and add to tree if non-empty
+                // Each node uses ShouldIncludeResource to filter (e.g., Function Apps filter by kind)
+                await Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                foreach (SubscriptionResourceNodeBase node in subscriptionResourceNodes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var resourceType = node.GetResourceType();
+                    IEnumerable<ResourceGraphResult> nodeResources = resourcesByType[resourceType];
+                    node.PopulateFromBatchedResults(nodeResources, cancellationToken);
+
+                    if (node.Children.Count > 0)
+                    {
+                        parent.InsertChildSorted(node);
+                    }
+                }
+
+                // Wait for resource groups to finish loading
+                await resourceGroupsTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when user navigates away; ignore
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Load failed: {ex.Message}");
+            }
+            finally
+            {
+                // End loading state now that we've added the nodes
+                await Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                parent.EndLoading();
+            }
+        }
+
+        private static async Task LoadAndAddIfNotEmptyAsync(
+            SubscriptionNode parent,
+            ExplorerNodeBase node,
+            CancellationToken cancellationToken)
+        {
+            var added = false;
+
+            // Subscribe to Children changes to add the node as soon as the first child is discovered
+            void OnChildrenChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+            {
+                if (!added && node.Children.Count > 0)
+                {
+                    added = true;
+                    // Use BeginInvoke to add on UI thread without blocking the loading
+                    Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                    {
+                        await Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        parent.InsertChildSorted(node);
+                    }).FireAndForget();
+                }
+            }
+
+            node.Children.CollectionChanged += OnChildrenChanged;
+
+            try
+            {
+                await node.LoadChildrenAsync(cancellationToken);
+            }
+            finally
+            {
+                node.Children.CollectionChanged -= OnChildrenChanged;
+            }
+        }
+
+        private static async Task LoadAndAddNodeAsync(
+            SubscriptionNode parent,
+            ExplorerNodeBase node,
+            CancellationToken cancellationToken)
+        {
+            await node.LoadChildrenAsync(cancellationToken);
+            await Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            // Only add if it has children (respects HideEmptyResourceTypes setting)
+            if (node.Children.Count > 0)
+            {
+                parent.InsertChildSorted(node);
+            }
+        }
+
+        private static async Task PreloadChildrenAsync(
+            ExplorerNodeBase[] resourceTypeNodes,
+            ResourceGroupsNode resourceGroupsNode,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var loadTasks = new Task[resourceTypeNodes.Length + 1];
+                for (var i = 0; i < resourceTypeNodes.Length; i++)
+                {
+                    loadTasks[i] = resourceTypeNodes[i].LoadChildrenAsync(cancellationToken);
+                }
+                loadTasks[resourceTypeNodes.Length] = resourceGroupsNode.LoadChildrenAsync(cancellationToken);
+
+                await Task.WhenAll(loadTasks);
             }
             catch (OperationCanceledException)
             {

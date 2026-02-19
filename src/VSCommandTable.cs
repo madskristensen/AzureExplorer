@@ -53,6 +53,8 @@ namespace AzureExplorer
         public const int AccountContextMenu = 0x002B;
         public const int FileContextMenu = 0x002C;
         public const int FolderContextMenu = 0x002D;
+        public const int TagsNodeContextMenu = 0x01C0;
+        public const int TagContextMenu = 0x01C2;
         public const int ViewMenuGroup = 0x0030;
         public const int ToolbarGroup = 0x0031;
         public const int SubscriptionContextMenuGroup = 0x0040;
@@ -93,6 +95,8 @@ namespace AzureExplorer
         public const int AccountContextMenuGroup = 0x004F;
         public const int FileContextMenuGroup = 0x0060;
         public const int FolderContextMenuGroup = 0x0061;
+        public const int TagsNodeContextMenuGroup = 0x01C1;
+        public const int TagContextMenuGroup = 0x01C3;
         public const int AppServiceBrowseGroup = 0x0042;
         public const int AppServiceActionsGroup = 0x0043;
         public const int AppServiceDiagnosticsGroup = 0x0045;
@@ -109,6 +113,7 @@ namespace AzureExplorer
         public const int RefreshTenant = 0x0105;
         public const int SignOutAccount = 0x0106;
         public const int RefreshAccount = 0x0107;
+        public const int ToggleHideEmptyResourceTypes = 0x0108;
         public const int BrowseSite = 0x0110;
         public const int StartAppService = 0x0111;
         public const int StopAppService = 0x0112;
@@ -152,12 +157,6 @@ namespace AzureExplorer
         public const int CopyVmIpAddress = 0x01B3;
         public const int ConnectRdp = 0x01B4;
         public const int ConnectSsh = 0x01B5;
-
-        // Tags
-        public const int TagsNodeContextMenu = 0x01C0;
-        public const int TagsNodeContextMenuGroup = 0x01C1;
-        public const int TagContextMenu = 0x01C2;
-        public const int TagContextMenuGroup = 0x01C3;
         public const int CopyTagsAsJson = 0x01C4;
         public const int CopyTagValue = 0x01C5;
         public const int FilterByTag = 0x01C6;

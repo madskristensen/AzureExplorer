@@ -13,7 +13,7 @@ Download from the [Visual Studio Marketplace][marketplace] or get the latest [CI
 
 **Stop context-switching.** Manage your Azure resources without ever leaving Visual Studio.
 
-Azure Explorer brings your cloud infrastructure into your IDE with a fast, lightweight tool window. Browse subscriptions, manage App Services and Function Apps, control Virtual Machines, access Key Vault secrets, browse Storage Account blobs, connect to SQL databases, and stream live logs — all from the comfort of Visual Studio.
+Azure Explorer brings your cloud infrastructure into your IDE with a fast, lightweight tool window. If you miss the old **Cloud Explorer** that was removed from Visual Studio, this extension is for you. Browse subscriptions, manage App Services and Function Apps, control Virtual Machines, access Key Vault secrets, browse Storage Account blobs, connect to SQL databases, and stream live logs — all from the comfort of Visual Studio.
 
 ![Azure Explorer tool window](art/azure-explorer.png)
 

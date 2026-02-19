@@ -479,6 +479,17 @@
         </Strings>
       </Button>
 
+      <!-- Toolbar: Toggle Hide Empty Resource Types -->
+      <Button guid="AzureExplorer" id="ToggleHideEmptyResourceTypes" priority="0x0300" type="Button">
+        <Parent guid="AzureExplorer" id="ToolbarGroup"/>
+        <Icon guid="ImageCatalogGuid" id="ParentChild"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Hide Empty Resource Types</ButtonText>
+          <LocCanonicalName>.AzureExplorer.ToggleHideEmptyResourceTypes</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Account context: Sign Out -->
       <Button guid="AzureExplorer" id="SignOutAccount" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="AccountContextMenuGroup"/>
@@ -1214,6 +1225,7 @@
       <IDSymbol name="RefreshTenant" value="0x0105" />
       <IDSymbol name="SignOutAccount" value="0x0106" />
       <IDSymbol name="RefreshAccount" value="0x0107" />
+      <IDSymbol name="ToggleHideEmptyResourceTypes" value="0x0108" />
       <IDSymbol name="BrowseSite" value="0x0110" />
       <IDSymbol name="StartAppService" value="0x0111" />
       <IDSymbol name="StopAppService" value="0x0112" />

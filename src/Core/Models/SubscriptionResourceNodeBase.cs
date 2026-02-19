@@ -31,7 +31,46 @@ namespace AzureExplorer.Core.Models
         /// </summary>
         protected abstract string ResourceType { get; }
 
+        /// <summary>
+        /// Gets the Azure resource type for external batched queries.
+        /// </summary>
+        public string GetResourceType() => ResourceType;
+
         public override bool SupportsChildren => true;
+
+        /// <summary>
+        /// Populates children from pre-fetched Resource Graph results.
+        /// Used for batched loading where all resource types are queried at once.
+        /// </summary>
+        public void PopulateFromBatchedResults(IEnumerable<ResourceGraphResult> resources, CancellationToken cancellationToken = default)
+        {
+            if (!BeginLoading())
+                return;
+
+            try
+            {
+                var count = 0;
+                foreach (ResourceGraphResult resource in resources)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!ShouldIncludeResource(resource))
+                        continue;
+
+                    ExplorerNodeBase node = CreateNodeFromGraphResult(resource);
+                    if (node != null)
+                    {
+                        InsertChildSorted(node);
+                        count++;
+                        Description = $"loading... ({count} found)";
+                    }
+                }
+            }
+            finally
+            {
+                EndLoading();
+            }
+        }
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {
@@ -145,23 +184,6 @@ namespace AzureExplorer.Core.Models
         {
             // Default implementation - derived classes should override for full support
             return null;
-        }
-
-        /// <summary>
-        /// Inserts a child node in alphabetically sorted order by label.
-        /// </summary>
-        protected void InsertChildSorted(ExplorerNodeBase node)
-        {
-            node.Parent = this;
-
-            var index = 0;
-            while (index < Children.Count &&
-                   string.Compare(Children[index].Label, node.Label, StringComparison.OrdinalIgnoreCase) < 0)
-            {
-                index++;
-            }
-
-            Children.Insert(index, node);
         }
     }
 }

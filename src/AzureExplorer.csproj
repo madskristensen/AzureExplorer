@@ -60,6 +60,7 @@
     <Compile Include="AppService\Services\KuduVfsService.cs" />
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
+    <Compile Include="Core\Commands\ToggleHideEmptyResourceTypesCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="Core\Models\ITaggableResource.cs" />
     <Compile Include="Core\Models\IWebSiteNode.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Core\Models\TagNode.cs" />
     <Compile Include="Core\Models\TagsNode.cs" />
     <Compile Include="Core\Models\WebSiteNodeBase.cs" />
+    <Compile Include="Core\Options\GeneralOptions.cs" />
     <Compile Include="Core\Search\AzureSearchResult.cs" />
     <Compile Include="Core\Search\AzureSearchService.cs" />
     <Compile Include="Core\Search\SearchAccountNode.cs" />
