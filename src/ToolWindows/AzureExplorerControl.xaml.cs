@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -62,108 +61,6 @@ namespace AzureExplorer.ToolWindows
         {
             if (_instance != null)
                 await _instance.ReloadAsync();
-        }
-
-        /// <summary>
-        /// Performs a tag search and displays results in the tree view.
-        /// Used by commands like "Filter by this tag".
-        /// </summary>
-        internal static void PerformTagSearch(string tagKey, string tagValue)
-        {
-            if (_instance == null)
-                return;
-
-            var searchQuery = string.IsNullOrEmpty(tagValue)
-                ? $"tag:{tagKey}"
-                : $"tag:{tagKey}={tagValue}";
-
-            _instance.PerformTagSearchInternal(searchQuery);
-        }
-
-        private void PerformTagSearchInternal(string searchQuery)
-        {
-            // Save current nodes if not already in search mode
-            if (!_isSearchActive)
-            {
-                _savedRootNodes.Clear();
-                _savedRootNodes.AddRange(RootNodes);
-            }
-
-            _isSearchActive = true;
-
-            // Clear and show searching message
-            RootNodes.Clear();
-            RootNodes.Add(new LoadingNode { Label = $"Searching: {searchQuery}..." });
-
-            // Run the search (both cached and API)
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                try
-                {
-                    var foundIds = new System.Collections.Concurrent.ConcurrentDictionary<string, byte>();
-                    var resultCount = 0;
-
-                    // Search cached nodes first for instant results
-                    AzureSearchService.Instance.SearchCachedNodes(
-                        _savedRootNodes,
-                        searchQuery,
-                        result =>
-                        {
-                            Interlocked.Increment(ref resultCount);
-                            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-                            {
-                                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                                // Remove "Searching..." placeholder if present
-                                if (RootNodes.Count == 1 && RootNodes[0] is LoadingNode)
-                                {
-                                    RootNodes.Clear();
-                                }
-                                AddSearchResultNode(result);
-                            }).FireAndForget();
-                        },
-                        foundIds);
-
-                    // Continue with API search for resources not yet loaded
-                    await AzureSearchService.Instance.SearchAllResourcesAsync(
-                        searchQuery,
-                        null, // Don't pass cached nodes again - already searched above
-                        result =>
-                        {
-                            Interlocked.Increment(ref resultCount);
-                            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-                            {
-                                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                                // Remove "Searching..." placeholder if present
-                                if (RootNodes.Count == 1 && RootNodes[0] is LoadingNode)
-                                {
-                                    RootNodes.Clear();
-                                }
-                                AddSearchResultNode(result);
-                            }).FireAndForget();
-                        },
-                        (searched, total) =>
-                        {
-                            VS.StatusBar.ShowMessageAsync($"Searching... ({searched}/{total} subscriptions)").FireAndForget();
-                        },
-                        CancellationToken.None);
-
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    if (resultCount == 0)
-                    {
-                        RootNodes.Clear();
-                        RootNodes.Add(new LoadingNode { Label = $"No resources found for: {searchQuery}" });
-                    }
-
-                    await VS.StatusBar.ShowMessageAsync($"Found {resultCount} resource(s) for: {searchQuery}");
-                }
-                catch (Exception ex)
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    RootNodes.Clear();
-                    RootNodes.Add(new LoadingNode { Label = $"Search failed: {ex.Message}" });
-                }
-            }).FireAndForget();
         }
 
         /// <summary>

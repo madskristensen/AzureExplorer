@@ -125,8 +125,10 @@ Browse Front Door profiles and endpoints, view your hosting plans, and quickly a
 Organize and filter your Azure resources using tags:
 
 - **View Tags** — Expand any resource to see its tags as key-value pairs
-- **Add Tags** — Right-click a resource and select "Add Tag..." to create new tags
+- **Add Tags** — Right-click a resource or the Tags node and select "Add Tag..."
+- **Remove Tags** — Right-click any tag and select "Remove Tag" to delete it
 - **Search by Tag** — Use `tag:Key=Value` syntax in the search box to find resources
+- **Filter by Tag** — Right-click a tag and select "Filter by This Tag" to search
 - **Copy Tags** — Copy all tags as JSON or individual tag values
 - **Auto-complete** — Tag keys and values auto-populate from previously used tags
 
