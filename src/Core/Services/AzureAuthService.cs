@@ -196,6 +196,9 @@ namespace AzureExplorer.Core.Services
                 // AuthenticateAsync opens the browser ONCE and returns an
                 // AuthenticationRecord we can persist for future silent auth.
                 var context = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
+
+                // Yield to prevent VS from flagging UI thread delay during interactive auth
+                await Task.Yield();
                 AuthenticationRecord record = await credential.AuthenticateAsync(context, cancellationToken);
 
                 var accountId = GetAccountId(record);
