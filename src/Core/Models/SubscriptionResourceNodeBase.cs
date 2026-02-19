@@ -17,6 +17,8 @@ namespace AzureExplorer.Core.Models
     /// </summary>
     internal abstract class SubscriptionResourceNodeBase : ExplorerNodeBase
     {
+        private bool _isLoaded;
+
         protected SubscriptionResourceNodeBase(string label, string subscriptionId)
             : base(label)
         {
@@ -35,6 +37,33 @@ namespace AzureExplorer.Core.Models
         /// Gets the Azure resource type for external batched queries.
         /// </summary>
         public string GetResourceType() => ResourceType;
+
+        /// <summary>
+        /// Gets whether this node has resources (children loaded and count > 0).
+        /// </summary>
+        public bool HasResources => _isLoaded && Children.Count > 0;
+
+        /// <summary>
+        /// Gets whether this node should be visible in the tree view.
+        /// Nodes are hidden until loaded. Empty nodes are only visible when ShowAll is enabled.
+        /// </summary>
+        public override bool IsVisible => HasResources || Options.GeneralOptions.Instance.ShowAll;
+
+        /// <summary>
+        /// Gets the opacity for this node. Returns 1.0 if has resources, 0.5 (dimmed) otherwise.
+        /// Unloaded and empty nodes appear dimmed when ShowAll is enabled.
+        /// </summary>
+        public override double Opacity => HasResources ? 1.0 : 0.5;
+
+        /// <summary>
+        /// Notifies the UI that the visibility and opacity properties have changed.
+        /// Call this after the ShowAll setting changes.
+        /// </summary>
+        public void NotifyVisibilityChanged()
+        {
+            OnPropertyChanged(nameof(IsVisible));
+            OnPropertyChanged(nameof(Opacity));
+        }
 
         public override bool SupportsChildren => true;
 
@@ -68,7 +97,10 @@ namespace AzureExplorer.Core.Models
             }
             finally
             {
+                _isLoaded = true;
                 EndLoading();
+                OnPropertyChanged(nameof(IsVisible));
+                OnPropertyChanged(nameof(Opacity));
             }
         }
 
@@ -128,7 +160,10 @@ namespace AzureExplorer.Core.Models
             }
             finally
             {
+                _isLoaded = true;
                 EndLoading();
+                OnPropertyChanged(nameof(IsVisible));
+                OnPropertyChanged(nameof(Opacity));
             }
         }
 

@@ -30,7 +30,6 @@ namespace AzureExplorer.AppService.Models
                     AddChild(new TagsNode(Tags));
                 }
 
-                AddChild(new FilesNode(SubscriptionId, Label));
                 return Task.CompletedTask;
             }, cancellationToken);
         }

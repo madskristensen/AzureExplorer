@@ -143,11 +143,16 @@ Manage your Azure VMs without leaving Visual Studio:
 - **View Status** — See running, stopped, or deallocated state at a glance
 - **Open in Portal** — Jump to full VM management in Azure Portal
 
+## Requirements
+
+- **Visual Studio 2022** or later
+- **Windows 10** or later (required for WAM authentication)
+
 ## Getting Started
 
 1. **Install** the extension from the [Visual Studio Marketplace][marketplace]
 2. **Open** Azure Explorer from **View → Azure Explorer** (next to Server Explorer)
-3. **Sign in** with your Azure account
+3. **Sign in** with your Azure account using Windows native authentication
 4. **Explore** your subscriptions and resources
 
 ![Welcome screen](art/welcome.png)

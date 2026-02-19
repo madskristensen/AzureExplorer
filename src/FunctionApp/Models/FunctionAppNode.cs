@@ -31,8 +31,6 @@ namespace AzureExplorer.FunctionApp.Models
                     AddChild(new TagsNode(Tags));
                 }
 
-                // Function Apps also support file browsing via Kudu
-                AddChild(new FilesNode(SubscriptionId, Label));
                 return Task.CompletedTask;
             }, cancellationToken);
         }

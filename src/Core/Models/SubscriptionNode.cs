@@ -48,11 +48,21 @@ namespace AzureExplorer.Core.Models
         /// <summary>
         /// Notifies the UI that the visibility and opacity properties have changed.
         /// Call this after toggling the hidden state or ShowAll setting.
+        /// Also notifies child resource type nodes to update their visibility.
         /// </summary>
         public void NotifyVisibilityChanged()
         {
             OnPropertyChanged(nameof(IsVisible));
             OnPropertyChanged(nameof(Opacity));
+
+            // Notify all child resource type nodes to update their visibility
+            foreach (ExplorerNodeBase child in Children)
+            {
+                if (child is SubscriptionResourceNodeBase resourceNode)
+                {
+                    resourceNode.NotifyVisibilityChanged();
+                }
+            }
         }
 
         // IPortalResource - subscriptions don't have resource group or provider path
@@ -85,24 +95,17 @@ namespace AzureExplorer.Core.Models
                 keyVaultsNode, sqlServersNode, storageAccountsNode, virtualMachinesNode
             ];
 
-            if (!GeneralOptions.Instance.ShowAll)
+            // Always add all nodes - visibility is controlled by IsVisible property
+            foreach (ExplorerNodeBase node in resourceTypeNodes)
             {
-                // Keep loading indicator visible - EndLoading will be called by LoadAndAddNonEmptyNodesAsync
-                _ = LoadAndAddNonEmptyNodesAsync(this, resourceTypeNodes, resourceGroupsNode, cancellationToken);
+                AddChild(node);
             }
-            else
-            {
-                // Add all nodes immediately, then load children in background
-                foreach (ExplorerNodeBase node in resourceTypeNodes)
-                {
-                    AddChild(node);
-                }
-                AddChild(resourceGroupsNode);
+            AddChild(resourceGroupsNode);
 
-                EndLoading();
+            EndLoading();
 
-                _ = PreloadChildrenAsync(resourceTypeNodes, resourceGroupsNode, cancellationToken);
-            }
+            // Load children in background
+            _ = PreloadChildrenAsync(resourceTypeNodes, resourceGroupsNode, cancellationToken);
         }
 
         private static async Task LoadAndAddNonEmptyNodesAsync(

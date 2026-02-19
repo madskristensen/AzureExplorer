@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 using Azure.Core;
 using Azure.Identity;
+using Azure.Identity.Broker;
 
 namespace AzureExplorer.Core.Services
 {
@@ -86,18 +88,7 @@ namespace AzureExplorer.Core.Services
                     {
                         // Create a new credential with DisableAutomaticAuthentication = true
                         // This will throw AuthenticationRequiredException instead of prompting
-                        var silentOptions = new InteractiveBrowserCredentialOptions
-                        {
-                            TokenCachePersistenceOptions = new TokenCachePersistenceOptions
-                            {
-                                Name = "AzureExplorer",
-                                UnsafeAllowUnencryptedStorage = true,
-                            },
-                            AdditionallyAllowedTenants = { "*" },
-                            AuthenticationRecord = account.Record,
-                            DisableAutomaticAuthentication = true,
-                        };
-                        return new InteractiveBrowserCredential(silentOptions);
+                        return CreateSilentCredential(account.Record);
                     }
                 }
 
@@ -134,20 +125,9 @@ namespace AzureExplorer.Core.Services
                 {
                     // Use DisableAutomaticAuthentication so GetTokenAsync throws
                     // AuthenticationRequiredException instead of opening a browser.
-                    var silentOptions = new InteractiveBrowserCredentialOptions
-                    {
-                        TokenCachePersistenceOptions = new TokenCachePersistenceOptions
-                        {
-                            Name = "AzureExplorer",
-                            UnsafeAllowUnencryptedStorage = true,
-                        },
-                        AdditionallyAllowedTenants = { "*" },
-                        AuthenticationRecord = record,
-                        DisableAutomaticAuthentication = true,
-                    };
-                    var silentCredential = new InteractiveBrowserCredential(silentOptions);
+                    InteractiveBrowserCredential silentCredential = CreateSilentCredential(record);
 
-                    var context = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
+                    var context = new TokenRequestContext(["https://management.azure.com/.default"]);
                     await silentCredential.GetTokenAsync(context, cancellationToken);
 
                     // Silent token acquisition succeeded — create the real credential
@@ -195,7 +175,7 @@ namespace AzureExplorer.Core.Services
 
                 // AuthenticateAsync opens the browser ONCE and returns an
                 // AuthenticationRecord we can persist for future silent auth.
-                var context = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
+                var context = new TokenRequestContext(["https://management.azure.com/.default"]);
 
                 // Run authentication on a background thread to avoid blocking the UI thread
                 // which triggers VS perf center warnings
@@ -300,22 +280,45 @@ namespace AzureExplorer.Core.Services
             return accountId;
         }
 
+        private static IntPtr GetMainWindowHandle()
+        {
+            return Process.GetCurrentProcess().MainWindowHandle;
+        }
+
         private static InteractiveBrowserCredential CreateCredential(AuthenticationRecord authRecord)
         {
-            var options = new InteractiveBrowserCredentialOptions
+            // Use WAM (Web Account Manager) for native Windows authentication
+            var options = new InteractiveBrowserCredentialBrokerOptions(GetMainWindowHandle())
             {
                 TokenCachePersistenceOptions = new TokenCachePersistenceOptions
                 {
                     Name = "AzureExplorer",
-                    UnsafeAllowUnencryptedStorage = true,
                 },
                 AdditionallyAllowedTenants = { "*" },
+                UseDefaultBrokerAccount = true, // Enables SSO with default Windows account
             };
 
             if (authRecord != null)
             {
                 options.AuthenticationRecord = authRecord;
             }
+
+            return new InteractiveBrowserCredential(options);
+        }
+
+        private static InteractiveBrowserCredential CreateSilentCredential(AuthenticationRecord authRecord)
+        {
+            // Use WAM for silent authentication - will throw AuthenticationRequiredException instead of prompting
+            var options = new InteractiveBrowserCredentialBrokerOptions(GetMainWindowHandle())
+            {
+                TokenCachePersistenceOptions = new TokenCachePersistenceOptions
+                {
+                    Name = "AzureExplorer",
+                },
+                AdditionallyAllowedTenants = { "*" },
+                AuthenticationRecord = authRecord,
+                DisableAutomaticAuthentication = true,
+            };
 
             return new InteractiveBrowserCredential(options);
         }
