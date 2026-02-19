@@ -270,115 +270,20 @@ internal sealed class AzureSearchService
             Interlocked.Add(ref totalResults, localResults);
         }
 
-        // Phase 2: API search continues in background for additional results
+        // Phase 2: Use Azure Resource Graph for fast server-side search
         IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
         if (accounts.Count == 0)
             return (uint)totalResults;
 
-        // Use Azure Resource Graph for tag searches (much faster - server-side filtering)
-        if (query.HasTagFilter)
-        {
-            var graphResults = await SearchWithResourceGraphAsync(
-                accounts, query, foundResourceIds, onResultFound, onProgress, cancellationToken);
-            Interlocked.Add(ref totalResults, (int)graphResults);
-            return (uint)totalResults;
-        }
-
-        // Fall back to per-subscription search for name-only queries
-        var subscriptionsSearched = 0;
-        var totalSubscriptionsEstimate = 0;
-
-        // Higher concurrency for network-bound I/O operations
-        var semaphore = new SemaphoreSlim(16);
-        var searchTasks = new ConcurrentBag<Task>();
-
-        // Stream-start: begin searching subscriptions as they're discovered (no two-phase wait)
-        // Use silent credentials to avoid interactive authentication prompts during search
-        IEnumerable<Task> collectAndSearchTasks = accounts.Select(async account =>
-        {
-            try
-            {
-                // Collect tenants for this account using silent auth (no prompts)
-                var tenants = new List<TenantInfo>();
-                await foreach (TenantInfo tenant in AzureResourceService.Instance.GetTenantsForSearchAsync(account.AccountId, cancellationToken))
-                {
-                    tenants.Add(tenant);
-                }
-
-                // Process tenants in parallel
-                IEnumerable<Task> tenantTasks = tenants.Select(async tenant =>
-                {
-                    try
-                    {
-                        // Use silent auth to avoid prompts during search
-                        await foreach (SubscriptionResource sub in AzureResourceService.Instance.GetSubscriptionsForTenantForSearchAsync(
-                            account.AccountId, tenant.TenantId, cancellationToken))
-                        {
-                            Interlocked.Increment(ref totalSubscriptionsEstimate);
-
-                            var subInfo = new SubscriptionSearchInfo(
-                                account.AccountId,
-                                account.Username,
-                                sub.Data.SubscriptionId,
-                                sub.Data.DisplayName,
-                                tenant.TenantId);
-
-                            // Start searching this subscription immediately (don't wait for all subs)
-                            Task searchTask = SearchSubscriptionAsync(
-                                subInfo,
-                                searchText,
-                                foundResourceIds,
-                                result =>
-                                {
-                                    Interlocked.Increment(ref totalResults);
-                                    onResultFound?.Invoke(result);
-                                },
-                                () =>
-                                {
-                                    var searched = Interlocked.Increment(ref subscriptionsSearched);
-                                    onProgress?.Invoke((uint)searched, (uint)Math.Max(totalSubscriptionsEstimate, searched));
-                                },
-                                semaphore,
-                                cancellationToken);
-
-                            searchTasks.Add(searchTask);
-                        }
-                    }
-                    catch (AuthenticationRequiredException)
-                    {
-                        // Silent auth failed - skip this tenant without prompting
-                        System.Diagnostics.Debug.WriteLine($"Search: Skipping tenant {tenant.TenantId} - authentication required");
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Search: Failed to get subscriptions for tenant {tenant.TenantId}: {ex.Message}");
-                    }
-                });
-
-                await Task.WhenAll(tenantTasks).ConfigureAwait(false);
-            }
-            catch (AuthenticationRequiredException)
-            {
-                // Silent auth failed - skip this account without prompting
-                System.Diagnostics.Debug.WriteLine($"Search: Skipping account {account.Username} - authentication required");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Search: Failed to get tenants for account {account.Username}: {ex.Message}");
-            }
-        });
-
-        // Wait for all collection tasks to start their search tasks
-        await Task.WhenAll(collectAndSearchTasks).ConfigureAwait(false);
-
-        // Wait for all search tasks to complete
-        await Task.WhenAll(searchTasks).ConfigureAwait(false);
+        var graphResults = await SearchWithResourceGraphAsync(
+            accounts, query, foundResourceIds, onResultFound, onProgress, cancellationToken);
+        Interlocked.Add(ref totalResults, (int)graphResults);
 
         return (uint)totalResults;
     }
 
     /// <summary>
-    /// Uses Azure Resource Graph to search for resources by tag (server-side filtering - much faster).
+    /// Uses Azure Resource Graph to search for resources (server-side filtering - much faster).
     /// Searches all subscriptions across all accounts in parallel.
     /// </summary>
     private async Task<uint> SearchWithResourceGraphAsync(
@@ -461,7 +366,7 @@ internal sealed class AzureSearchService
                                 // Create node with tags
                                 var actualNode = CreateNodeFromResourceGraph(type, name, subscriptionId, resourceGroup, tags, item);
 
-                                // Double-check name filter if specified
+                                // Double-check name filter if specified (Resource Graph 'contains' is case-insensitive, but verify)
                                 if (!string.IsNullOrEmpty(query.TextQuery) &&
                                     name.IndexOf(query.TextQuery, StringComparison.OrdinalIgnoreCase) < 0)
                                     continue;
