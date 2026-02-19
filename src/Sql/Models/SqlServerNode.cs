@@ -78,25 +78,15 @@ namespace AzureExplorer.Sql.Models
             if (!BeginLoading())
                 return;
 
-            try
+            await LoadChildrenWithErrorHandlingAsync(async ct =>
             {
                 await foreach (SqlDatabaseNode db in AzureExplorer.Core.Services.AzureResourceService.Instance
-                    .GetSqlDatabasesAsync(SubscriptionId, ResourceGroupName, Label, cancellationToken))
+                    .GetSqlDatabasesAsync(SubscriptionId, ResourceGroupName, Label, ct))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    ct.ThrowIfCancellationRequested();
                     AddChild(db);
                 }
-            }
-            catch (Exception ex)
-            {
-                await ex.LogAsync();
-                Children.Clear();
-                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
-            }
-            finally
-            {
-                EndLoading();
-            }
+            }, cancellationToken);
         }
 
         internal static SqlServerState ParseState(string state)

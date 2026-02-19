@@ -1,3 +1,4 @@
+using AzureExplorer.Core.Models;
 using AzureExplorer.KeyVault.Models;
 
 namespace AzureExplorer.Test.KeyVault.Models
@@ -23,7 +24,7 @@ namespace AzureExplorer.Test.KeyVault.Models
             Assert.AreEqual(_testSubscriptionId, node.SubscriptionId);
             Assert.AreEqual(_testResourceGroupName, node.ResourceGroupName);
             Assert.AreEqual(_testVaultUri, node.VaultUri);
-            Assert.AreEqual(KeyVaultState.Succeeded, node.State);
+            Assert.AreEqual(ProvisioningState.Succeeded, node.State);
             // Description is only set for non-normal states (Failed)
             Assert.IsNull(node.Description);
         }
@@ -45,7 +46,7 @@ namespace AzureExplorer.Test.KeyVault.Models
             var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, "InvalidState", _testVaultUri);
 
             // Assert
-            Assert.AreEqual(KeyVaultState.Unknown, node.State);
+            Assert.AreEqual(ProvisioningState.Unknown, node.State);
         }
 
         [TestMethod]
@@ -55,7 +56,7 @@ namespace AzureExplorer.Test.KeyVault.Models
             var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, state: null, _testVaultUri);
 
             // Assert
-            Assert.AreEqual(KeyVaultState.Unknown, node.State);
+            Assert.AreEqual(ProvisioningState.Unknown, node.State);
         }
 
         #endregion
@@ -69,7 +70,7 @@ namespace AzureExplorer.Test.KeyVault.Models
             var node = new KeyVaultNode(_testName, _testSubscriptionId, _testResourceGroupName, "Succeeded", _testVaultUri)
             {
                 // Act
-                State = KeyVaultState.Failed
+                State = ProvisioningState.Failed
             };
 
             // Assert
@@ -90,7 +91,7 @@ namespace AzureExplorer.Test.KeyVault.Models
             };
 
             // Act
-            node.State = KeyVaultState.Failed;
+            node.State = ProvisioningState.Failed;
 
             // Assert
             Assert.IsTrue(iconMonikerChanged);

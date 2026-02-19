@@ -1,7 +1,5 @@
-using AzureExplorer.AppService.Models;
 using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
-using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.ToolWindows;
 
 namespace AzureExplorer.AppService.Commands
@@ -24,11 +22,7 @@ namespace AzureExplorer.AppService.Commands
                 await VS.StatusBar.ShowMessageAsync($"Restarting {node.Label}...");
                 await AppServiceManager.Instance.RestartAsync(node.SubscriptionId, node.ResourceGroupName, node.Label);
 
-                // Update state on the concrete node type
-                if (AzureExplorerControl.SelectedNode?.ActualNode is AppServiceNode appNode)
-                    appNode.State = AppServiceState.Running;
-                else if (AzureExplorerControl.SelectedNode?.ActualNode is FunctionAppNode funcNode)
-                    funcNode.State = FunctionAppState.Running;
+                node.State = WebSiteState.Running;
 
                 await VS.StatusBar.ShowMessageAsync($"{node.Label} restarted.");
             }

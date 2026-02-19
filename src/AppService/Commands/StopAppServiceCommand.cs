@@ -12,12 +12,8 @@ namespace AzureExplorer.AppService.Commands
         protected override void BeforeQueryStatus(EventArgs e)
         {
             // Only visible when the selected site is Running
-            Command.Visible = AzureExplorerControl.SelectedNode switch
-            {
-                AppServiceNode node => node.State == AppServiceState.Running,
-                FunctionAppNode node => node.State == FunctionAppState.Running,
-                _ => false
-            };
+            Command.Visible = AzureExplorerControl.SelectedNode?.ActualNode is IWebSiteNode node &&
+                              node.State == WebSiteState.Running;
         }
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
@@ -35,11 +31,7 @@ namespace AzureExplorer.AppService.Commands
                 await VS.StatusBar.ShowMessageAsync($"Stopping {node.Label}...");
                 await AppServiceManager.Instance.StopAsync(node.SubscriptionId, node.ResourceGroupName, node.Label);
 
-                // Update state on the concrete node type
-                if (AzureExplorerControl.SelectedNode is AppServiceNode appNode)
-                    appNode.State = AppServiceState.Stopped;
-                else if (AzureExplorerControl.SelectedNode is FunctionAppNode funcNode)
-                    funcNode.State = FunctionAppState.Stopped;
+                node.State = WebSiteState.Stopped;
 
                 await VS.StatusBar.ShowMessageAsync($"{node.Label} stopped.");
             }

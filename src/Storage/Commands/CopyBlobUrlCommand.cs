@@ -32,6 +32,7 @@ namespace AzureExplorer.Storage.Commands
 
             if (!string.IsNullOrEmpty(url))
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 Clipboard.SetText(url);
                 await VS.StatusBar.ShowMessageAsync($"Copied URL for {name}");
             }

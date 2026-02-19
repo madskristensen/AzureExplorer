@@ -10,19 +10,12 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace AzureExplorer.KeyVault.Models
 {
-    internal enum KeyVaultState
-    {
-        Unknown,
-        Succeeded,
-        Failed
-    }
-
     /// <summary>
     /// Represents an Azure Key Vault. Expandable node containing secrets directly.
     /// </summary>
     internal sealed class KeyVaultNode : ExplorerNodeBase, IPortalResource
     {
-        private KeyVaultState _state;
+        private ProvisioningState _state;
 
         public KeyVaultNode(string name, string subscriptionId, string resourceGroupName, string state, string vaultUri)
             : base(name)
@@ -31,8 +24,8 @@ namespace AzureExplorer.KeyVault.Models
             ResourceGroupName = resourceGroupName;
             // Construct URI from vault name if not provided
             VaultUri = vaultUri ?? $"https://{name}.vault.azure.net/";
-            _state = ParseState(state);
-            Description = _state == KeyVaultState.Failed ? _state.ToString() : null;
+            _state = ProvisioningStateParser.Parse(state);
+            Description = _state == ProvisioningState.Failed ? _state.ToString() : null;
 
             // Add loading placeholder
             Children.Add(new LoadingNode());
@@ -46,7 +39,7 @@ namespace AzureExplorer.KeyVault.Models
         public string ResourceName => Label;
         public string AzureResourceProvider => "Microsoft.KeyVault/vaults";
 
-        public KeyVaultState State
+        public ProvisioningState State
         {
             get => _state;
             set
@@ -55,7 +48,7 @@ namespace AzureExplorer.KeyVault.Models
                 {
                     // Only show description for non-normal states (Failed)
                     // Don't show "Unknown" or "Succeeded" as they're not useful
-                    Description = value == KeyVaultState.Failed ? value.ToString() : null;
+                    Description = value == ProvisioningState.Failed ? value.ToString() : null;
                     OnPropertyChanged(nameof(IconMoniker));
                 }
             }
@@ -63,8 +56,8 @@ namespace AzureExplorer.KeyVault.Models
 
         public override ImageMoniker IconMoniker => State switch
         {
-            KeyVaultState.Succeeded => KnownMonikers.AzureKeyVault,
-            KeyVaultState.Failed => KnownMonikers.ApplicationWarning,
+            ProvisioningState.Succeeded => KnownMonikers.AzureKeyVault,
+            ProvisioningState.Failed => KnownMonikers.ApplicationWarning,
             _ => KnownMonikers.AzureKeyVault
         };
 
@@ -76,14 +69,14 @@ namespace AzureExplorer.KeyVault.Models
             if (!BeginLoading())
                 return;
 
-            try
+            await LoadChildrenWithErrorHandlingAsync(async ct =>
             {
                 var secrets = new List<SecretNode>();
 
                 await foreach (SecretNode secret in AzureResourceService.Instance.GetSecretsAsync(
-                    SubscriptionId, VaultUri, cancellationToken))
+                    SubscriptionId, VaultUri, ct))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    ct.ThrowIfCancellationRequested();
                     secrets.Add(secret);
                 }
 
@@ -92,31 +85,7 @@ namespace AzureExplorer.KeyVault.Models
                 {
                     AddChild(node);
                 }
-            }
-            catch (Exception ex)
-            {
-                await ex.LogAsync();
-                Children.Clear();
-                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
-            }
-            finally
-            {
-                EndLoading();
-            }
-        }
-
-        internal static KeyVaultState ParseState(string state)
-        {
-            if (string.IsNullOrEmpty(state))
-                return KeyVaultState.Unknown;
-
-            if (state.Equals("Succeeded", System.StringComparison.OrdinalIgnoreCase))
-                return KeyVaultState.Succeeded;
-
-            if (state.Equals("Failed", System.StringComparison.OrdinalIgnoreCase))
-                return KeyVaultState.Failed;
-
-            return KeyVaultState.Unknown;
+            }, cancellationToken);
         }
     }
 }

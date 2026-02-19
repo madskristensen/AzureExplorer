@@ -19,8 +19,6 @@ namespace AzureExplorer.FrontDoor.Commands
             }
 
             Process.Start(node.BrowseUrl);
-
-            await Task.CompletedTask;
         }
     }
 }

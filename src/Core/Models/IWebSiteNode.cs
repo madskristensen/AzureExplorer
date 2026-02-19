@@ -11,5 +11,10 @@ namespace AzureExplorer.Core.Models
         string Label { get; }
         string BrowseUrl { get; }
         string DefaultHostName { get; }
+
+        /// <summary>
+        /// The current state of the web site (Running, Stopped, etc.).
+        /// </summary>
+        WebSiteState State { get; set; }
     }
 }

@@ -9,19 +9,12 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace AzureExplorer.Storage.Models
 {
-    internal enum StorageAccountState
-    {
-        Unknown,
-        Succeeded,
-        Failed
-    }
-
     /// <summary>
     /// Represents an Azure Storage Account in the explorer tree. Expandable to show blob containers.
     /// </summary>
     internal sealed class StorageAccountNode : ExplorerNodeBase, IPortalResource
     {
-        private StorageAccountState _state;
+        private ProvisioningState _state;
 
         public StorageAccountNode(
             string name,
@@ -36,10 +29,10 @@ namespace AzureExplorer.Storage.Models
             ResourceGroupName = resourceGroupName;
             Kind = kind;
             SkuName = skuName;
-            _state = ParseState(state);
+            _state = ProvisioningStateParser.Parse(state);
 
             // Show SKU info as description, or state if failed
-            Description = _state == StorageAccountState.Failed
+            Description = _state == ProvisioningState.Failed
                 ? _state.ToString()
                 : FormatDescription(kind, skuName);
 
@@ -56,14 +49,14 @@ namespace AzureExplorer.Storage.Models
         public string ResourceName => Label;
         public string AzureResourceProvider => "Microsoft.Storage/storageAccounts";
 
-        public StorageAccountState State
+        public ProvisioningState State
         {
             get => _state;
             set
             {
                 if (SetProperty(ref _state, value))
                 {
-                    Description = value == StorageAccountState.Failed
+                    Description = value == ProvisioningState.Failed
                         ? value.ToString()
                         : FormatDescription(Kind, SkuName);
                     OnPropertyChanged(nameof(IconMoniker));
@@ -73,8 +66,8 @@ namespace AzureExplorer.Storage.Models
 
         public override ImageMoniker IconMoniker => State switch
         {
-            StorageAccountState.Succeeded => KnownMonikers.AzureStorageAccount,
-            StorageAccountState.Failed => KnownMonikers.ApplicationWarning,
+            ProvisioningState.Succeeded => KnownMonikers.AzureStorageAccount,
+            ProvisioningState.Failed => KnownMonikers.ApplicationWarning,
             _ => KnownMonikers.AzureStorageAccount
         };
 
@@ -86,35 +79,12 @@ namespace AzureExplorer.Storage.Models
             if (!BeginLoading())
                 return;
 
-            try
+            await LoadChildrenWithErrorHandlingAsync(_ =>
             {
                 // Add Blob Containers node
                 AddChild(new ContainersNode(SubscriptionId, ResourceGroupName, Label));
-            }
-            catch (Exception ex)
-            {
-                await ex.LogAsync();
-                Children.Clear();
-                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
-            }
-            finally
-            {
-                EndLoading();
-            }
-        }
-
-        internal static StorageAccountState ParseState(string state)
-        {
-            if (string.IsNullOrEmpty(state))
-                return StorageAccountState.Unknown;
-
-            if (state.Equals("Succeeded", StringComparison.OrdinalIgnoreCase))
-                return StorageAccountState.Succeeded;
-
-            if (state.Equals("Failed", StringComparison.OrdinalIgnoreCase))
-                return StorageAccountState.Failed;
-
-            return StorageAccountState.Unknown;
+                return Task.CompletedTask;
+            }, cancellationToken);
         }
 
         private static string FormatDescription(string kind, string skuName)

@@ -150,6 +150,30 @@ namespace AzureExplorer.Core.Models
         }
 
         /// <summary>
+        /// Helper method that wraps the common loading pattern with standardized error handling.
+        /// Call <see cref="BeginLoading"/> before this method if needed.
+        /// </summary>
+        /// <param name="loadAction">The action that loads child nodes.</param>
+        /// <param name="cancellationToken">Token to cancel the loading operation.</param>
+        protected async Task LoadChildrenWithErrorHandlingAsync(Func<CancellationToken, Task> loadAction, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await loadAction(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                await ex.LogAsync();
+                Children.Clear();
+                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
+            }
+            finally
+            {
+                EndLoading();
+            }
+        }
+
+        /// <summary>
         /// Adds a child node.
         /// </summary>
         protected void AddChild(ExplorerNodeBase child)

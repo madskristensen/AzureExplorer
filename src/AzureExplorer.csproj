@@ -62,6 +62,8 @@
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="Core\Models\IWebSiteNode.cs" />
+    <Compile Include="Core\Models\ProvisioningState.cs" />
+    <Compile Include="Core\Models\WebSiteNodeBase.cs" />
     <Compile Include="Core\Search\AzureSearchResult.cs" />
     <Compile Include="Core\Search\AzureSearchService.cs" />
     <Compile Include="Core\Search\SearchAccountNode.cs" />

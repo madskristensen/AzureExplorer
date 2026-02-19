@@ -14,6 +14,7 @@ namespace AzureExplorer.KeyVault.Commands
 
             if (!string.IsNullOrEmpty(node.VaultUri))
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 Clipboard.SetText(node.VaultUri);
                 await VS.StatusBar.ShowMessageAsync($"Copied: {node.VaultUri}");
             }
