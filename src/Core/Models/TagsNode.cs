@@ -46,7 +46,7 @@ namespace AzureExplorer.Core.Models
 
             foreach (KeyValuePair<string, string> tag in _tags.OrderBy(t => t.Key, StringComparer.OrdinalIgnoreCase))
             {
-                Children.Add(new TagNode(tag.Key, tag.Value));
+                AddChild(new TagNode(tag.Key, tag.Value));
             }
 
             EndLoading();

@@ -138,6 +138,11 @@ internal sealed class AzureSearchService
         _searchableResourceTypes.Select(rt => $"resourceType eq '{rt.ResourceType}'"));
 
     /// <summary>
+    /// Maximum number of search results to return to prevent memory pressure.
+    /// </summary>
+    private const int _maxSearchResults = 500;
+
+    /// <summary>
     /// Searches through already-loaded tree nodes for instant results (no API calls).
     /// This provides immediate feedback while the API search runs in the background.
     /// </summary>
@@ -307,15 +312,19 @@ internal sealed class AzureSearchService
                     tenants.Add(tenant);
                 }
 
-                // Search each tenant
-                foreach (TenantInfo tenant in tenants)
+                // Search tenants in parallel for better performance (limit concurrency to avoid throttling)
+                IEnumerable<Task> tenantTasks = tenants.Select(async tenant =>
                 {
+                    // Check if we've hit the result limit
+                    if (totalResults >= _maxSearchResults)
+                        return;
+
                     try
                     {
                         ArmClient client = AzureResourceService.Instance.GetSilentClient(account.AccountId, tenant.TenantId);
                         TenantResource tenantResource = client.GetTenants().FirstOrDefault();
                         if (tenantResource == null)
-                            continue;
+                            return;
 
                         // Build Kusto query for Resource Graph
                         var kustoQuery = BuildResourceGraphQuery(query);
@@ -335,6 +344,10 @@ internal sealed class AzureSearchService
                             foreach (JsonElement item in dataElement.EnumerateArray())
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
+
+                                // Check result limit to prevent memory pressure
+                                if (totalResults >= _maxSearchResults)
+                                    break;
 
                                 var resourceId = item.GetProperty("id").GetString();
                                 var name = item.GetProperty("name").GetString();
@@ -388,7 +401,9 @@ internal sealed class AzureSearchService
                     {
                         System.Diagnostics.Debug.WriteLine($"Resource Graph search failed for tenant {tenant.TenantId}: {ex.Message}");
                     }
-                }
+                });
+
+                await Task.WhenAll(tenantTasks).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -437,9 +452,11 @@ internal sealed class AzureSearchService
         }
 
         // Add name filter if specified (case-insensitive)
+        // Escape single quotes to prevent KQL injection
         if (!string.IsNullOrEmpty(query.TextQuery))
         {
-            kustoQuery += $" | where name contains '{query.TextQuery}'";
+            var escapedText = query.TextQuery.Replace("'", "\\'");
+            kustoQuery += $" | where name contains '{escapedText}'";
         }
 
         // Select fields we need

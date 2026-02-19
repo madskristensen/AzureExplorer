@@ -879,11 +879,23 @@
         </Strings>
       </Button>
 
+      <!-- Tags node context: Add Tag -->
+      <Button guid="AzureExplorer" id="AddTagFromTagsNode" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="TagsNodeContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Bookmark"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Add Tag...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.AddTagFromTagsNode</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Tag context: Copy Value -->
       <Button guid="AzureExplorer" id="CopyTagValue" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
         <Icon guid="ImageCatalogGuid" id="Copy"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Copy Value</ButtonText>
           <LocCanonicalName>.AzureExplorer.CopyTagValue</LocCanonicalName>
@@ -895,9 +907,22 @@
         <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
         <Icon guid="ImageCatalogGuid" id="Filter"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Filter by This Tag</ButtonText>
           <LocCanonicalName>.AzureExplorer.FilterByTag</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Tag context: Remove Tag -->
+      <Button guid="AzureExplorer" id="RemoveTag" priority="0x0300" type="Button">
+        <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Cancel"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>Remove Tag</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RemoveTag</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -1236,6 +1261,8 @@
       <IDSymbol name="CopyTagValue" value="0x01C5" />
       <IDSymbol name="FilterByTag" value="0x01C6" />
       <IDSymbol name="AddTag" value="0x01C7" />
+      <IDSymbol name="RemoveTag" value="0x01C8" />
+      <IDSymbol name="AddTagFromTagsNode" value="0x01C9" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

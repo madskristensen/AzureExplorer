@@ -100,9 +100,10 @@ namespace AzureExplorer.Core.Services
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Return empty results so caller can fall back to ARM API
+                // Log failure and return empty results so caller can fall back to ARM API
+                System.Diagnostics.Debug.WriteLine($"Resource Graph query failed for subscription {subscriptionId}: {ex.Message}");
             }
 
             return results;

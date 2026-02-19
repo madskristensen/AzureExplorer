@@ -146,9 +146,11 @@
     <Compile Include="Storage\Models\StorageAccountsNode.cs" />
     <Compile Include="Storage\Models\SubscriptionStorageAccountsNode.cs" />
     <Compile Include="Tags\Commands\AddTagCommand.cs" />
+    <Compile Include="Tags\Commands\AddTagFromTagsNodeCommand.cs" />
     <Compile Include="Tags\Commands\CopyTagsAsJsonCommand.cs" />
     <Compile Include="Tags\Commands\CopyTagValueCommand.cs" />
     <Compile Include="Tags\Commands\FilterByTagCommand.cs" />
+    <Compile Include="Tags\Commands\RemoveTagCommand.cs" />
     <Compile Include="Tags\Dialogs\AddTagDialog.xaml.cs">
       <DependentUpon>AddTagDialog.xaml</DependentUpon>
     </Compile>

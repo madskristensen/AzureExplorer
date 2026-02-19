@@ -1,26 +1,34 @@
 using System.Collections.Generic;
-using System.Linq;
 
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
-using AzureExplorer.Tags.Dialogs;
 using AzureExplorer.ToolWindows;
 
 namespace AzureExplorer.Tags.Commands
 {
     /// <summary>
-    /// Command to add a tag to an Azure resource.
-    /// Opens a dialog to enter key and value, then updates the resource via ARM API.
+    /// Command to remove a tag from an Azure resource.
+    /// Confirms with the user, then updates the resource via ARM API.
     /// </summary>
-    [Command(PackageIds.AddTag)]
-    internal sealed class AddTagCommand : BaseCommand<AddTagCommand>
+    [Command(PackageIds.RemoveTag)]
+    internal sealed class RemoveTagCommand : BaseCommand<RemoveTagCommand>
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             ExplorerNodeBase selectedNode = AzureExplorerControl.SelectedNode?.ActualNode;
 
-            if (selectedNode is not ITaggableResource taggable)
+            if (selectedNode is not TagNode tagNode)
                 return;
+
+            // Navigate up: TagNode -> TagsNode -> Resource
+            var tagsNode = tagNode.Parent as TagsNode;
+            ExplorerNodeBase resourceNode = tagsNode?.Parent;
+
+            if (resourceNode is not ITaggableResource taggable)
+            {
+                await VS.MessageBox.ShowWarningAsync("Remove Tag", "Cannot determine the parent resource for this tag.");
+                return;
+            }
 
             // Get resource info for ARM API call
             string subscriptionId = null;
@@ -28,14 +36,14 @@ namespace AzureExplorer.Tags.Commands
             string resourceName = null;
             string resourceProvider = null;
 
-            if (selectedNode is IPortalResource portalResource)
+            if (resourceNode is IPortalResource portalResource)
             {
                 resourceName = portalResource.ResourceName;
                 resourceProvider = portalResource.AzureResourceProvider;
             }
 
             // Extract subscription and resource group from various node types
-            switch (selectedNode)
+            switch (resourceNode)
             {
                 case AppService.Models.AppServiceNode appService:
                     subscriptionId = appService.SubscriptionId;
@@ -62,36 +70,42 @@ namespace AzureExplorer.Tags.Commands
                     resourceGroup = sql.ResourceGroupName;
                     break;
                 default:
-                    await VS.MessageBox.ShowWarningAsync("Add Tag", "Cannot add tags to this resource type.");
+                    await VS.MessageBox.ShowWarningAsync("Remove Tag", "Cannot remove tags from this resource type.");
                     return;
             }
 
             if (string.IsNullOrEmpty(subscriptionId) || string.IsNullOrEmpty(resourceGroup) ||
                 string.IsNullOrEmpty(resourceName) || string.IsNullOrEmpty(resourceProvider))
             {
-                await VS.MessageBox.ShowWarningAsync("Add Tag", "Unable to determine resource details.");
+                await VS.MessageBox.ShowWarningAsync("Remove Tag", "Unable to determine resource details.");
                 return;
             }
 
-            // Show dialog
-            var dialog = new AddTagDialog();
-            if (dialog.ShowDialog() != true)
+            // Confirm with user
+            var tagDisplay = string.IsNullOrEmpty(tagNode.Value)
+                ? tagNode.Key
+                : $"{tagNode.Key}={tagNode.Value}";
+
+            if (!await VS.MessageBox.ShowConfirmAsync(
+                "Remove Tag",
+                $"Are you sure you want to remove the tag '{tagDisplay}' from {resourceName}?"))
+            {
                 return;
+            }
 
-            var tagKey = dialog.TagKey;
-            var tagValue = dialog.TagValue;
-
-            // Build new tags dictionary (existing tags + new tag)
+            // Build new tags dictionary without the removed tag
             var newTags = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> kvp in taggable.Tags)
             {
-                newTags[kvp.Key] = kvp.Value;
+                if (!kvp.Key.Equals(tagNode.Key, StringComparison.OrdinalIgnoreCase))
+                {
+                    newTags[kvp.Key] = kvp.Value;
+                }
             }
-            newTags[tagKey] = tagValue;
 
             try
             {
-                await VS.StatusBar.ShowMessageAsync($"Adding tag '{tagKey}' to {resourceName}...");
+                await VS.StatusBar.ShowMessageAsync($"Removing tag '{tagNode.Key}' from {resourceName}...");
 
                 await AzureResourceService.Instance.UpdateResourceTagsAsync(
                     subscriptionId,
@@ -100,52 +114,36 @@ namespace AzureExplorer.Tags.Commands
                     resourceName,
                     newTags);
 
-                // Register the new tag with TagService for future suggestions
-                TagService.Instance.RegisterTags(new Dictionary<string, string> { { tagKey, tagValue } });
-
-                // Update the UI immediately without collapsing/refreshing
+                // Update the UI immediately - remove the tag node from the tree
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                // Find existing TagsNode or create one
-                TagsNode tagsNode = selectedNode.Children.OfType<TagsNode>().FirstOrDefault();
+                // Remove the TagNode from its parent TagsNode
+                tagsNode.Children.Remove(tagNode);
 
-                if (tagsNode == null)
+                // Update the TagsNode label to reflect new count
+                tagsNode.Label = $"Tags ({tagsNode.Children.Count})";
+
+                // If no tags remain, remove the TagsNode from the resource
+                if (tagsNode.Children.Count == 0 && resourceNode != null)
                 {
-                    // Create new TagsNode and add it at the beginning
-                    tagsNode = new TagsNode(newTags);
-                    selectedNode.Children.Insert(0, tagsNode);
-                    tagsNode.Parent = selectedNode;
-                    tagsNode.IsExpanded = true;
-                    await tagsNode.LoadChildrenAsync();
-                }
-                else
-                {
-                    // Add the new tag to existing TagsNode
-                    var newTagNode = new TagNode(tagKey, tagValue)
-                    {
-                        Parent = tagsNode
-                    };
-                    tagsNode.Children.Add(newTagNode);
-                    tagsNode.Label = $"Tags ({tagsNode.Children.Count})";
+                    resourceNode.Children.Remove(tagsNode);
                 }
 
-                await VS.StatusBar.ShowMessageAsync($"Tag '{tagKey}' added successfully.");
+                await VS.StatusBar.ShowMessageAsync($"Tag '{tagNode.Key}' removed successfully.");
             }
             catch (Exception ex)
             {
-                await VS.MessageBox.ShowErrorAsync("Add Tag", $"Failed to add tag: {ex.Message}");
+                await VS.MessageBox.ShowErrorAsync("Remove Tag", $"Failed to remove tag: {ex.Message}");
             }
         }
 
         protected override void BeforeQueryStatus(EventArgs e)
         {
             ExplorerNodeBase selectedNode = AzureExplorerControl.SelectedNode?.ActualNode;
+            var isTagNode = selectedNode is TagNode;
 
-            // Only show for taggable resources
-            var isTaggable = selectedNode is ITaggableResource;
-
-            Command.Visible = isTaggable;
-            Command.Enabled = isTaggable;
+            Command.Visible = isTagNode;
+            Command.Enabled = isTagNode;
         }
     }
 }

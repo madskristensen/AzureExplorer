@@ -76,6 +76,9 @@ internal sealed class SearchResultNode : ExplorerNodeBase
             // Load children from the actual node
             await _actualNode.LoadChildrenAsync(cancellationToken);
 
+            // Switch to UI thread before modifying WPF-bound ObservableCollection
+            await Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             // Copy all children to this node (including FilesNode)
             // Files are not searched, but users can expand the FilesNode to browse
             foreach (ExplorerNodeBase child in _actualNode.Children)

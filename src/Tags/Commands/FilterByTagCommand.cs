@@ -10,17 +10,21 @@ namespace AzureExplorer.Tags.Commands
     [Command(PackageIds.FilterByTag)]
     internal sealed class FilterByTagCommand : BaseCommand<FilterByTagCommand>
     {
-        protected override Task ExecuteAsync(OleMenuCmdEventArgs e)
+        protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             ExplorerNodeBase selectedNode = AzureExplorerControl.SelectedNode?.ActualNode;
 
             if (selectedNode is TagNode tagNode)
             {
-                // Perform tag search directly
-                AzureExplorerControl.PerformTagSearch(tagNode.Key, tagNode.Value);
-            }
+                // Build the search query for the tag
+                var searchQuery = string.IsNullOrEmpty(tagNode.Value)
+                    ? $"tag:{tagNode.Key}"
+                    : $"tag:{tagNode.Key}={tagNode.Value}";
 
-            return Task.CompletedTask;
+                // Set the search text in the VS search box so the user can see and clear it
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                AzureExplorerWindow.Pane.SetSearchText(searchQuery);
+            }
         }
 
         protected override void BeforeQueryStatus(EventArgs e)

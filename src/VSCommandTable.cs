@@ -162,5 +162,7 @@ namespace AzureExplorer
         public const int CopyTagValue = 0x01C5;
         public const int FilterByTag = 0x01C6;
         public const int AddTag = 0x01C7;
+        public const int RemoveTag = 0x01C8;
+        public const int AddTagFromTagsNode = 0x01C9;
     }
 }

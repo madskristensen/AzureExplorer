@@ -40,8 +40,11 @@ namespace AzureExplorer.ToolWindows
         [Guid("d4b65484-2b5e-4e73-b5a0-9c9f91e1dc21")]
         internal class Pane : ToolWindowPane
         {
+            private static Pane _instance;
+
             public Pane()
             {
+                _instance = this;
                 BitmapImageMoniker = KnownMonikers.AzureResourceGroup;
                 ToolBar = new CommandID(PackageGuids.AzureExplorer, PackageIds.ToolWindowToolbar);
                 ToolBarLocation = (int)VSTWT_LOCATION.VSTWT_TOP;
@@ -51,6 +54,35 @@ namespace AzureExplorer.ToolWindows
             /// Enables the search box in the tool window toolbar.
             /// </summary>
             public override bool SearchEnabled => true;
+
+            /// <summary>
+            /// Sets the search text in the tool window search box and triggers the search.
+            /// This allows programmatic searches (e.g., from context menu commands) to
+            /// populate the search box so users can see and clear the filter.
+            /// </summary>
+            internal static void SetSearchText(string searchText)
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
+                if (_instance?.SearchHost == null || string.IsNullOrEmpty(searchText))
+                    return;
+
+                _instance.SearchHost.SearchAsync(new SearchQuery(searchText));
+            }
+
+            /// <summary>
+            /// Simple search query implementation for programmatic searches.
+            /// </summary>
+            private class SearchQuery(string searchString) : IVsSearchQuery
+            {
+                public string SearchString { get; } = searchString;
+                public uint ParseError => 0;
+
+                public uint GetTokens(uint dwMaxTokens, IVsSearchToken[] rgpSearchTokens)
+                {
+                    return 0;
+                }
+            }
 
             /// <summary>
             /// Creates a search task to perform the Azure resource search.

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
@@ -9,18 +8,27 @@ using AzureExplorer.ToolWindows;
 namespace AzureExplorer.Tags.Commands
 {
     /// <summary>
-    /// Command to add a tag to an Azure resource.
-    /// Opens a dialog to enter key and value, then updates the resource via ARM API.
+    /// Command to add a tag from the Tags parent node context menu.
+    /// Navigates up to the resource node and adds the tag.
     /// </summary>
-    [Command(PackageIds.AddTag)]
-    internal sealed class AddTagCommand : BaseCommand<AddTagCommand>
+    [Command(PackageIds.AddTagFromTagsNode)]
+    internal sealed class AddTagFromTagsNodeCommand : BaseCommand<AddTagFromTagsNodeCommand>
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             ExplorerNodeBase selectedNode = AzureExplorerControl.SelectedNode?.ActualNode;
 
-            if (selectedNode is not ITaggableResource taggable)
+            if (selectedNode is not TagsNode tagsNode)
                 return;
+
+            // Navigate up to the resource node
+            ExplorerNodeBase resourceNode = tagsNode.Parent;
+
+            if (resourceNode is not ITaggableResource taggable)
+            {
+                await VS.MessageBox.ShowWarningAsync("Add Tag", "Cannot determine the parent resource.");
+                return;
+            }
 
             // Get resource info for ARM API call
             string subscriptionId = null;
@@ -28,14 +36,14 @@ namespace AzureExplorer.Tags.Commands
             string resourceName = null;
             string resourceProvider = null;
 
-            if (selectedNode is IPortalResource portalResource)
+            if (resourceNode is IPortalResource portalResource)
             {
                 resourceName = portalResource.ResourceName;
                 resourceProvider = portalResource.AzureResourceProvider;
             }
 
             // Extract subscription and resource group from various node types
-            switch (selectedNode)
+            switch (resourceNode)
             {
                 case AppService.Models.AppServiceNode appService:
                     subscriptionId = appService.SubscriptionId;
@@ -103,31 +111,16 @@ namespace AzureExplorer.Tags.Commands
                 // Register the new tag with TagService for future suggestions
                 TagService.Instance.RegisterTags(new Dictionary<string, string> { { tagKey, tagValue } });
 
-                // Update the UI immediately without collapsing/refreshing
+                // Update the UI immediately
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                // Find existing TagsNode or create one
-                TagsNode tagsNode = selectedNode.Children.OfType<TagsNode>().FirstOrDefault();
-
-                if (tagsNode == null)
+                // Add the new tag to existing TagsNode
+                var newTagNode = new TagNode(tagKey, tagValue)
                 {
-                    // Create new TagsNode and add it at the beginning
-                    tagsNode = new TagsNode(newTags);
-                    selectedNode.Children.Insert(0, tagsNode);
-                    tagsNode.Parent = selectedNode;
-                    tagsNode.IsExpanded = true;
-                    await tagsNode.LoadChildrenAsync();
-                }
-                else
-                {
-                    // Add the new tag to existing TagsNode
-                    var newTagNode = new TagNode(tagKey, tagValue)
-                    {
-                        Parent = tagsNode
-                    };
-                    tagsNode.Children.Add(newTagNode);
-                    tagsNode.Label = $"Tags ({tagsNode.Children.Count})";
-                }
+                    Parent = tagsNode
+                };
+                tagsNode.Children.Add(newTagNode);
+                tagsNode.Label = $"Tags ({tagsNode.Children.Count})";
 
                 await VS.StatusBar.ShowMessageAsync($"Tag '{tagKey}' added successfully.");
             }
@@ -141,11 +134,16 @@ namespace AzureExplorer.Tags.Commands
         {
             ExplorerNodeBase selectedNode = AzureExplorerControl.SelectedNode?.ActualNode;
 
-            // Only show for taggable resources
-            var isTaggable = selectedNode is ITaggableResource;
+            // Only show for TagsNode that has a valid parent resource
+            var isValidTagsNode = false;
 
-            Command.Visible = isTaggable;
-            Command.Enabled = isTaggable;
+            if (selectedNode is TagsNode tagsNode)
+            {
+                isValidTagsNode = tagsNode.Parent is ITaggableResource;
+            }
+
+            Command.Visible = isValidTagsNode;
+            Command.Enabled = isValidTagsNode;
         }
     }
 }
