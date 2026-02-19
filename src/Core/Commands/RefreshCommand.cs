@@ -27,15 +27,16 @@ namespace AzureExplorer.Core.Commands
             }
             catch (Exception ex)
             {
+                await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
             }
         }
     }
 
-        /// <summary>
-        /// App Service specific refresh - updates the running state from Azure.
-        /// </summary>
-        [Command(PackageIds.RefreshAppService)]
+    /// <summary>
+    /// App Service specific refresh - updates the running state from Azure.
+    /// </summary>
+    [Command(PackageIds.RefreshAppService)]
     internal sealed class RefreshAppServiceCommand : BaseCommand<RefreshAppServiceCommand>
     {
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
@@ -52,6 +53,7 @@ namespace AzureExplorer.Core.Commands
             }
             catch (Exception ex)
             {
+                await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
             }
         }

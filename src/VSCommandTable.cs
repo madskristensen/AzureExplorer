@@ -43,6 +43,10 @@ namespace AzureExplorer
         public const int SqlServerContextMenu = 0x0180;
         public const int SqlServersCategoryContextMenu = 0x0181;
         public const int SqlDatabaseContextMenu = 0x0182;
+        public const int CosmosDBAccountContextMenu = 0x01C0;
+        public const int CosmosDBAccountsCategoryContextMenu = 0x01C1;
+        public const int CosmosDBDatabaseContextMenu = 0x01C2;
+        public const int CosmosDBContainerContextMenu = 0x01C3;
         public const int VirtualMachineContextMenu = 0x01A0;
         public const int VirtualMachinesCategoryContextMenu = 0x01A1;
         public const int BlobContainerContextMenu = 0x0190;
@@ -78,6 +82,12 @@ namespace AzureExplorer
         public const int SqlServerRefreshGroup = 0x0184;
         public const int SqlServersCategoryContextMenuGroup = 0x0185;
         public const int SqlDatabaseActionsGroup = 0x0186;
+        public const int CosmosDBAccountActionsGroup = 0x01C4;
+        public const int CosmosDBAccountRefreshGroup = 0x01C5;
+        public const int CosmosDBAccountsCategoryContextMenuGroup = 0x01C6;
+        public const int CosmosDBDatabaseActionsGroup = 0x01C7;
+        public const int CosmosDBDatabaseRefreshGroup = 0x01C8;
+        public const int CosmosDBContainerActionsGroup = 0x01C9;
         public const int VirtualMachineConnectGroup = 0x01A2;
         public const int VirtualMachineActionsGroup = 0x01A3;
         public const int VirtualMachineRefreshGroup = 0x01A4;
@@ -152,5 +162,6 @@ namespace AzureExplorer
         public const int CopyVmIpAddress = 0x01B3;
         public const int ConnectRdp = 0x01B4;
         public const int ConnectSsh = 0x01B5;
+        public const int CopyCosmosConnectionString = 0x01CA;
     }
 }

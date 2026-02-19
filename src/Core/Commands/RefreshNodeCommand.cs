@@ -29,6 +29,7 @@ namespace AzureExplorer.Core.Commands
             }
             catch (Exception ex)
             {
+                await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Refresh failed: {ex.Message}");
             }
         }
