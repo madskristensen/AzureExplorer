@@ -44,6 +44,8 @@ namespace AzureExplorer.Core.Models
                 await foreach (TenantInfo tenant in AzureResourceService.Instance.GetTenantsAsync(AccountId, cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    // Always add all tenants - visibility is controlled by IsVisible property binding
                     tenants.Add(new TenantNode(tenant.TenantId, tenant.DisplayName, AccountId));
                 }
 

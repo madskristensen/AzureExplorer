@@ -28,6 +28,33 @@ namespace AzureExplorer.Core.Models
 
         public string SubscriptionId { get; }
 
+        /// <summary>
+        /// Gets whether this subscription is marked as hidden in settings.
+        /// Hidden subscriptions are only visible when ShowAll is enabled.
+        /// </summary>
+        public bool IsHidden => GeneralOptions.Instance.IsSubscriptionHidden(SubscriptionId);
+
+        /// <summary>
+        /// Gets whether this node should be visible in the tree view.
+        /// Hidden subscriptions are only visible when ShowAll is enabled.
+        /// </summary>
+        public override bool IsVisible => !IsHidden || GeneralOptions.Instance.ShowAll;
+
+        /// <summary>
+        /// Gets the opacity for this node. Returns 0.5 (dimmed) if hidden, otherwise 1.0.
+        /// </summary>
+        public override double Opacity => IsHidden ? 0.5 : 1.0;
+
+        /// <summary>
+        /// Notifies the UI that the visibility and opacity properties have changed.
+        /// Call this after toggling the hidden state or ShowAll setting.
+        /// </summary>
+        public void NotifyVisibilityChanged()
+        {
+            OnPropertyChanged(nameof(IsVisible));
+            OnPropertyChanged(nameof(Opacity));
+        }
+
         // IPortalResource - subscriptions don't have resource group or provider path
         string IPortalResource.ResourceGroupName => null;
         string IPortalResource.ResourceName => null;
@@ -58,7 +85,7 @@ namespace AzureExplorer.Core.Models
                 keyVaultsNode, sqlServersNode, storageAccountsNode, virtualMachinesNode
             ];
 
-            if (GeneralOptions.Instance.HideEmptyResourceTypes)
+            if (!GeneralOptions.Instance.ShowAll)
             {
                 // Keep loading indicator visible - EndLoading will be called by LoadAndAddNonEmptyNodesAsync
                 _ = LoadAndAddNonEmptyNodesAsync(this, resourceTypeNodes, resourceGroupsNode, cancellationToken);

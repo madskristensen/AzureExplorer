@@ -59,7 +59,7 @@ namespace AzureExplorer.ResourceGroup.Models
                 functionAppsNode, keyVaultsNode, sqlServersNode, storageAccountsNode
             ];
 
-            if (GeneralOptions.Instance.HideEmptyResourceTypes)
+            if (!GeneralOptions.Instance.ShowAll)
             {
                 // Keep loading indicator visible - EndLoading will be called by LoadAndAddNonEmptyNodesAsync
                 _ = LoadAndAddNonEmptyNodesAsync(this, resourceTypeNodes, cancellationToken);

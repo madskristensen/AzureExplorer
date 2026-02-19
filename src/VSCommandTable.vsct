@@ -479,14 +479,15 @@
         </Strings>
       </Button>
 
-      <!-- Toolbar: Toggle Hide Empty Resource Types -->
-      <Button guid="AzureExplorer" id="ToggleHideEmptyResourceTypes" priority="0x0300" type="Button">
+      <!-- Toolbar: Toggle Show All -->
+      <Button guid="AzureExplorer" id="ToggleShowAll" priority="0x0300" type="Button">
         <Parent guid="AzureExplorer" id="ToolbarGroup"/>
-        <Icon guid="ImageCatalogGuid" id="ParentChild"/>
+        <Icon guid="ImageCatalogGuid" id="ShowAllFiles"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
-          <ButtonText>Hide Empty Resource Types</ButtonText>
-          <LocCanonicalName>.AzureExplorer.ToggleHideEmptyResourceTypes</LocCanonicalName>
+          <ButtonText>Show All</ButtonText>
+          <ToolTipText>Show hidden subscriptions and empty resource types</ToolTipText>
+          <LocCanonicalName>.AzureExplorer.ToggleShowAll</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -948,6 +949,32 @@
         </Strings>
       </Button>
 
+      <!-- Subscription context: Hide/Unhide Subscription -->
+      <Button guid="AzureExplorer" id="HideSubscription" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="HideMember"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Hide Subscription</ButtonText>
+          <LocCanonicalName>.AzureExplorer.HideSubscription</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Tenant context: Hide/Unhide Tenant -->
+      <Button guid="AzureExplorer" id="HideTenant" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="TenantContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="HideMember"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Hide Tenant</ButtonText>
+          <LocCanonicalName>.AzureExplorer.HideTenant</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -1225,7 +1252,7 @@
       <IDSymbol name="RefreshTenant" value="0x0105" />
       <IDSymbol name="SignOutAccount" value="0x0106" />
       <IDSymbol name="RefreshAccount" value="0x0107" />
-      <IDSymbol name="ToggleHideEmptyResourceTypes" value="0x0108" />
+      <IDSymbol name="ToggleShowAll" value="0x0108" />
       <IDSymbol name="BrowseSite" value="0x0110" />
       <IDSymbol name="StartAppService" value="0x0111" />
       <IDSymbol name="StopAppService" value="0x0112" />
@@ -1275,6 +1302,8 @@
       <IDSymbol name="AddTag" value="0x01C7" />
       <IDSymbol name="RemoveTag" value="0x01C8" />
       <IDSymbol name="AddTagFromTagsNode" value="0x01C9" />
+      <IDSymbol name="HideSubscription" value="0x01D0" />
+      <IDSymbol name="HideTenant" value="0x01D1" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

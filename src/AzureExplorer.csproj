@@ -58,9 +58,11 @@
     <Compile Include="AppService\Models\VfsEntry.cs" />
     <Compile Include="AppService\Services\FileOpenService.cs" />
     <Compile Include="AppService\Services\KuduVfsService.cs" />
+    <Compile Include="Core\Commands\HideSubscriptionCommand.cs" />
+    <Compile Include="Core\Commands\HideTenantCommand.cs" />
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
-    <Compile Include="Core\Commands\ToggleHideEmptyResourceTypesCommand.cs" />
+    <Compile Include="Core\Commands\ToggleShowAllCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="Core\Models\ITaggableResource.cs" />
     <Compile Include="Core\Models\IWebSiteNode.cs" />

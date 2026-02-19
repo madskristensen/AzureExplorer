@@ -53,6 +53,18 @@ namespace AzureExplorer.Core.Models
         public abstract bool SupportsChildren { get; }
 
         /// <summary>
+        /// Gets whether this node should be visible in the tree view.
+        /// Override to implement custom visibility logic (e.g., hidden subscriptions/tenants).
+        /// </summary>
+        public virtual bool IsVisible => true;
+
+        /// <summary>
+        /// Gets the opacity for this node in the tree view. Default is 1.0 (fully visible).
+        /// Override to return a lower value (e.g., 0.5) for dimmed nodes like hidden subscriptions.
+        /// </summary>
+        public virtual double Opacity => 1.0;
+
+        /// <summary>
         /// Gets the actual node for command operations. For wrapper nodes like SearchResultNode,
         /// this returns the underlying wrapped node. For regular nodes, returns this instance.
         /// Commands should use this property when checking node types or performing operations.

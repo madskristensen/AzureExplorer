@@ -197,9 +197,11 @@ namespace AzureExplorer.Core.Services
                 // AuthenticationRecord we can persist for future silent auth.
                 var context = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
 
-                // Yield to prevent VS from flagging UI thread delay during interactive auth
-                await Task.Yield();
-                AuthenticationRecord record = await credential.AuthenticateAsync(context, cancellationToken);
+                // Run authentication on a background thread to avoid blocking the UI thread
+                // which triggers VS perf center warnings
+                AuthenticationRecord record = await Task.Run(
+                    async () => await credential.AuthenticateAsync(context, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
                 var accountId = GetAccountId(record);
                 var username = record.Username ?? "Azure Account";

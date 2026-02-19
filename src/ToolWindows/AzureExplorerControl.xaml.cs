@@ -64,6 +64,35 @@ namespace AzureExplorer.ToolWindows
         }
 
         /// <summary>
+        /// Notifies all TenantNode and SubscriptionNode instances in the tree to update their visibility.
+        /// Called when the ShowAll setting is toggled.
+        /// </summary>
+        internal static void NotifyAllHideableNodesChanged()
+        {
+            if (_instance == null)
+                return;
+
+            foreach (ExplorerNodeBase accountNode in _instance.RootNodes)
+            {
+                foreach (ExplorerNodeBase tenantNode in accountNode.Children)
+                {
+                    if (tenantNode is TenantNode tenant)
+                    {
+                        tenant.NotifyVisibilityChanged();
+
+                        foreach (ExplorerNodeBase subscriptionNode in tenant.Children)
+                        {
+                            if (subscriptionNode is SubscriptionNode subscription)
+                            {
+                                subscription.NotifyVisibilityChanged();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Configures the TreeView entirely in code to avoid XAML assembly resolution issues.
         /// </summary>
         private void SetupTreeView()
@@ -72,6 +101,7 @@ namespace AzureExplorer.ToolWindows
             var stackFactory = new FrameworkElementFactory(typeof(StackPanel));
             stackFactory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
             stackFactory.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 2, 0, 2));
+            stackFactory.SetBinding(UIElement.OpacityProperty, new Binding("Opacity"));
 
             var imageFactory = new FrameworkElementFactory(typeof(CrispImage));
             imageFactory.SetBinding(CrispImage.MonikerProperty, new Binding("IconMoniker"));
@@ -101,6 +131,16 @@ namespace AzureExplorer.ToolWindows
             };
 
             ExplorerTree.Resources.Add(new DataTemplateKey(typeof(ExplorerNodeBase)), template);
+
+            // ItemContainerStyle: Bind TreeViewItem.Visibility to IsVisible property
+            // This allows nodes to stay in the tree but be hidden/shown without reload
+            // BasedOn ensures we inherit the VS theme colors
+            var baseStyle = (Style)ExplorerTree.FindResource(typeof(TreeViewItem));
+            var itemContainerStyle = new Style(typeof(TreeViewItem), baseStyle);
+            itemContainerStyle.Setters.Add(new Setter(
+                TreeViewItem.VisibilityProperty,
+                new Binding("IsVisible") { Converter = new BooleanToVisibilityConverter() }));
+            ExplorerTree.ItemContainerStyle = itemContainerStyle;
 
             // Bind the collection
             ExplorerTree.ItemsSource = RootNodes;

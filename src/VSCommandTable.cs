@@ -113,7 +113,7 @@ namespace AzureExplorer
         public const int RefreshTenant = 0x0105;
         public const int SignOutAccount = 0x0106;
         public const int RefreshAccount = 0x0107;
-        public const int ToggleHideEmptyResourceTypes = 0x0108;
+        public const int ToggleShowAll = 0x0108;
         public const int BrowseSite = 0x0110;
         public const int StartAppService = 0x0111;
         public const int StopAppService = 0x0112;
@@ -163,5 +163,7 @@ namespace AzureExplorer
         public const int AddTag = 0x01C7;
         public const int RemoveTag = 0x01C8;
         public const int AddTagFromTagsNode = 0x01C9;
+        public const int HideSubscription = 0x01D0;
+        public const int HideTenant = 0x01D1;
     }
 }

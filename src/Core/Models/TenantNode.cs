@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Azure.ResourceManager.Resources;
 
+using AzureExplorer.Core.Options;
 using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
@@ -41,6 +42,33 @@ namespace AzureExplorer.Core.Models
         /// </summary>
         public string AccountId { get; }
 
+        /// <summary>
+        /// Gets whether this tenant is marked as hidden in settings.
+        /// Hidden tenants are only visible when ShowAll is enabled.
+        /// </summary>
+        public bool IsHidden => GeneralOptions.Instance.IsTenantHidden(TenantId);
+
+        /// <summary>
+        /// Gets whether this node should be visible in the tree view.
+        /// Hidden tenants are only visible when ShowAll is enabled.
+        /// </summary>
+        public override bool IsVisible => !IsHidden || GeneralOptions.Instance.ShowAll;
+
+        /// <summary>
+        /// Gets the opacity for this node. Returns 0.5 (dimmed) if hidden, otherwise 1.0.
+        /// </summary>
+        public override double Opacity => IsHidden ? 0.5 : 1.0;
+
+        /// <summary>
+        /// Notifies the UI that the visibility and opacity properties have changed.
+        /// Call this after toggling the hidden state or ShowAll setting.
+        /// </summary>
+        public void NotifyVisibilityChanged()
+        {
+            OnPropertyChanged(nameof(IsVisible));
+            OnPropertyChanged(nameof(Opacity));
+        }
+
         public override ImageMoniker IconMoniker => KnownMonikers.AzureActiveDirectory;
         public override int ContextMenuId => PackageIds.TenantContextMenu;
         public override bool SupportsChildren => true;
@@ -57,6 +85,8 @@ namespace AzureExplorer.Core.Models
                 await foreach (SubscriptionResource sub in AzureResourceService.Instance.GetSubscriptionsForTenantAsync(AccountId, TenantId, cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    // Always add all subscriptions - visibility is controlled by IsVisible property binding
                     subscriptions.Add(new SubscriptionNode(sub.Data.DisplayName, sub.Data.SubscriptionId));
                 }
 
