@@ -17,10 +17,11 @@ internal sealed class AzureSearchTask(
     uint dwCookie,
     IVsSearchQuery pSearchQuery,
     IVsSearchCallback pSearchCallback,
-    AzureExplorerWindow.Pane toolWindow) : VsSearchTask(dwCookie, pSearchQuery, pSearchCallback)
+    AzureExplorerWindow.Pane toolWindow) : VsSearchTask(dwCookie, pSearchQuery, pSearchCallback), IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly string _searchText = pSearchQuery?.SearchString?.Trim();
+    private bool _disposed;
 
     protected override void OnStartSearch()
     {
@@ -103,5 +104,14 @@ internal sealed class AzureSearchTask(
     {
         _cts.Cancel();
         base.OnStopSearch();
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _cts.Dispose();
+            _disposed = true;
+        }
     }
 }

@@ -22,6 +22,13 @@ namespace AzureExplorer.AppService.Services
     {
         private static readonly ConcurrentDictionary<string, CancellationTokenSource> _streams = new();
 
+        // Shared HttpClient for warmup requests to prevent socket exhaustion.
+        // Short timeout since we just need to trigger a log entry, not wait for full response.
+        private static readonly HttpClient _warmupClient = new()
+        {
+            Timeout = TimeSpan.FromSeconds(10)
+        };
+
         /// <summary>
         /// Toggles log streaming for the given node and stream path.
         /// Returns <c>true</c> if a new stream was started, <c>false</c> if an existing one was stopped.
@@ -102,11 +109,10 @@ namespace AzureExplorer.AppService.Services
                 {
                     try
                     {
-                        using (var warmup = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
+                        HttpMethod method = streamPath == "http" ? HttpMethod.Get : HttpMethod.Head;
+                        using (var request = new HttpRequestMessage(method, node.BrowseUrl))
                         {
-                            HttpMethod method = streamPath == "http" ? HttpMethod.Get : HttpMethod.Head;
-                            var request = new HttpRequestMessage(method, node.BrowseUrl);
-                            await warmup.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+                            await _warmupClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
                         }
                     }
                     catch
