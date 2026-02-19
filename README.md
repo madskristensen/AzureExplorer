@@ -20,6 +20,7 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 ## Why Azure Explorer?
 
 - **Lightweight & Fast** — No heavy SDKs or bloated dependencies, just a clean tree view
+- **Instant Search** — Find any resource across all subscriptions with integrated VS search
 - **Secure by Design** — Uses your existing Azure credentials with modern authentication
 - **Real-time Logs** — Stream application and HTTP logs from App Services directly in VS
 - **Context Menu Actions** — Right-click to start, stop, restart, browse, or open in Portal
@@ -48,6 +49,15 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 ### Browse Your Azure Resources
 
 Navigate your entire Azure estate in a familiar tree view. Expand subscriptions to see resource groups, or jump straight to resources at the subscription level.
+
+### Search Across All Subscriptions
+
+Quickly find any resource using the integrated Visual Studio search box in the tool window. Just start typing to search across all your signed-in accounts and subscriptions simultaneously.
+
+- **Instant Results** — Cached resources appear immediately as you type
+- **Background Search** — Azure API search runs in parallel for comprehensive results
+- **Grouped by Account** — Results are organized by Account → Subscription for easy navigation
+- **All Resource Types** — Searches App Services, Function Apps, VMs, Storage, Key Vaults, SQL, and more
 
 ### App Service & Function App Management
 
@@ -119,6 +129,7 @@ Manage your Azure VMs without leaving Visual Studio:
 
 ## Tips
 
+- **Search** using the search box in the tool window to find resources across all subscriptions
 - **Double-click** an App Service or Function App to open it in your browser
 - **Double-click** a file in App Service to open it in the editor
 - **Right-click** anywhere for context-specific actions
