@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
 
@@ -11,6 +12,7 @@ using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.KeyVault.Models;
 using AzureExplorer.Sql.Models;
 using AzureExplorer.Storage.Models;
+using AzureExplorer.VirtualMachine.Models;
 
 namespace AzureExplorer.ResourceGroup.Models
 {
@@ -29,6 +31,7 @@ namespace AzureExplorer.ResourceGroup.Models
                         ["Microsoft.KeyVault/vaults"] = CreateKeyVaultNode,
                         ["Microsoft.Storage/storageAccounts"] = CreateStorageAccountNode,
                         ["Microsoft.Sql/servers"] = CreateSqlServerNode,
+                        ["Microsoft.Compute/virtualMachines"] = CreateVirtualMachineNode,
             };
 
         /// <summary>
@@ -138,6 +141,48 @@ namespace AzureExplorer.ResourceGroup.Models
                 resourceGroupName,
                 state: null,
                 fullyQualifiedDomainName: null);
+        }
+
+        private static ExplorerNodeBase CreateVirtualMachineNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
+        {
+            string vmSize = null;
+            string osType = null;
+
+            if (resource.Properties != null)
+            {
+                try
+                {
+                    using JsonDocument doc = JsonDocument.Parse(resource.Properties);
+                    JsonElement root = doc.RootElement;
+
+                    if (root.TryGetProperty("hardwareProfile", out JsonElement hardwareProfile) &&
+                        hardwareProfile.TryGetProperty("vmSize", out JsonElement sizeElement))
+                    {
+                        vmSize = sizeElement.GetString();
+                    }
+
+                    if (root.TryGetProperty("storageProfile", out JsonElement storageProfile) &&
+                        storageProfile.TryGetProperty("osDisk", out JsonElement osDisk) &&
+                        osDisk.TryGetProperty("osType", out JsonElement osTypeElement))
+                    {
+                        osType = osTypeElement.GetString();
+                    }
+                }
+                catch
+                {
+                    // Properties parsing failed; continue with null values
+                }
+            }
+
+            return new VirtualMachineNode(
+                resource.Name,
+                subscriptionId,
+                resourceGroupName,
+                state: null,
+                vmSize,
+                osType,
+                publicIpAddress: null,
+                privateIpAddress: null);
         }
     }
 }

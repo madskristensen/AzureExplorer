@@ -137,7 +137,7 @@ namespace AzureExplorer.Test.Core.Models
             await node.LoadChildrenAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.HasCount(4, node.Children);
+            Assert.HasCount(8, node.Children);
         }
 
         [TestMethod]
@@ -259,9 +259,13 @@ namespace AzureExplorer.Test.Core.Models
 
             // Assert
             Assert.AreEqual("SubscriptionAppServicesNode", node.Children[0].GetType().Name);
-            Assert.AreEqual("SubscriptionFrontDoorsNode", node.Children[1].GetType().Name);
-            Assert.AreEqual("SubscriptionKeyVaultsNode", node.Children[2].GetType().Name);
-            Assert.AreEqual("ResourceGroupsNode", node.Children[3].GetType().Name);
+            Assert.AreEqual("SubscriptionFunctionAppsNode", node.Children[1].GetType().Name);
+            Assert.AreEqual("SubscriptionFrontDoorsNode", node.Children[2].GetType().Name);
+            Assert.AreEqual("SubscriptionKeyVaultsNode", node.Children[3].GetType().Name);
+            Assert.AreEqual("SubscriptionSqlServersNode", node.Children[4].GetType().Name);
+            Assert.AreEqual("SubscriptionStorageAccountsNode", node.Children[5].GetType().Name);
+            Assert.AreEqual("SubscriptionVirtualMachinesNode", node.Children[6].GetType().Name);
+            Assert.AreEqual("ResourceGroupsNode", node.Children[7].GetType().Name);
         }
 
         public TestContext TestContext { get; set; }

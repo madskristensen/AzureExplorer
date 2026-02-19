@@ -13,7 +13,7 @@ Download from the [Visual Studio Marketplace][marketplace] or get the latest [CI
 
 **Stop context-switching.** Manage your Azure resources without ever leaving Visual Studio.
 
-Azure Explorer brings your cloud infrastructure into your IDE with a fast, lightweight tool window. Browse subscriptions, manage App Services and Function Apps, access Key Vault secrets, browse Storage Account blobs, connect to SQL databases, and stream live logs — all from the comfort of Visual Studio.
+Azure Explorer brings your cloud infrastructure into your IDE with a fast, lightweight tool window. Browse subscriptions, manage App Services and Function Apps, control Virtual Machines, access Key Vault secrets, browse Storage Account blobs, connect to SQL databases, and stream live logs — all from the comfort of Visual Studio.
 
 ![Azure Explorer tool window](art/azure-explorer.png)
 
@@ -23,6 +23,7 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 - **Secure by Design** — Uses your existing Azure credentials with modern authentication
 - **Real-time Logs** — Stream application and HTTP logs from App Services directly in VS
 - **Context Menu Actions** — Right-click to start, stop, restart, browse, or open in Portal
+- **VM Management** — Start, stop, and connect to Virtual Machines via RDP or SSH
 - **Key Vault Integration** — Create, update, and copy secrets without touching the Portal
 - **Blob Storage** — Browse containers, upload, download, and delete blobs
 - **SQL Database** — Copy connection strings for quick database access
@@ -35,6 +36,7 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 |---------------|---------|
 | **App Services** | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings |
 | **Function Apps** | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings |
+| **Virtual Machines** | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address |
 | **Storage Accounts** | Copy Connection String, Browse Blob Containers |
 | **Blob Containers** | Upload, Download, Delete, Copy URL |
 | **Key Vaults** | Add/Update/Copy/Delete Secrets |
@@ -94,6 +96,31 @@ Connect to your Azure SQL resources:
 ### Front Door & App Service Plans
 
 Browse Front Door profiles and endpoints, view your hosting plans, and quickly access the Portal for advanced configuration.
+
+### Virtual Machine Management
+
+Manage your Azure VMs without leaving Visual Studio:
+
+- **Start / Stop / Restart** — Control VM power state with one click
+- **Connect via RDP** — Launch Remote Desktop for Windows VMs
+- **Connect via SSH** — Open SSH connections for Linux VMs
+- **Copy IP Address** — Quick access to public IP for scripts or tools
+- **View Status** — See running, stopped, or deallocated state at a glance
+- **Open in Portal** — Jump to full VM management in Azure Portal
+
+## Roadmap
+
+We're actively working on expanding Azure Explorer. Here's what's coming:
+
+| Resource Type | Planned Features | Status |
+|---------------|------------------|--------|
+| **Cosmos DB** | Browse accounts, databases, containers; Copy connection strings | 🔜 Coming Soon |
+| **Container Apps** | Browse, Start/Stop, View logs | 📋 Planned |
+| **Service Bus** | Browse queues, topics; Send/peek messages | 📋 Planned |
+| **Redis Cache** | View cache info, copy connection strings | 📋 Planned |
+| **Application Insights** | Quick access to logs and metrics | 💡 Considering |
+
+Have a feature request? [Open an issue][repo] and let us know!
 
 ## Getting Started
 

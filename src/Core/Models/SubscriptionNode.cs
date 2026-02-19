@@ -9,6 +9,7 @@ using AzureExplorer.KeyVault.Models;
 using AzureExplorer.ResourceGroup.Models;
 using AzureExplorer.Sql.Models;
 using AzureExplorer.Storage.Models;
+using AzureExplorer.VirtualMachine.Models;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -50,6 +51,7 @@ namespace AzureExplorer.Core.Models
                 var keyVaultsNode = new SubscriptionKeyVaultsNode(SubscriptionId);
                 var storageAccountsNode = new SubscriptionStorageAccountsNode(SubscriptionId);
                 var sqlServersNode = new SubscriptionSqlServersNode(SubscriptionId);
+                var virtualMachinesNode = new SubscriptionVirtualMachinesNode(SubscriptionId);
 
                 AddChild(appServicesNode);
                 AddChild(functionAppsNode);
@@ -57,6 +59,7 @@ namespace AzureExplorer.Core.Models
                 AddChild(keyVaultsNode);
                 AddChild(sqlServersNode);
                 AddChild(storageAccountsNode);
+                AddChild(virtualMachinesNode);
 
                 // Add resource groups under a parent node
                 var resourceGroupsNode = new ResourceGroupsNode(SubscriptionId);
@@ -66,7 +69,7 @@ namespace AzureExplorer.Core.Models
                 _ = PreloadChildrenAsync(
                     appServicesNode, functionAppsNode, frontDoorsNode, 
                     keyVaultsNode, storageAccountsNode, sqlServersNode,
-                    resourceGroupsNode, cancellationToken);
+                    virtualMachinesNode, resourceGroupsNode, cancellationToken);
             }
             finally
             {
@@ -81,6 +84,7 @@ namespace AzureExplorer.Core.Models
             SubscriptionKeyVaultsNode keyVaultsNode,
             SubscriptionStorageAccountsNode storageAccountsNode,
             SubscriptionSqlServersNode sqlServersNode,
+            SubscriptionVirtualMachinesNode virtualMachinesNode,
             ResourceGroupsNode resourceGroupsNode,
             CancellationToken cancellationToken)
         {
@@ -93,6 +97,7 @@ namespace AzureExplorer.Core.Models
                     keyVaultsNode.LoadChildrenAsync(cancellationToken),
                     storageAccountsNode.LoadChildrenAsync(cancellationToken),
                     sqlServersNode.LoadChildrenAsync(cancellationToken),
+                    virtualMachinesNode.LoadChildrenAsync(cancellationToken),
                     resourceGroupsNode.LoadChildrenAsync(cancellationToken));
             }
             catch (OperationCanceledException)

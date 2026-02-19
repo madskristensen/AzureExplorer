@@ -43,6 +43,8 @@ namespace AzureExplorer
         public const int SqlServerContextMenu = 0x0180;
         public const int SqlServersCategoryContextMenu = 0x0181;
         public const int SqlDatabaseContextMenu = 0x0182;
+        public const int VirtualMachineContextMenu = 0x01A0;
+        public const int VirtualMachinesCategoryContextMenu = 0x01A1;
         public const int BlobContainerContextMenu = 0x0190;
         public const int BlobContextMenu = 0x0191;
         public const int BlobFolderContextMenu = 0x0192;
@@ -76,6 +78,10 @@ namespace AzureExplorer
         public const int SqlServerRefreshGroup = 0x0184;
         public const int SqlServersCategoryContextMenuGroup = 0x0185;
         public const int SqlDatabaseActionsGroup = 0x0186;
+        public const int VirtualMachineConnectGroup = 0x01A2;
+        public const int VirtualMachineActionsGroup = 0x01A3;
+        public const int VirtualMachineRefreshGroup = 0x01A4;
+        public const int VirtualMachinesCategoryContextMenuGroup = 0x01A5;
         public const int BlobContainerActionsGroup = 0x0193;
         public const int BlobContainerRefreshGroup = 0x0194;
         public const int BlobActionsGroup = 0x0195;
@@ -140,5 +146,11 @@ namespace AzureExplorer
         public const int DeleteBlob = 0x0199;
         public const int DownloadBlob = 0x019A;
         public const int UploadBlob = 0x019B;
+        public const int StartVm = 0x01B0;
+        public const int StopVm = 0x01B1;
+        public const int RestartVm = 0x01B2;
+        public const int CopyVmIpAddress = 0x01B3;
+        public const int ConnectRdp = 0x01B4;
+        public const int ConnectSsh = 0x01B5;
     }
 }

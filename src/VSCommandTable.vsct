@@ -136,6 +136,20 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Virtual Machine node -->
+      <Menu guid="AzureExplorer" id="VirtualMachineContextMenu" type="Context">
+        <Strings>
+          <CommandName>Virtual Machine</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Virtual Machines category node -->
+      <Menu guid="AzureExplorer" id="VirtualMachinesCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Virtual Machines</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Context menu: Blob Container node -->
       <Menu guid="AzureExplorer" id="BlobContainerContextMenu" type="Context">
         <Strings>
@@ -310,6 +324,22 @@
       <!-- SQL Database context menu groups -->
       <Group guid="AzureExplorer" id="SqlDatabaseActionsGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="SqlDatabaseContextMenu"/>
+      </Group>
+
+      <!-- Virtual Machine context menu groups -->
+      <Group guid="AzureExplorer" id="VirtualMachineConnectGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="VirtualMachineContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="VirtualMachineActionsGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="VirtualMachineContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="VirtualMachineRefreshGroup" priority="0x0300">
+        <Parent guid="AzureExplorer" id="VirtualMachineContextMenu"/>
+      </Group>
+
+      <!-- Virtual Machines category context menu groups -->
+      <Group guid="AzureExplorer" id="VirtualMachinesCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="VirtualMachinesCategoryContextMenu"/>
       </Group>
 
       <!-- Blob Container context menu groups -->
@@ -738,6 +768,82 @@
         </Strings>
       </Button>
 
+      <!-- Virtual Machine context: Connect via RDP -->
+      <Button guid="AzureExplorer" id="ConnectRdp" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="VirtualMachineConnectGroup"/>
+        <Icon guid="ImageCatalogGuid" id="RemoteDesktop"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Connect via RDP</ButtonText>
+          <LocCanonicalName>.AzureExplorer.ConnectRdp</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Virtual Machine context: Connect via SSH -->
+      <Button guid="AzureExplorer" id="ConnectSsh" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="VirtualMachineConnectGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Console"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Connect via SSH</ButtonText>
+          <LocCanonicalName>.AzureExplorer.ConnectSsh</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Virtual Machine context: Copy IP Address -->
+      <Button guid="AzureExplorer" id="CopyVmIpAddress" priority="0x0300" type="Button">
+        <Parent guid="AzureExplorer" id="VirtualMachineConnectGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy IP Address</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyVmIpAddress</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Virtual Machine context: Start -->
+      <Button guid="AzureExplorer" id="StartVm" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="VirtualMachineActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Run"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Start</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StartVm</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Virtual Machine context: Stop -->
+      <Button guid="AzureExplorer" id="StopVm" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="VirtualMachineActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Stop"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Stop</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StopVm</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Virtual Machine context: Restart -->
+      <Button guid="AzureExplorer" id="RestartVm" priority="0x0300" type="Button">
+        <Parent guid="AzureExplorer" id="VirtualMachineActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Restart"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Restart</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RestartVm</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -881,6 +987,17 @@
     <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
       <Parent guid="AzureExplorer" id="BlobFolderRefreshGroup"/>
     </CommandPlacement>
+
+    <!-- Virtual Machine command placements -->
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0400">
+      <Parent guid="AzureExplorer" id="VirtualMachineConnectGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="VirtualMachineRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="VirtualMachinesCategoryContextMenuGroup"/>
+    </CommandPlacement>
   </CommandPlacements>
 
   <!-- Keybindings scoped to Azure Explorer tool window -->
@@ -910,6 +1027,8 @@
       <IDSymbol name="SqlServerContextMenu" value="0x0180" />
       <IDSymbol name="SqlServersCategoryContextMenu" value="0x0181" />
       <IDSymbol name="SqlDatabaseContextMenu" value="0x0182" />
+      <IDSymbol name="VirtualMachineContextMenu" value="0x01A0" />
+      <IDSymbol name="VirtualMachinesCategoryContextMenu" value="0x01A1" />
       <IDSymbol name="BlobContainerContextMenu" value="0x0190" />
       <IDSymbol name="BlobContextMenu" value="0x0191" />
       <IDSymbol name="BlobFolderContextMenu" value="0x0192" />
@@ -945,6 +1064,10 @@
       <IDSymbol name="SqlServerRefreshGroup" value="0x0184" />
       <IDSymbol name="SqlServersCategoryContextMenuGroup" value="0x0185" />
       <IDSymbol name="SqlDatabaseActionsGroup" value="0x0186" />
+      <IDSymbol name="VirtualMachineConnectGroup" value="0x01A2" />
+      <IDSymbol name="VirtualMachineActionsGroup" value="0x01A3" />
+      <IDSymbol name="VirtualMachineRefreshGroup" value="0x01A4" />
+      <IDSymbol name="VirtualMachinesCategoryContextMenuGroup" value="0x01A5" />
       <IDSymbol name="BlobContainerActionsGroup" value="0x0193" />
       <IDSymbol name="BlobContainerRefreshGroup" value="0x0194" />
       <IDSymbol name="BlobActionsGroup" value="0x0195" />
@@ -1011,6 +1134,12 @@
       <IDSymbol name="DeleteBlob" value="0x0199" />
       <IDSymbol name="DownloadBlob" value="0x019A" />
       <IDSymbol name="UploadBlob" value="0x019B" />
+      <IDSymbol name="StartVm" value="0x01B0" />
+      <IDSymbol name="StopVm" value="0x01B1" />
+      <IDSymbol name="RestartVm" value="0x01B2" />
+      <IDSymbol name="CopyVmIpAddress" value="0x01B3" />
+      <IDSymbol name="ConnectRdp" value="0x01B4" />
+      <IDSymbol name="ConnectSsh" value="0x01B5" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
