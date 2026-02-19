@@ -114,6 +114,7 @@ namespace AzureExplorer
         public const int SignOutAccount = 0x0106;
         public const int RefreshAccount = 0x0107;
         public const int ToggleShowAll = 0x0108;
+        public const int ToggleActivityLog = 0x0109;
         public const int BrowseSite = 0x0110;
         public const int StartAppService = 0x0111;
         public const int StopAppService = 0x0112;

@@ -62,6 +62,7 @@
     <Compile Include="Core\Commands\HideTenantCommand.cs" />
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
+    <Compile Include="Core\Commands\ToggleActivityLogCommand.cs" />
     <Compile Include="Core\Commands\ToggleShowAllCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="Core\Models\ITaggableResource.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="Core\Search\SearchAccountNode.cs" />
     <Compile Include="Core\Search\SearchResultNode.cs" />
     <Compile Include="Core\Search\SearchSubscriptionNode.cs" />
+    <Compile Include="Core\Services\ActivityLogService.cs" />
     <Compile Include="Core\Services\AsyncHelper.cs" />
     <Compile Include="Core\Services\ResourceGraphService.cs" />
     <Compile Include="Core\Services\TagService.cs" />

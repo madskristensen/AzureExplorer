@@ -24,6 +24,9 @@ namespace AzureExplorer.AppService.Models
 
             await LoadChildrenWithErrorHandlingAsync(_ =>
             {
+                // Add Files node for browsing wwwroot contents
+                AddChild(new FilesNode(SubscriptionId, Label));
+
                 // Add Tags node if resource has tags
                 if (Tags.Count > 0)
                 {

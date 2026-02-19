@@ -82,5 +82,21 @@ namespace AzureExplorer.Core.Options
                 HiddenSubscriptions.Add(subscriptionId);
             }
         }
+
+        /// <summary>
+        /// Gets or sets whether the Activity Log panel is visible.
+        /// </summary>
+        [Category("Activity Log")]
+        [DisplayName("Show Activity Log")]
+        [Description("When enabled, shows the Activity Log panel at the bottom of the Azure Explorer.")]
+        [DefaultValue(true)]
+        public bool ShowActivityLog { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the height of the Activity Log panel in pixels.
+        /// </summary>
+        [Browsable(false)]
+        [DefaultValue(120.0)]
+        public double ActivityLogPanelHeight { get; set; } = 120.0;
     }
 }

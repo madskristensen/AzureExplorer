@@ -20,7 +20,15 @@ namespace AzureExplorer.Core.Helpers
         {
             if (value is TreeViewItem item)
             {
-                return new Thickness(GetDepth(item) * IndentSize, 0, 0, 0);
+                double indent = GetDepth(item) * IndentSize;
+
+                // If "Negate" parameter is passed, return negative left margin
+                if (parameter is string str && str.Equals("Negate", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new Thickness(-indent, 0, 0, 0);
+                }
+
+                return new Thickness(indent, 0, 0, 0);
             }
 
             return new Thickness(0);

@@ -10,6 +10,9 @@
     <UserControl.Resources>
         <helpers:TreeViewItemToIndentConverter x:Key="IndentConverter" />
 
+        <!-- Subtle selection color like Solution Explorer -->
+        <SolidColorBrush x:Key="TreeViewSelectionBrush" Color="#20808080" />
+
         <!-- Expander toggle arrow matching VS style -->
         <Style x:Key="ExpandCollapseToggle" TargetType="ToggleButton">
             <Setter Property="Focusable" Value="False" />
@@ -38,9 +41,18 @@
     </UserControl.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition x:Name="ActivityLogRow" Height="120" MinHeight="60" />
+        </Grid.RowDefinitions>
+
         <TreeView x:Name="ExplorerTree"
+                  Grid.Row="0"
                   BorderThickness="0"
                   Padding="0,0,0,20"
+                  toolkit:Themes.UseVsTheme="False"
+                  Background="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.CanContentScroll="True"
                   VirtualizingStackPanel.IsVirtualizing="True"
@@ -49,43 +61,48 @@
                 <Style TargetType="TreeViewItem">
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="Background" Value="Transparent" />
                     <Setter Property="Foreground"
                             Value="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}" />
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="Padding" Value="0" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TreeViewItem">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition />
                                     </Grid.RowDefinitions>
 
-                                    <!-- Full-width selection background -->
-                                    <Border x:Name="Bd"
+                                    <!-- Full-width selection background using negative margin + padding trick -->
+                                    <Border x:Name="SelectionBd"
                                             Background="Transparent"
-                                            TextElement.Foreground="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}"
-                                            Padding="{Binding RelativeSource={RelativeSource TemplatedParent},
-                                                              Converter={StaticResource IndentConverter}}"
-                                            SnapsToDevicePixels="True">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="16" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <ToggleButton x:Name="Expander"
-                                                          Style="{StaticResource ExpandCollapseToggle}"
-                                                          IsChecked="{Binding IsExpanded,
-                                                                              RelativeSource={RelativeSource TemplatedParent}}"
-                                                          ClickMode="Press" />
-                                            <ContentPresenter x:Name="PART_Header"
-                                                              Grid.Column="1"
-                                                              ContentSource="Header"
-                                                              HorizontalAlignment="Stretch"
-                                                              VerticalAlignment="Center" />
-                                        </Grid>
-                                    </Border>
+                                            Margin="-1000,0,0,0"
+                                            Padding="1000,0,0,0" />
+
+                                    <!-- Accent line on left edge (like Solution Explorer) -->
+                                    <Rectangle x:Name="AccentLine"
+                                               Width="2"
+                                               HorizontalAlignment="Left"
+                                               Margin="-1000,0,0,0"
+                                               Fill="Transparent" />
+
+                                    <!-- Header row with expander and content -->
+                                    <Grid Margin="{Binding RelativeSource={RelativeSource TemplatedParent},
+                                                          Converter={StaticResource IndentConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="19" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <ToggleButton x:Name="Expander"
+                                                      Style="{StaticResource ExpandCollapseToggle}"
+                                                      ClickMode="Press"
+                                                      IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <ContentPresenter x:Name="PART_Header"
+                                                          Grid.Column="1"
+                                                          ContentSource="Header"
+                                                          HorizontalAlignment="Left"
+                                                          Margin="0,2" />
+                                    </Grid>
 
                                     <ItemsPresenter x:Name="ItemsHost"
                                                     Grid.Row="1"
@@ -94,46 +111,30 @@
 
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsExpanded" Value="True">
-                                        <Setter TargetName="ItemsHost"
-                                                Property="Visibility"
-                                                Value="Visible" />
+                                        <Setter TargetName="ItemsHost" Property="Visibility" Value="Visible" />
                                     </Trigger>
                                     <Trigger Property="HasItems" Value="False">
-                                        <Setter TargetName="Expander"
-                                                Property="Visibility"
-                                                Value="Hidden" />
+                                        <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
                                     </Trigger>
-
-                                    <!-- Selected + focused -->
+                                    <!-- Selected + focused: show accent line -->
                                     <MultiTrigger>
                                         <MultiTrigger.Conditions>
                                             <Condition Property="IsSelected" Value="True" />
                                             <Condition Property="IsSelectionActive" Value="True" />
                                         </MultiTrigger.Conditions>
-                                        <Setter TargetName="Bd"
-                                                Property="Background"
+                                        <Setter TargetName="SelectionBd" Property="Background" 
+                                                Value="{StaticResource TreeViewSelectionBrush}" />
+                                        <Setter TargetName="AccentLine" Property="Fill" 
                                                 Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemActiveBrushKey}}" />
-                                        <Setter Property="Foreground"
-                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
-                                        <Setter TargetName="Bd"
-                                                Property="TextElement.Foreground"
-                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemActiveTextBrushKey}}" />
                                     </MultiTrigger>
-
-                                    <!-- Selected + unfocused (right-click / context menu open) -->
+                                    <!-- Selected + unfocused: subtle background only -->
                                     <MultiTrigger>
                                         <MultiTrigger.Conditions>
                                             <Condition Property="IsSelected" Value="True" />
                                             <Condition Property="IsSelectionActive" Value="False" />
                                         </MultiTrigger.Conditions>
-                                        <Setter TargetName="Bd"
-                                                Property="Background"
-                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemInactiveBrushKey}}" />
-                                        <Setter Property="Foreground"
-                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
-                                        <Setter TargetName="Bd"
-                                                Property="TextElement.Foreground"
-                                                Value="{DynamicResource {x:Static platformUI:TreeViewColors.SelectedItemInactiveTextBrushKey}}" />
+                                        <Setter TargetName="SelectionBd" Property="Background" 
+                                                Value="{StaticResource TreeViewSelectionBrush}" />
                                     </MultiTrigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -144,7 +145,7 @@
         </TreeView>
 
         <!-- Empty state panel shown when not signed in -->
-        <Grid x:Name="EmptyStatePanel" Visibility="Collapsed">
+        <Grid x:Name="EmptyStatePanel" Grid.RowSpan="2" Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" 
                         VerticalAlignment="Center"
                         MaxWidth="280"
@@ -211,5 +212,130 @@
                 </StackPanel>
             </StackPanel>
         </Grid>
+
+        <!-- GridSplitter for resizing Activity Log panel -->
+        <GridSplitter x:Name="ActivityLogSplitter"
+                      Grid.Row="1"
+                      Height="4"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"
+                      Background="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowBorderBrushKey}}"
+                      Cursor="SizeNS"
+                      DragCompleted="ActivityLogSplitter_DragCompleted"/>
+
+        <!-- Activity Log Panel -->
+        <Border x:Name="ActivityLogPanel" 
+                Grid.Row="2" 
+                Background="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Border Grid.Row="0" 
+                        Padding="6,4"
+                        Background="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <imaging:CrispImage Grid.Column="0"
+                                            Moniker="{x:Static catalog:KnownMonikers.History}"
+                                            Width="16" Height="16"
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="Activity Log" 
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}"
+                                   VerticalAlignment="Center"/>
+                        <Button x:Name="ClearActivityLogButton"
+                                Grid.Column="2"
+                                Content="Clear"
+                                Click="ClearActivityLogButton_Click"
+                                Padding="8,2"
+                                FontSize="11"
+                                Cursor="Hand"
+                                VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Content -->
+                <Grid Grid.Row="1">
+                    <!-- Empty state message -->
+                    <TextBlock x:Name="ActivityLogEmptyMessage"
+                               Text="No recent activity"
+                               Opacity="0.5"
+                               FontStyle="Italic"
+                               Margin="6,8,6,8"
+                               Foreground="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+
+                    <ItemsControl x:Name="ActivityLogList"
+                                  Margin="0"
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl.Template>
+                            <ControlTemplate TargetType="ItemsControl">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                                              HorizontalScrollBarVisibility="Disabled">
+                                    <ItemsPresenter />
+                                </ScrollViewer>
+                            </ControlTemplate>
+                        </ItemsControl.Template>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="ActivityBd" 
+                                        Background="Transparent" 
+                                        Padding="6,3"
+                                        Cursor="Hand"
+                                        MouseLeftButtonUp="ActivityEntry_Click"
+                                        ToolTip="{Binding Description}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <!-- Status icon -->
+                                        <imaging:CrispImage Grid.Column="0"
+                                                            Moniker="{Binding StatusIcon}" 
+                                                            Width="16" Height="16"/>
+                                        <!-- Resource type icon -->
+                                        <imaging:CrispImage Grid.Column="1"
+                                                            Moniker="{Binding ResourceIcon}" 
+                                                            Width="16" Height="16" 
+                                                            Margin="6,0,6,0"/>
+                                        <!-- Description -->
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Description}" 
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                                        <!-- Time ago -->
+                                        <TextBlock Grid.Column="3"
+                                                   Text="{Binding TimeAgo}" 
+                                                   Opacity="0.6"
+                                                   Margin="8,0,4,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource {x:Static platformUI:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                                    </Grid>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="ActivityBd" Property="Background"
+                                                Value="{DynamicResource {x:Static platformUI:EnvironmentColors.CommandBarMouseOverBackgroundGradientBrushKey}}" />
+                                    </Trigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

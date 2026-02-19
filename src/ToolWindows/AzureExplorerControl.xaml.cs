@@ -11,8 +11,10 @@ using System.Windows.Media;
 using AzureExplorer.AppService.Models;
 using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Options;
 using AzureExplorer.Core.Search;
 using AzureExplorer.Core.Services;
+using AzureExplorer.FunctionApp.Models;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -33,6 +35,7 @@ namespace AzureExplorer.ToolWindows
             RootNodes = [];
 
             SetupTreeView();
+            SetupActivityLog();
 
             AzureAuthService.Instance.AuthStateChanged += OnAuthStateChanged;
             Unloaded += OnUnloaded;
@@ -132,15 +135,17 @@ namespace AzureExplorer.ToolWindows
 
             ExplorerTree.Resources.Add(new DataTemplateKey(typeof(ExplorerNodeBase)), template);
 
-            // ItemContainerStyle: Bind TreeViewItem.Visibility to IsVisible property
+            // ItemContainerStyle: Add Visibility binding to the existing XAML-defined style
             // This allows nodes to stay in the tree but be hidden/shown without reload
-            // BasedOn ensures we inherit the VS theme colors
-            var baseStyle = (Style)ExplorerTree.FindResource(typeof(TreeViewItem));
-            var itemContainerStyle = new Style(typeof(TreeViewItem), baseStyle);
-            itemContainerStyle.Setters.Add(new Setter(
-                TreeViewItem.VisibilityProperty,
-                new Binding("IsVisible") { Converter = new BooleanToVisibilityConverter() }));
-            ExplorerTree.ItemContainerStyle = itemContainerStyle;
+            var xamlStyle = ExplorerTree.ItemContainerStyle;
+            if (xamlStyle != null)
+            {
+                var itemContainerStyle = new Style(typeof(TreeViewItem), xamlStyle);
+                itemContainerStyle.Setters.Add(new Setter(
+                    TreeViewItem.VisibilityProperty,
+                    new Binding("IsVisible") { Converter = new BooleanToVisibilityConverter() }));
+                ExplorerTree.ItemContainerStyle = itemContainerStyle;
+            }
 
             // Bind the collection
             ExplorerTree.ItemsSource = RootNodes;
@@ -461,5 +466,244 @@ namespace AzureExplorer.ToolWindows
             // Add the result under the subscription
             subscriptionNode.AddResult(resultNode);
         }
+
+        #region Activity Log
+
+        private ItemsControl _activityLogList;
+        private TextBlock _activityLogEmptyMessage;
+        private Border _activityLogPanel;
+        private GridSplitter _activityLogSplitter;
+        private RowDefinition _activityLogRow;
+
+        private void SetupActivityLog()
+        {
+            _activityLogList = (ItemsControl)FindName("ActivityLogList");
+            _activityLogEmptyMessage = (TextBlock)FindName("ActivityLogEmptyMessage");
+            _activityLogPanel = (Border)FindName("ActivityLogPanel");
+            _activityLogSplitter = (GridSplitter)FindName("ActivityLogSplitter");
+            _activityLogRow = (RowDefinition)FindName("ActivityLogRow");
+
+            if (_activityLogList != null)
+            {
+                _activityLogList.ItemsSource = ActivityLogService.Instance.Activities;
+            }
+
+            // Restore persisted height
+            if (_activityLogRow != null)
+            {
+                double savedHeight = GeneralOptions.Instance.ActivityLogPanelHeight;
+                if (savedHeight > 0)
+                {
+                    _activityLogRow.Height = new GridLength(savedHeight);
+                }
+            }
+
+            // Restore visibility from settings
+            SetActivityLogVisibleInternal(GeneralOptions.Instance.ShowActivityLog);
+
+            // Update empty message visibility when activities change
+            ActivityLogService.Instance.Activities.CollectionChanged += (s, e) =>
+            {
+                UpdateEmptyMessageVisibility();
+            };
+
+            UpdateEmptyMessageVisibility();
+        }
+
+        /// <summary>
+        /// Called by ToggleActivityLogCommand to show/hide the Activity Log panel.
+        /// </summary>
+        internal static void SetActivityLogVisible(bool visible)
+        {
+            _instance?.SetActivityLogVisibleInternal(visible);
+        }
+
+        private void SetActivityLogVisibleInternal(bool visible)
+        {
+            if (_activityLogPanel != null)
+            {
+                _activityLogPanel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (_activityLogSplitter != null)
+            {
+                _activityLogSplitter.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (_activityLogRow != null)
+            {
+                if (visible)
+                {
+                    double savedHeight = GeneralOptions.Instance.ActivityLogPanelHeight;
+                    _activityLogRow.Height = new GridLength(savedHeight > 0 ? savedHeight : 120);
+                    _activityLogRow.MinHeight = 60;
+                }
+                else
+                {
+                    _activityLogRow.Height = new GridLength(0);
+                    _activityLogRow.MinHeight = 0;
+                }
+            }
+        }
+
+        private void ActivityLogSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            // Persist the new height
+            if (_activityLogRow != null && _activityLogRow.ActualHeight > 0)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    try
+                    {
+                        GeneralOptions.Instance.ActivityLogPanelHeight = _activityLogRow.ActualHeight;
+                        await GeneralOptions.Instance.SaveAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to save Activity Log height: {ex.Message}");
+                    }
+                }).FireAndForget();
+            }
+        }
+
+        private void UpdateEmptyMessageVisibility()
+        {
+            if (_activityLogEmptyMessage == null)
+                return;
+
+            _activityLogEmptyMessage.Visibility = ActivityLogService.Instance.Activities.Count == 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private void ClearActivityLogButton_Click(object sender, RoutedEventArgs e)
+        {
+            ActivityLogService.Instance.Clear();
+        }
+
+        private void ActivityEntry_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement element || element.DataContext is not ActivityEntry entry)
+                return;
+
+            if (string.IsNullOrEmpty(entry.ResourceName))
+                return;
+
+            // Try to find and select the resource in the tree by name
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    var node = FindNodeByName(RootNodes, entry.ResourceName, entry.ResourceType);
+                    if (node != null)
+                    {
+                        SelectAndExpandToNode(node);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to navigate to resource: {ex.Message}");
+                }
+            }).FireAndForget();
+        }
+
+        private ExplorerNodeBase FindNodeByName(IEnumerable<ExplorerNodeBase> nodes, string name, string resourceType)
+        {
+            foreach (var node in nodes)
+            {
+                // Check if this node matches by name
+                if (string.Equals(node.Label, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Verify it's the right type of resource
+                    bool isMatch = resourceType switch
+                    {
+                        "AppService" => node is AppServiceNode,
+                        "FunctionApp" => node is FunctionAppNode,
+                        _ => true
+                    };
+
+                    if (isMatch)
+                        return node;
+                }
+
+                if (node.Children != null && node.Children.Count > 0)
+                {
+                    var found = FindNodeByName(node.Children, name, resourceType);
+                    if (found != null)
+                        return found;
+                }
+            }
+            return null;
+        }
+
+        private void SelectAndExpandToNode(ExplorerNodeBase targetNode)
+        {
+            // Build path from root to target
+            var path = new List<ExplorerNodeBase>();
+            BuildPathToNode(RootNodes, targetNode, path);
+
+            if (path.Count == 0)
+                return;
+
+            // Expand each node in the path
+            foreach (var node in path)
+            {
+                node.IsExpanded = true;
+            }
+
+            // Find and select the TreeViewItem
+            var container = FindTreeViewItemForNode(targetNode);
+            if (container != null)
+            {
+                container.IsSelected = true;
+                container.BringIntoView();
+                container.Focus();
+            }
+        }
+
+        private bool BuildPathToNode(IEnumerable<ExplorerNodeBase> nodes, ExplorerNodeBase target, List<ExplorerNodeBase> path)
+        {
+            foreach (var node in nodes)
+            {
+                if (node == target)
+                    return true;
+
+                if (node.Children != null && node.Children.Count > 0)
+                {
+                    path.Add(node);
+                    if (BuildPathToNode(node.Children, target, path))
+                        return true;
+                    path.RemoveAt(path.Count - 1);
+                }
+            }
+            return false;
+        }
+
+        private TreeViewItem FindTreeViewItemForNode(ExplorerNodeBase node)
+        {
+            return FindTreeViewItem(ExplorerTree, node);
+        }
+
+        private TreeViewItem FindTreeViewItem(ItemsControl container, ExplorerNodeBase node)
+        {
+            if (container == null)
+                return null;
+
+            foreach (var item in container.Items)
+            {
+                var treeViewItem = container.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+                if (treeViewItem == null)
+                    continue;
+
+                if (item == node)
+                    return treeViewItem;
+
+                var result = FindTreeViewItem(treeViewItem, node);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+
+        #endregion
     }
 }

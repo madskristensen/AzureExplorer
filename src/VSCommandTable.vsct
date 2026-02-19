@@ -491,6 +491,18 @@
         </Strings>
       </Button>
 
+      <!-- Toolbar: Toggle Activity Log -->
+      <Button guid="AzureExplorer" id="ToggleActivityLog" priority="0x0400" type="Button">
+        <Parent guid="AzureExplorer" id="ToolbarGroup"/>
+        <Icon guid="ImageCatalogGuid" id="History"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Activity Log</ButtonText>
+          <ToolTipText>Show or hide the Activity Log panel</ToolTipText>
+          <LocCanonicalName>.AzureExplorer.ToggleActivityLog</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Account context: Sign Out -->
       <Button guid="AzureExplorer" id="SignOutAccount" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="AccountContextMenuGroup"/>
@@ -1253,6 +1265,7 @@
       <IDSymbol name="SignOutAccount" value="0x0106" />
       <IDSymbol name="RefreshAccount" value="0x0107" />
       <IDSymbol name="ToggleShowAll" value="0x0108" />
+      <IDSymbol name="ToggleActivityLog" value="0x0109" />
       <IDSymbol name="BrowseSite" value="0x0110" />
       <IDSymbol name="StartAppService" value="0x0111" />
       <IDSymbol name="StopAppService" value="0x0112" />

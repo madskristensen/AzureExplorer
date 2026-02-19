@@ -1,5 +1,6 @@
 using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 
 namespace AzureExplorer.AppService.Commands
@@ -17,6 +18,12 @@ namespace AzureExplorer.AppService.Commands
 
             if (!confirmed) return;
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Restarting",
+                node.Label,
+                "AppService");
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Restarting {node.Label}...");
@@ -24,10 +31,14 @@ namespace AzureExplorer.AppService.Commands
 
                 node.State = WebSiteState.Running;
 
+                // Mark activity as successful
+                activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"{node.Label} restarted.");
             }
             catch (Exception ex)
             {
+                // Mark activity as failed
+                activity.Fail(ex.Message);
                 await VS.MessageBox.ShowErrorAsync("Restart App Service", ex.Message);
             }
         }
