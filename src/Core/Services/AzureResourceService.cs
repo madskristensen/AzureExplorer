@@ -35,6 +35,18 @@ namespace AzureExplorer.Core.Services
         public static AzureResourceService Instance => _instance.Value;
 
         /// <summary>
+        /// Creates an <see cref="ArmClient"/> using a constructor overload that is more stable
+        /// across different versions of Azure.ResourceManager that may be loaded by other VS extensions.
+        /// </summary>
+        private static ArmClient CreateArmClient(TokenCredential credential)
+        {
+            // Use the constructor with ArmClientOptions to avoid version conflicts.
+            // The simple ArmClient(TokenCredential) constructor may not exist in all versions
+            // of Azure.ResourceManager that could be loaded by other VS extensions/workloads.
+            return new ArmClient(credential, default(string), new ArmClientOptions());
+        }
+
+        /// <summary>
         /// Returns a <see cref="TokenCredential"/> scoped to the correct tenant
         /// for the given subscription. Useful for direct REST calls (e.g. Kudu API).
         /// </summary>
@@ -73,7 +85,7 @@ namespace AzureExplorer.Core.Services
         internal ArmClient GetClient(string subscriptionId = null)
         {
             var cacheKey = subscriptionId ?? string.Empty;
-            return _clientCache.GetOrAdd(cacheKey, _ => new ArmClient(GetCredential(subscriptionId)));
+            return _clientCache.GetOrAdd(cacheKey, _ => CreateArmClient(GetCredential(subscriptionId)));
         }
 
         /// <summary>
@@ -121,7 +133,7 @@ namespace AzureExplorer.Core.Services
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             TokenCredential credential = AzureAuthService.Instance.GetCredential(accountId);
-            var client = new ArmClient(credential);
+            ArmClient client = CreateArmClient(credential);
 
             await foreach (TenantResource tenant in client.GetTenants().GetAllAsync(cancellationToken))
             {
@@ -143,7 +155,7 @@ namespace AzureExplorer.Core.Services
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             TokenCredential credential = AzureAuthService.Instance.GetSilentCredential(accountId);
-            var client = new ArmClient(credential);
+            ArmClient client = CreateArmClient(credential);
 
             await foreach (TenantResource tenant in client.GetTenants().GetAllAsync(cancellationToken))
             {
@@ -166,7 +178,7 @@ namespace AzureExplorer.Core.Services
         {
             TokenCredential credential = AzureAuthService.Instance.GetCredential(accountId);
             var tenantCredential = new TenantScopedCredential(credential, tenantId);
-            var tenantClient = new ArmClient(tenantCredential);
+            ArmClient tenantClient = CreateArmClient(tenantCredential);
 
             await foreach (SubscriptionResource sub in tenantClient.GetSubscriptions().GetAllAsync(cancellationToken))
             {
@@ -191,7 +203,7 @@ namespace AzureExplorer.Core.Services
         {
             TokenCredential credential = AzureAuthService.Instance.GetSilentCredential(accountId);
             var tenantCredential = new TenantScopedCredential(credential, tenantId);
-            var tenantClient = new ArmClient(tenantCredential);
+            ArmClient tenantClient = CreateArmClient(tenantCredential);
 
             await foreach (SubscriptionResource sub in tenantClient.GetSubscriptions().GetAllAsync(cancellationToken))
             {
@@ -213,7 +225,7 @@ namespace AzureExplorer.Core.Services
         {
             TokenCredential credential = AzureAuthService.Instance.GetSilentCredential(accountId);
             var tenantCredential = new TenantScopedCredential(credential, tenantId);
-            return new ArmClient(tenantCredential);
+            return CreateArmClient(tenantCredential);
         }
 
         /// <summary>
