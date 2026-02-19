@@ -42,10 +42,10 @@ namespace AzureExplorer.Core.Models
                 SubscriptionResource sub = client.GetSubscriptionResource(
                     SubscriptionResource.CreateResourceIdentifier(SubscriptionId));
 
-                int count = 0;
+                var count = 0;
 
                 // Filter by resource type using OData filter
-                string filter = $"resourceType eq '{ResourceType}'";
+                var filter = $"resourceType eq '{ResourceType}'";
 
                 // Expand to include resource properties (state, etc.)
                 await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, expand: "properties", cancellationToken: cancellationToken))
@@ -56,10 +56,10 @@ namespace AzureExplorer.Core.Models
                     if (!ShouldIncludeResource(resource))
                         continue;
 
-                    string name = resource.Data.Name;
-                    string resourceGroup = resource.Id.ResourceGroupName;
+                    var name = resource.Data.Name;
+                    var resourceGroup = resource.Id.ResourceGroupName;
 
-                    var node = CreateNodeFromResource(name, resourceGroup, resource);
+                    ExplorerNodeBase node = CreateNodeFromResource(name, resourceGroup, resource);
                     if (node != null)
                     {
                         InsertChildSorted(node);
@@ -100,7 +100,7 @@ namespace AzureExplorer.Core.Models
         {
             node.Parent = this;
 
-            int index = 0;
+            var index = 0;
             while (index < Children.Count &&
                    string.Compare(Children[index].Label, node.Label, StringComparison.OrdinalIgnoreCase) < 0)
             {

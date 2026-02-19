@@ -31,7 +31,7 @@ internal sealed class SearchAccountNode : ExplorerNodeBase
     public SearchSubscriptionNode GetOrCreateSubscription(string subscriptionId, string subscriptionName)
     {
         // Check if we already have this subscription
-        foreach (var child in Children)
+        foreach (ExplorerNodeBase child in Children)
         {
             if (child is SearchSubscriptionNode subNode && subNode.SubscriptionId == subscriptionId)
             {

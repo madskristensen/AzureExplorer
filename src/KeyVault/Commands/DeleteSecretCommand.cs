@@ -14,7 +14,7 @@ namespace AzureExplorer.KeyVault.Commands
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             // Confirm deletion
-            bool confirmed = await VS.MessageBox.ShowConfirmAsync(
+            var confirmed = await VS.MessageBox.ShowConfirmAsync(
                 "Delete Secret",
                 $"Are you sure you want to delete the secret '{node.Label}'?\n\nThis action cannot be undone.");
 

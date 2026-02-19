@@ -17,7 +17,7 @@ namespace AzureExplorer.KeyVault.Commands
             {
                 await VS.StatusBar.ShowMessageAsync($"Retrieving secret value...");
 
-                string value = await AzureResourceService.Instance.GetSecretValueAsync(
+                var value = await AzureResourceService.Instance.GetSecretValueAsync(
                     node.SubscriptionId,
                     node.VaultUri,
                     node.Label);

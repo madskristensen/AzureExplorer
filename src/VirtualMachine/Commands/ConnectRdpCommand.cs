@@ -27,7 +27,7 @@ namespace AzureExplorer.VirtualMachine.Commands
                 await VS.StatusBar.ShowMessageAsync($"Connecting to {node.Label} via RDP...");
 
                 // Get the public IP address
-                string publicIp = node.PublicIpAddress;
+                var publicIp = node.PublicIpAddress;
 
                 if (string.IsNullOrEmpty(publicIp))
                 {
@@ -51,11 +51,11 @@ namespace AzureExplorer.VirtualMachine.Commands
                 }
 
                 // Create a temporary .rdp file for better control over connection settings
-                string rdpContent = $@"full address:s:{publicIp}
+                var rdpContent = $@"full address:s:{publicIp}
 prompt for credentials:i:1
 administrative session:i:1";
 
-                string rdpPath = Path.Combine(Path.GetTempPath(), $"{node.Label}.rdp");
+                var rdpPath = Path.Combine(Path.GetTempPath(), $"{node.Label}.rdp");
                 File.WriteAllText(rdpPath, rdpContent);
 
                 // Launch the RDP file (opens with the default RDP client)

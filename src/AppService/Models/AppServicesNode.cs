@@ -61,7 +61,7 @@ namespace AzureExplorer.AppService.Models
                 }
 
                 // Sort alphabetically by name
-                foreach (var node in appServices.OrderBy(a => a.Label, StringComparer.OrdinalIgnoreCase))
+                foreach (AppServiceNode node in appServices.OrderBy(a => a.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

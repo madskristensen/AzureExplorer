@@ -19,7 +19,7 @@ namespace AzureExplorer.Storage.Commands
                 return;
 
             // Confirm deletion
-            bool confirmed = await VS.MessageBox.ShowConfirmAsync(
+            var confirmed = await VS.MessageBox.ShowConfirmAsync(
                 "Delete Blob",
                 $"Are you sure you want to delete '{blobNode.Label}'?\n\nThis action cannot be undone.");
 

@@ -19,12 +19,12 @@ namespace AzureExplorer.VirtualMachine.Commands
                 await VS.StatusBar.ShowMessageAsync($"Fetching IP address for {node.Label}...");
 
                 // Try to get public IP first, fall back to private IP
-                string ipAddress = await VirtualMachineManager.Instance.GetPublicIpAddressAsync(
+                var ipAddress = await VirtualMachineManager.Instance.GetPublicIpAddressAsync(
                     node.SubscriptionId,
                     node.ResourceGroupName,
                     node.Label);
 
-                string ipType = "Public";
+                var ipType = "Public";
 
                 if (string.IsNullOrEmpty(ipAddress))
                 {

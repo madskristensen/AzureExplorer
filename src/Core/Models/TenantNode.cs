@@ -61,7 +61,7 @@ namespace AzureExplorer.Core.Models
                 }
 
                 // Sort alphabetically by name
-                foreach (var node in subscriptions.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
+                foreach (SubscriptionNode node in subscriptions.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

@@ -48,7 +48,7 @@ namespace AzureExplorer.ResourceGroup.Models
                 }
 
                 // Sort alphabetically by name
-                foreach (var node in resourceGroups.OrderBy(r => r.Label, StringComparer.OrdinalIgnoreCase))
+                foreach (ResourceGroupNode node in resourceGroups.OrderBy(r => r.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

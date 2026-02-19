@@ -62,7 +62,7 @@ namespace AzureExplorer.Core.Services
         {
             lock (_lock)
             {
-                if (_accounts.TryGetValue(accountId, out var account))
+                if (_accounts.TryGetValue(accountId, out AccountCredential account))
                     return account.Credential;
             }
 
@@ -76,17 +76,17 @@ namespace AzureExplorer.Core.Services
         /// </summary>
         public async Task<int> TrySilentSignInAsync(CancellationToken cancellationToken = default)
         {
-            var records = await LoadAllAuthRecordsAsync();
+            List<AuthenticationRecord> records = await LoadAllAuthRecordsAsync();
             if (records.Count == 0)
             {
                 // Migration: try loading legacy single-account auth record
-                var legacyRecord = await LoadLegacyAuthRecordAsync();
+                AuthenticationRecord legacyRecord = await LoadLegacyAuthRecordAsync();
                 if (legacyRecord != null)
                     records.Add(legacyRecord);
             }
 
-            int restored = 0;
-            foreach (var record in records)
+            var restored = 0;
+            foreach (AuthenticationRecord record in records)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -111,7 +111,7 @@ namespace AzureExplorer.Core.Services
                     await silentCredential.GetTokenAsync(context, cancellationToken);
 
                     // Silent token acquisition succeeded — create the real credential
-                    var credential = CreateCredential(record);
+                    InteractiveBrowserCredential credential = CreateCredential(record);
                     var accountId = GetAccountId(record);
 
                     lock (_lock)
@@ -240,7 +240,7 @@ namespace AzureExplorer.Core.Services
         private static string GetSafeFileName(string accountId)
         {
             // Create a safe filename from the account ID
-            foreach (char c in Path.GetInvalidFileNameChars())
+            foreach (var c in Path.GetInvalidFileNameChars())
             {
                 accountId = accountId.Replace(c, '_');
             }

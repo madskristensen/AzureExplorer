@@ -52,7 +52,7 @@ namespace AzureExplorer.Core.Services
             else
             {
                 // Fall back to first available account
-                var accounts = AzureAuthService.Instance.Accounts;
+                IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
                 if (accounts.Count == 0)
                     throw new InvalidOperationException("Not signed in to Azure.");
                 credential = accounts[0].Credential;

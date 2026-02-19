@@ -1,10 +1,8 @@
-using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using AzureExplorer.Core.Search;
 
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace AzureExplorer.ToolWindows;
@@ -31,11 +29,11 @@ internal sealed class AzureSearchTask : VsSearchTask
     protected override void OnStartSearch()
     {
         ErrorCode = VSConstants.S_OK;
-        int resultCount = 0;
+        var resultCount = 0;
 
         try
         {
-            string searchText = SearchQuery.SearchString?.Trim();
+            var searchText = SearchQuery.SearchString?.Trim();
 
             if (string.IsNullOrEmpty(searchText))
             {
@@ -52,7 +50,7 @@ internal sealed class AzureSearchTask : VsSearchTask
 
             // Run the async search synchronously on this background thread
             // The search task is already on a background thread, so we can block here
-            var searchTask = AzureSearchService.Instance.SearchAllResourcesAsync(
+            Task<uint> searchTask = AzureSearchService.Instance.SearchAllResourcesAsync(
                 searchText,
                 onResultFound: result =>
                 {

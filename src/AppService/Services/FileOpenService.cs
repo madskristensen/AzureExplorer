@@ -95,14 +95,14 @@ namespace AzureExplorer.AppService.Services
                     if (!Directory.Exists(TempBasePath))
                         return;
 
-                    var cutoff = DateTime.UtcNow - MaxFileAge;
+                    DateTime cutoff = DateTime.UtcNow - MaxFileAge;
 
                     // Clean up old files
                     foreach (var file in Directory.EnumerateFiles(TempBasePath, "*", SearchOption.AllDirectories))
                     {
                         try
                         {
-                            var lastAccess = File.GetLastAccessTimeUtc(file);
+                            DateTime lastAccess = File.GetLastAccessTimeUtc(file);
                             if (lastAccess < cutoff)
                             {
                                 File.Delete(file);

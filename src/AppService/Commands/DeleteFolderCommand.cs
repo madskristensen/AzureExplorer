@@ -14,7 +14,7 @@ namespace AzureExplorer.AppService.Commands
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             // Confirm deletion
-            bool confirmed = await VS.MessageBox.ShowConfirmAsync(
+            var confirmed = await VS.MessageBox.ShowConfirmAsync(
                 "Delete Folder",
                 $"Are you sure you want to delete the folder '{node.Label}' and all its contents?\n\nThis action cannot be undone.");
 

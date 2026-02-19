@@ -48,7 +48,7 @@ namespace AzureExplorer.Core.Models
                 }
 
                 // Sort alphabetically by display name
-                foreach (var node in tenants.OrderBy(t => t.Label, StringComparer.OrdinalIgnoreCase))
+                foreach (TenantNode node in tenants.OrderBy(t => t.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

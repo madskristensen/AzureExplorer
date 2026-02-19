@@ -31,7 +31,7 @@ namespace AzureExplorer.Storage.Commands
             // Try to set filter based on content type
             if (!string.IsNullOrEmpty(blobNode.ContentType))
             {
-                string extension = GetExtensionFromContentType(blobNode.ContentType);
+                var extension = GetExtensionFromContentType(blobNode.ContentType);
                 if (!string.IsNullOrEmpty(extension))
                 {
                     dialog.DefaultExt = extension;

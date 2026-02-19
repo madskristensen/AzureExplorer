@@ -26,7 +26,7 @@ namespace AzureExplorer.VirtualMachine.Commands
                 await VS.StatusBar.ShowMessageAsync($"Connecting to {node.Label} via SSH...");
 
                 // Get the public IP address
-                string publicIp = node.PublicIpAddress;
+                var publicIp = node.PublicIpAddress;
 
                 if (string.IsNullOrEmpty(publicIp))
                 {
@@ -50,7 +50,7 @@ namespace AzureExplorer.VirtualMachine.Commands
                 }
 
                 // Try to launch Windows Terminal first, fall back to cmd with ssh
-                bool launched = TryLaunchWindowsTerminal(publicIp) ||
+                var launched = TryLaunchWindowsTerminal(publicIp) ||
                                 TryLaunchSshInCmd(publicIp);
 
                 if (launched)

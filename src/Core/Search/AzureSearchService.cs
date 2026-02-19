@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -68,97 +66,88 @@ internal sealed class AzureSearchService
         if (string.IsNullOrWhiteSpace(searchText))
             return 0;
 
-        var accounts = AzureAuthService.Instance.Accounts;
+        IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
         if (accounts.Count == 0)
             return 0;
 
-        // First, collect all subscriptions across all accounts/tenants in parallel
-        var subscriptionInfos = new ConcurrentBag<SubscriptionSearchInfo>();
-        var tenantTasks = new List<Task>();
+        var totalResults = 0;
+        var subscriptionsSearched = 0;
+        var totalSubscriptionsEstimate = 0;
 
-        foreach (var account in accounts)
+        // Higher concurrency for network-bound I/O operations
+        var semaphore = new SemaphoreSlim(16);
+        var searchTasks = new ConcurrentBag<Task>();
+        var allTasksStarted = new TaskCompletionSource<bool>();
+
+        // Stream-start: begin searching subscriptions as they're discovered (no two-phase wait)
+        IEnumerable<Task> collectAndSearchTasks = accounts.Select(async account =>
         {
-            tenantTasks.Add(CollectSubscriptionsForAccountAsync(account, subscriptionInfos, cancellationToken));
-        }
-
-        await Task.WhenAll(tenantTasks).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var allSubscriptions = subscriptionInfos.ToArray();
-        uint totalSubscriptions = (uint)allSubscriptions.Length;
-        int subscriptionsSearched = 0;
-        int totalResults = 0;
-
-        onProgress?.Invoke(0, totalSubscriptions);
-
-        // Search all subscriptions in parallel with controlled concurrency
-        var semaphore = new SemaphoreSlim(Environment.ProcessorCount * 2);
-        var searchTasks = new List<Task>();
-
-        foreach (var subInfo in allSubscriptions)
-        {
-            searchTasks.Add(SearchSubscriptionAsync(
-                subInfo,
-                searchText,
-                result =>
+            try
+            {
+                // Collect tenants for this account
+                var tenants = new List<TenantInfo>();
+                await foreach (TenantInfo tenant in AzureResourceService.Instance.GetTenantsAsync(account.AccountId, cancellationToken))
                 {
-                    Interlocked.Increment(ref totalResults);
-                    onResultFound?.Invoke(result);
-                },
-                () =>
-                {
-                    int searched = Interlocked.Increment(ref subscriptionsSearched);
-                    onProgress?.Invoke((uint)searched, totalSubscriptions);
-                },
-                semaphore,
-                cancellationToken));
-        }
+                    tenants.Add(tenant);
+                }
 
+                // Process tenants in parallel
+                IEnumerable<Task> tenantTasks = tenants.Select(async tenant =>
+                {
+                    try
+                    {
+                        await foreach (SubscriptionResource sub in AzureResourceService.Instance.GetSubscriptionsForTenantAsync(
+                            account.AccountId, tenant.TenantId, cancellationToken))
+                        {
+                            Interlocked.Increment(ref totalSubscriptionsEstimate);
+
+                            var subInfo = new SubscriptionSearchInfo(
+                                account.AccountId,
+                                account.Username,
+                                sub.Data.SubscriptionId,
+                                sub.Data.DisplayName);
+
+                            // Start searching this subscription immediately (don't wait for all subs)
+                            Task searchTask = SearchSubscriptionAsync(
+                                subInfo,
+                                searchText,
+                                result =>
+                                {
+                                    Interlocked.Increment(ref totalResults);
+                                    onResultFound?.Invoke(result);
+                                },
+                                () =>
+                                {
+                                    var searched = Interlocked.Increment(ref subscriptionsSearched);
+                                    onProgress?.Invoke((uint)searched, (uint)Math.Max(totalSubscriptionsEstimate, searched));
+                                },
+                                semaphore,
+                                cancellationToken);
+
+                            searchTasks.Add(searchTask);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Search: Failed to get subscriptions for tenant {tenant.TenantId}: {ex.Message}");
+                    }
+                });
+
+                await Task.WhenAll(tenantTasks).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Search: Failed to get tenants for account {account.Username}: {ex.Message}");
+            }
+        });
+
+        // Wait for all collection tasks to start their search tasks
+        await Task.WhenAll(collectAndSearchTasks).ConfigureAwait(false);
+
+        // Wait for all search tasks to complete
         await Task.WhenAll(searchTasks).ConfigureAwait(false);
 
         return (uint)totalResults;
-    }
-
-    private async Task CollectSubscriptionsForAccountAsync(
-        AccountInfo account,
-        ConcurrentBag<SubscriptionSearchInfo> subscriptionInfos,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var tenants = new List<TenantInfo>();
-            await foreach (var tenant in AzureResourceService.Instance.GetTenantsAsync(account.AccountId, cancellationToken))
-            {
-                tenants.Add(tenant);
-            }
-
-            // Query subscriptions for each tenant in parallel
-            var tenantSubTasks = tenants.Select(async tenant =>
-            {
-                try
-                {
-                    await foreach (var sub in AzureResourceService.Instance.GetSubscriptionsForTenantAsync(
-                        account.AccountId, tenant.TenantId, cancellationToken))
-                    {
-                        subscriptionInfos.Add(new SubscriptionSearchInfo(
-                            account.AccountId,
-                            account.Username,
-                            sub.Data.SubscriptionId,
-                            sub.Data.DisplayName));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Search: Failed to get subscriptions for tenant {tenant.TenantId}: {ex.Message}");
-                }
-            });
-
-            await Task.WhenAll(tenantSubTasks).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Search: Failed to get tenants for account {account.Username}: {ex.Message}");
-        }
     }
 
     private async Task SearchSubscriptionAsync(
@@ -177,26 +166,27 @@ internal sealed class AzureSearchService
                 SubscriptionResource.CreateResourceIdentifier(subInfo.SubscriptionId));
 
             // Search all resource types in parallel within this subscription
-            var resourceTypeTasks = SearchableResourceTypes.Select(async rt =>
+            IEnumerable<Task> resourceTypeTasks = SearchableResourceTypes.Select(async rt =>
             {
                 try
                 {
-                    // Include properties for creating proper nodes
-                    string filter = $"resourceType eq '{rt.ResourceType}'";
+                    // Don't expand properties - saves significant API overhead
+                    // Properties will load lazily when user expands the node
+                    var filter = $"resourceType eq '{rt.ResourceType}'";
 
-                    await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, expand: "properties", cancellationToken: cancellationToken))
+                    await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, cancellationToken: cancellationToken))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        string resourceName = resource.Data.Name;
+                        var resourceName = resource.Data.Name;
 
                         // Case-insensitive substring match
                         if (resourceName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            string resourceGroup = resource.Id.ResourceGroupName;
+                            var resourceGroup = resource.Id.ResourceGroupName;
 
-                            // Create the actual resource node for this result
-                            ExplorerNodeBase actualNode = CreateResourceNode(
+                            // Create a lightweight resource node (properties load on expand)
+                            ExplorerNodeBase actualNode = CreateResourceNodeLightweight(
                                 rt.ResourceType,
                                 resourceName,
                                 subInfo.SubscriptionId,
@@ -245,9 +235,9 @@ internal sealed class AzureSearchService
     }
 
     /// <summary>
-    /// Creates the appropriate resource node based on the resource type.
+    /// Creates a lightweight resource node without full properties (faster for search).
     /// </summary>
-    private static ExplorerNodeBase CreateResourceNode(
+    private static ExplorerNodeBase CreateResourceNodeLightweight(
         string resourceType,
         string name,
         string subscriptionId,
@@ -256,15 +246,16 @@ internal sealed class AzureSearchService
     {
         try
         {
+            // Create nodes with minimal data - properties will load on expand
             return resourceType switch
             {
-                "Microsoft.Web/sites" => CreateWebSiteNode(name, subscriptionId, resourceGroup, resource),
-                "Microsoft.Web/serverfarms" => CreateAppServicePlanNode(name, subscriptionId, resourceGroup, resource),
-                "Microsoft.Storage/storageAccounts" => CreateStorageAccountNode(name, subscriptionId, resourceGroup, resource),
-                "Microsoft.KeyVault/vaults" => CreateKeyVaultNode(name, subscriptionId, resourceGroup, resource),
-                "Microsoft.Sql/servers" => CreateSqlServerNode(name, subscriptionId, resourceGroup, resource),
-                "Microsoft.Compute/virtualMachines" => CreateVirtualMachineNode(name, subscriptionId, resourceGroup, resource),
-                "Microsoft.Cdn/profiles/endpoints" => CreateFrontDoorNode(name, subscriptionId, resourceGroup, resource),
+                "Microsoft.Web/sites" => CreateWebSiteNodeLightweight(name, subscriptionId, resourceGroup, resource),
+                "Microsoft.Web/serverfarms" => new AppServicePlanNode(name, subscriptionId, resourceGroup, resource.Data.Sku?.Name, resource.Data.Kind, null),
+                "Microsoft.Storage/storageAccounts" => new StorageAccountNode(name, subscriptionId, resourceGroup, null, resource.Data.Kind, resource.Data.Sku?.Name),
+                "Microsoft.KeyVault/vaults" => new KeyVaultNode(name, subscriptionId, resourceGroup, null, null),
+                "Microsoft.Sql/servers" => new SqlServerNode(name, subscriptionId, resourceGroup, null, null),
+                "Microsoft.Compute/virtualMachines" => new VirtualMachineNode(name, subscriptionId, resourceGroup, null, null, null, null, null),
+                "Microsoft.Cdn/profiles/endpoints" => new FrontDoorNode(name, subscriptionId, resourceGroup, null, null),
                 _ => null
             };
         }
@@ -275,151 +266,15 @@ internal sealed class AzureSearchService
         }
     }
 
-    private static ExplorerNodeBase CreateWebSiteNode(string name, string subscriptionId, string resourceGroup, GenericResource resource)
+    private static ExplorerNodeBase CreateWebSiteNodeLightweight(string name, string subscriptionId, string resourceGroup, GenericResource resource)
     {
-        string state = null;
-        string defaultHostName = null;
-
-        if (resource.Data.Properties != null)
+        // Check if it's a Function App (kind contains "functionapp")
+        var kind = resource.Data.Kind;
+        if (!string.IsNullOrEmpty(kind) && kind.IndexOf("functionapp", StringComparison.OrdinalIgnoreCase) >= 0)
         {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
-                JsonElement root = doc.RootElement;
-
-                if (root.TryGetProperty("state", out JsonElement stateElement))
-                    state = stateElement.GetString();
-
-                if (root.TryGetProperty("defaultHostName", out JsonElement hostElement))
-                    defaultHostName = hostElement.GetString();
-
-                // Check if it's a Function App (kind contains "functionapp")
-                string kind = resource.Data.Kind;
-                if (!string.IsNullOrEmpty(kind) && kind.IndexOf("functionapp", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return new FunctionAppNode(name, subscriptionId, resourceGroup, state, defaultHostName);
-                }
-            }
-            catch { }
+            return new FunctionAppNode(name, subscriptionId, resourceGroup, null, null);
         }
-
-        return new AppServiceNode(name, subscriptionId, resourceGroup, state, defaultHostName);
-    }
-
-    private static AppServicePlanNode CreateAppServicePlanNode(string name, string subscriptionId, string resourceGroup, GenericResource resource)
-    {
-        string sku = resource.Data.Sku?.Name;
-        string kind = resource.Data.Kind;
-        int? numberOfSites = null;
-
-        if (resource.Data.Properties != null)
-        {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
-                if (doc.RootElement.TryGetProperty("numberOfSites", out JsonElement sitesElement))
-                    numberOfSites = sitesElement.GetInt32();
-            }
-            catch { }
-        }
-
-        return new AppServicePlanNode(name, subscriptionId, resourceGroup, sku, kind, numberOfSites);
-    }
-
-    private static StorageAccountNode CreateStorageAccountNode(string name, string subscriptionId, string resourceGroup, GenericResource resource)
-    {
-        string state = null;
-        string kind = resource.Data.Kind;
-        string skuName = resource.Data.Sku?.Name;
-
-        if (resource.Data.Properties != null)
-        {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
-                if (doc.RootElement.TryGetProperty("provisioningState", out JsonElement stateElement))
-                    state = stateElement.GetString();
-            }
-            catch { }
-        }
-
-        return new StorageAccountNode(name, subscriptionId, resourceGroup, state, kind, skuName);
-    }
-
-    private static KeyVaultNode CreateKeyVaultNode(string name, string subscriptionId, string resourceGroup, GenericResource resource)
-    {
-        string state = null;
-        string vaultUri = null;
-
-        if (resource.Data.Properties != null)
-        {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
-
-                if (doc.RootElement.TryGetProperty("provisioningState", out JsonElement stateElement))
-                    state = stateElement.GetString();
-
-                if (doc.RootElement.TryGetProperty("vaultUri", out JsonElement uriElement))
-                    vaultUri = uriElement.GetString();
-            }
-            catch { }
-        }
-
-        return new KeyVaultNode(name, subscriptionId, resourceGroup, state, vaultUri);
-    }
-
-    private static SqlServerNode CreateSqlServerNode(string name, string subscriptionId, string resourceGroup, GenericResource resource)
-    {
-        string state = null;
-        string fqdn = null;
-
-        if (resource.Data.Properties != null)
-        {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
-
-                if (doc.RootElement.TryGetProperty("state", out JsonElement stateElement))
-                    state = stateElement.GetString();
-
-                if (doc.RootElement.TryGetProperty("fullyQualifiedDomainName", out JsonElement fqdnElement))
-                    fqdn = fqdnElement.GetString();
-            }
-            catch { }
-        }
-
-        return new SqlServerNode(name, subscriptionId, resourceGroup, state, fqdn);
-    }
-
-    private static VirtualMachineNode CreateVirtualMachineNode(string name, string subscriptionId, string resourceGroup, GenericResource resource)
-    {
-        // Power state and IPs require instance view which isn't in generic resource properties
-        // They will be loaded when the node is expanded
-        return new VirtualMachineNode(name, subscriptionId, resourceGroup, null, null, null, null, null);
-    }
-
-    private static FrontDoorNode CreateFrontDoorNode(string name, string subscriptionId, string resourceGroup, GenericResource resource)
-    {
-        string state = null;
-        string hostName = null;
-
-        if (resource.Data.Properties != null)
-        {
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(resource.Data.Properties);
-
-                if (doc.RootElement.TryGetProperty("enabledState", out JsonElement stateElement))
-                    state = stateElement.GetString();
-
-                if (doc.RootElement.TryGetProperty("hostName", out JsonElement hostElement))
-                    hostName = hostElement.GetString();
-            }
-            catch { }
-        }
-
-        return new FrontDoorNode(name, subscriptionId, resourceGroup, state, hostName);
+        return new AppServiceNode(name, subscriptionId, resourceGroup, null, null);
     }
 
     private sealed class SubscriptionSearchInfo

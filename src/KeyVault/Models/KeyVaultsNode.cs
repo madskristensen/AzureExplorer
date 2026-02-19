@@ -61,7 +61,7 @@ namespace AzureExplorer.KeyVault.Models
                 }
 
                 // Sort alphabetically by name
-                foreach (var node in keyVaults.OrderBy(k => k.Label, StringComparer.OrdinalIgnoreCase))
+                foreach (KeyVaultNode node in keyVaults.OrderBy(k => k.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

@@ -45,12 +45,12 @@ namespace AzureExplorer.VirtualMachine.Models
                 ResourceGroupResource rg = (await sub.GetResourceGroupAsync(ResourceGroupName, cancellationToken)).Value;
 
                 // Query VMs in this resource group
-                string filter = "resourceType eq 'Microsoft.Compute/virtualMachines'";
+                var filter = "resourceType eq 'Microsoft.Compute/virtualMachines'";
                 await foreach (GenericResource resource in rg.GetGenericResourcesAsync(filter: filter, expand: "properties", cancellationToken: cancellationToken))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    string name = resource.Data.Name;
+                    var name = resource.Data.Name;
                     string vmSize = null;
                     string osType = null;
 
@@ -110,7 +110,7 @@ namespace AzureExplorer.VirtualMachine.Models
         /// </summary>
         private void InsertChildSorted(ExplorerNodeBase node)
         {
-            int index = 0;
+            var index = 0;
             while (index < Children.Count &&
                    string.Compare(Children[index].Label, node.Label, StringComparison.OrdinalIgnoreCase) < 0)
             {

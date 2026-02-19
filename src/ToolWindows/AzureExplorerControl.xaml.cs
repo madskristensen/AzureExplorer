@@ -116,7 +116,7 @@ namespace AzureExplorer.ToolWindows
         {
             RootNodes.Clear();
 
-            var accounts = AzureAuthService.Instance.Accounts;
+            IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
             if (accounts.Count == 0)
             {
                 // Show empty state panel, hide tree view
@@ -130,7 +130,7 @@ namespace AzureExplorer.ToolWindows
             EmptyStatePanel.Visibility = Visibility.Collapsed;
 
             // Create an AccountNode for each signed-in account
-            foreach (var account in accounts.OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase))
+            foreach (AccountInfo account in accounts.OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase))
             {
                 var accountNode = new AccountNode(account.AccountId, account.Username);
                 RootNodes.Add(accountNode);
@@ -320,97 +320,97 @@ namespace AzureExplorer.ToolWindows
                 }
             };
 
-                    shell.ShowContextMenu(0, ref guid, menuId, points, null);
-                    }
+            shell.ShowContextMenu(0, ref guid, menuId, points, null);
+        }
 
-                    /// <summary>
-                    /// Shows the tree view and restores original nodes after search is cleared.
-                    /// </summary>
-                    internal void ShowTreeView()
-                    {
-                        if (_isSearchActive && _savedRootNodes.Count > 0)
-                        {
-                            // Restore saved nodes
-                            RootNodes.Clear();
-                            foreach (var node in _savedRootNodes)
-                            {
-                                RootNodes.Add(node);
-                            }
-                            _savedRootNodes.Clear();
-                        }
+        /// <summary>
+        /// Shows the tree view and restores original nodes after search is cleared.
+        /// </summary>
+        internal void ShowTreeView()
+        {
+            if (_isSearchActive && _savedRootNodes.Count > 0)
+            {
+                // Restore saved nodes
+                RootNodes.Clear();
+                foreach (ExplorerNodeBase node in _savedRootNodes)
+                {
+                    RootNodes.Add(node);
+                }
+                _savedRootNodes.Clear();
+            }
 
-                        _isSearchActive = false;
+            _isSearchActive = false;
 
-                        if (RootNodes.Count > 0)
-                        {
-                            ExplorerTree.Visibility = Visibility.Visible;
-                            EmptyStatePanel.Visibility = Visibility.Collapsed;
-                        }
-                        else
-                        {
-                            ExplorerTree.Visibility = Visibility.Collapsed;
-                            EmptyStatePanel.Visibility = Visibility.Visible;
-                        }
-                    }
+            if (RootNodes.Count > 0)
+            {
+                ExplorerTree.Visibility = Visibility.Visible;
+                EmptyStatePanel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                ExplorerTree.Visibility = Visibility.Collapsed;
+                EmptyStatePanel.Visibility = Visibility.Visible;
+            }
+        }
 
-                    /// <summary>
-                    /// Prepares the tree view for search results by saving current nodes.
-                    /// </summary>
-                    internal void BeginSearch()
-                    {
-                        if (!_isSearchActive)
-                        {
-                            // Save current nodes before clearing for search
-                            _savedRootNodes.Clear();
-                            foreach (var node in RootNodes)
-                            {
-                                _savedRootNodes.Add(node);
-                            }
-                            RootNodes.Clear();
-                            _isSearchActive = true;
-                        }
-                        else
-                        {
-                            // Already in search mode, just clear results
-                            RootNodes.Clear();
-                        }
+        /// <summary>
+        /// Prepares the tree view for search results by saving current nodes.
+        /// </summary>
+        internal void BeginSearch()
+        {
+            if (!_isSearchActive)
+            {
+                // Save current nodes before clearing for search
+                _savedRootNodes.Clear();
+                foreach (ExplorerNodeBase node in RootNodes)
+                {
+                    _savedRootNodes.Add(node);
+                }
+                RootNodes.Clear();
+                _isSearchActive = true;
+            }
+            else
+            {
+                // Already in search mode, just clear results
+                RootNodes.Clear();
+            }
 
-                        ExplorerTree.Visibility = Visibility.Visible;
-                        EmptyStatePanel.Visibility = Visibility.Collapsed;
-                    }
+            ExplorerTree.Visibility = Visibility.Visible;
+            EmptyStatePanel.Visibility = Visibility.Collapsed;
+        }
 
-                    /// <summary>
-                    /// Adds a search result node to the tree view, maintaining Account > Subscription hierarchy.
-                    /// </summary>
-                    internal void AddSearchResultNode(SearchResultNode resultNode)
-                    {
-                        if (!_isSearchActive)
-                            return;
+        /// <summary>
+        /// Adds a search result node to the tree view, maintaining Account > Subscription hierarchy.
+        /// </summary>
+        internal void AddSearchResultNode(SearchResultNode resultNode)
+        {
+            if (!_isSearchActive)
+                return;
 
-                        // Find or create the account node
-                        SearchAccountNode accountNode = null;
-                        foreach (var node in RootNodes)
-                        {
-                            if (node is SearchAccountNode acct && acct.Label == resultNode.AccountName)
-                            {
-                                accountNode = acct;
-                                break;
-                            }
-                        }
+            // Find or create the account node
+            SearchAccountNode accountNode = null;
+            foreach (ExplorerNodeBase node in RootNodes)
+            {
+                if (node is SearchAccountNode acct && acct.Label == resultNode.AccountName)
+                {
+                    accountNode = acct;
+                    break;
+                }
+            }
 
-                        if (accountNode == null)
-                        {
-                            accountNode = new SearchAccountNode(resultNode.AccountName, resultNode.AccountName);
-                            RootNodes.Add(accountNode);
-                        }
+            if (accountNode == null)
+            {
+                accountNode = new SearchAccountNode(resultNode.AccountName, resultNode.AccountName);
+                RootNodes.Add(accountNode);
+            }
 
-                        // Find or create the subscription node under the account
-                        var subscriptionNode = accountNode.GetOrCreateSubscription(
+            // Find or create the subscription node under the account
+            SearchSubscriptionNode subscriptionNode = accountNode.GetOrCreateSubscription(
                             resultNode.SubscriptionId,
                             resultNode.SubscriptionName);
 
-                        // Add the result under the subscription
-                        subscriptionNode.AddResult(resultNode);
-                    }
-                }
-            }
+            // Add the result under the subscription
+            subscriptionNode.AddResult(resultNode);
+        }
+    }
+}

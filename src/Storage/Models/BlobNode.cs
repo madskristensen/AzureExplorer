@@ -96,10 +96,10 @@ namespace AzureExplorer.Storage.Models
                     if (item.IsPrefix)
                     {
                         // Virtual directory
-                        string folderName = item.Prefix.TrimEnd('/');
+                        var folderName = item.Prefix.TrimEnd('/');
                         // Get just the folder name without parent path
-                        int lastSlash = folderName.LastIndexOf('/');
-                        string displayName = lastSlash >= 0 ? folderName.Substring(lastSlash + 1) : folderName;
+                        var lastSlash = folderName.LastIndexOf('/');
+                        var displayName = lastSlash >= 0 ? folderName.Substring(lastSlash + 1) : folderName;
 
                         blobs.Add(new BlobNode(
                             displayName,
@@ -115,9 +115,9 @@ namespace AzureExplorer.Storage.Models
                     else if (item.Blob != null)
                     {
                         // Get just the file name without parent path
-                        string blobName = item.Blob.Name;
-                        int lastSlash = blobName.LastIndexOf('/');
-                        string displayName = lastSlash >= 0 ? blobName.Substring(lastSlash + 1) : blobName;
+                        var blobName = item.Blob.Name;
+                        var lastSlash = blobName.LastIndexOf('/');
+                        var displayName = lastSlash >= 0 ? blobName.Substring(lastSlash + 1) : blobName;
 
                         blobs.Add(new BlobNode(
                             displayName,
@@ -177,7 +177,7 @@ namespace AzureExplorer.Storage.Models
 
             string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
             double size = bytes.Value;
-            int suffixIndex = 0;
+            var suffixIndex = 0;
 
             while (size >= 1024 && suffixIndex < suffixes.Length - 1)
             {

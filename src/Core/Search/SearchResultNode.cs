@@ -1,5 +1,4 @@
 using System.Threading;
-using System.Threading.Tasks;
 
 using AzureExplorer.Core.Models;
 
@@ -69,7 +68,7 @@ internal sealed class SearchResultNode : ExplorerNodeBase
 
         // Copy children to this node, excluding FilesNode to avoid deep loading
         Children.Clear();
-        foreach (var child in _actualNode.Children)
+        foreach (ExplorerNodeBase child in _actualNode.Children)
         {
             // Skip Files nodes to avoid loading file trees
             if (IsFilesNode(child))
@@ -84,7 +83,7 @@ internal sealed class SearchResultNode : ExplorerNodeBase
     private static bool IsFilesNode(ExplorerNodeBase node)
     {
         // Check by type name to avoid coupling to specific namespace
-        string typeName = node.GetType().Name;
+        var typeName = node.GetType().Name;
         return typeName == "FilesNode";
     }
 }

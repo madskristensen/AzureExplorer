@@ -62,7 +62,7 @@ namespace AzureExplorer.AppServicePlan.Models
                 }
 
                 // Sort alphabetically by name
-                foreach (var node in plans.OrderBy(p => p.Label, StringComparer.OrdinalIgnoreCase))
+                foreach (AppServicePlanNode node in plans.OrderBy(p => p.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

@@ -25,7 +25,7 @@ namespace AzureExplorer.Storage.Commands
             {
                 await VS.StatusBar.ShowMessageAsync("Retrieving connection string...");
 
-                string connectionString = await GetConnectionStringAsync(
+                var connectionString = await GetConnectionStringAsync(
                     node.SubscriptionId,
                     node.ResourceGroupName,
                     node.Label);

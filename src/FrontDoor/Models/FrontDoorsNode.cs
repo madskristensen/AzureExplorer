@@ -79,7 +79,7 @@ namespace AzureExplorer.FrontDoor.Models
                 }
 
                 // Sort alphabetically by name
-                foreach (var node in frontDoors.OrderBy(f => f.Label, StringComparer.OrdinalIgnoreCase))
+                foreach (FrontDoorNode node in frontDoors.OrderBy(f => f.Label, StringComparer.OrdinalIgnoreCase))
                 {
                     AddChild(node);
                 }

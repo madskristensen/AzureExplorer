@@ -76,7 +76,7 @@ namespace AzureExplorer.Storage.Models
                     if (item.IsPrefix)
                     {
                         // Virtual directory - show as folder
-                        string folderName = item.Prefix.TrimEnd('/');
+                        var folderName = item.Prefix.TrimEnd('/');
                         blobs.Add(new BlobNode(
                             folderName,
                             SubscriptionId,

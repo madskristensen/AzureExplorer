@@ -113,7 +113,7 @@ namespace AzureExplorer.VirtualMachine.Models
 
         private void UpdateDescription()
         {
-            string stateText = _state switch
+            var stateText = _state switch
             {
                 VirtualMachineState.Running => "Running",
                 VirtualMachineState.Starting => "Starting...",
@@ -124,7 +124,7 @@ namespace AzureExplorer.VirtualMachine.Models
                 _ => ""
             };
 
-            string osText = OsType switch
+            var osText = OsType switch
             {
                 VirtualMachineOsType.Windows => "Windows",
                 VirtualMachineOsType.Linux => "Linux",
@@ -142,7 +142,7 @@ namespace AzureExplorer.VirtualMachine.Models
                 return VirtualMachineState.Unknown;
 
             // Azure returns power state as "PowerState/running", "PowerState/deallocated", etc.
-            string normalizedState = state.StartsWith("PowerState/", StringComparison.OrdinalIgnoreCase)
+            var normalizedState = state.StartsWith("PowerState/", StringComparison.OrdinalIgnoreCase)
                 ? state.Substring("PowerState/".Length)
                 : state;
 

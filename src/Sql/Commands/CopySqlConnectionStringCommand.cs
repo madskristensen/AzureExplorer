@@ -35,7 +35,7 @@ namespace AzureExplorer.Sql.Commands
             {
                 // Build ADO.NET connection string template
                 // Note: Does not include credentials - user must supply their own
-                string connectionString = BuildConnectionString(serverName, databaseName);
+                var connectionString = BuildConnectionString(serverName, databaseName);
 
                 Clipboard.SetText(connectionString);
                 await VS.StatusBar.ShowMessageAsync($"Connection string copied (credentials required)");

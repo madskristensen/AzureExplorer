@@ -60,7 +60,7 @@ namespace AzureExplorer.Storage.Commands
 
             try
             {
-                int count = dialog.FileNames.Length;
+                var count = dialog.FileNames.Length;
                 await VS.StatusBar.ShowMessageAsync($"Uploading {count} file(s)...");
 
                 await UploadBlobsAsync(subscriptionId, accountName, containerName, prefix, dialog.FileNames);
@@ -92,15 +92,15 @@ namespace AzureExplorer.Storage.Commands
             BlobServiceClient serviceClient = new BlobServiceClient(serviceUri, credential);
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
 
-            foreach (string filePath in filePaths)
+            foreach (var filePath in filePaths)
             {
-                string fileName = Path.GetFileName(filePath);
-                string blobName = string.IsNullOrEmpty(prefix) ? fileName : $"{prefix}{fileName}";
+                var fileName = Path.GetFileName(filePath);
+                var blobName = string.IsNullOrEmpty(prefix) ? fileName : $"{prefix}{fileName}";
 
                 BlobClient blobClient = containerClient.GetBlobClient(blobName);
 
                 // Detect content type
-                string contentType = GetContentType(fileName);
+                var contentType = GetContentType(fileName);
 
                 BlobUploadOptions options = new BlobUploadOptions();
                 if (!string.IsNullOrEmpty(contentType))
@@ -114,7 +114,7 @@ namespace AzureExplorer.Storage.Commands
 
         private static string GetContentType(string fileName)
         {
-            string extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+            var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
             return extension switch
             {
                 ".txt" => "text/plain",

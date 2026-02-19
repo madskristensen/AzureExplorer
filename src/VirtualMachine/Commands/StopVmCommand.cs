@@ -21,7 +21,7 @@ namespace AzureExplorer.VirtualMachine.Commands
                 return;
 
             // Confirm before stopping (deallocating stops billing)
-            bool confirmed = await VS.MessageBox.ShowConfirmAsync(
+            var confirmed = await VS.MessageBox.ShowConfirmAsync(
                 "Stop Virtual Machine",
                 $"Are you sure you want to stop and deallocate '{node.Label}'?\n\nThis will stop any running workloads and release compute resources.");
 
