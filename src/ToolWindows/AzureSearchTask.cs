@@ -61,12 +61,13 @@ internal sealed class AzureSearchTask(
                     },
                     onProgress: (searched, total) =>
                     {
-                        ThreadHelper.ThrowIfNotOnUIThread();
                         if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
                             return;
 
                         // Report progress (callback is thread-safe per VS SDK docs)
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
                         SearchCallback.ReportProgress(this, searched, total);
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
                     },
                     cancellationToken: _cts.Token);
             });

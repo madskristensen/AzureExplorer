@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 
@@ -38,7 +39,7 @@ internal sealed class AzureSearchService
     /// <summary>
     /// Resource types to search with their display names and icons.
     /// </summary>
-    private static readonly (string ResourceType, string DisplayName, ImageMoniker Icon)[] SearchableResourceTypes =
+    private static readonly (string ResourceType, string DisplayName, ImageMoniker Icon)[] _searchableResourceTypes =
     {
         ("Microsoft.Web/sites", "App Service", KnownMonikers.Web),
         ("Microsoft.Web/serverfarms", "App Service Plan", KnownMonikers.ApplicationGroup),
@@ -80,13 +81,14 @@ internal sealed class AzureSearchService
         var allTasksStarted = new TaskCompletionSource<bool>();
 
         // Stream-start: begin searching subscriptions as they're discovered (no two-phase wait)
+        // Use silent credentials to avoid interactive authentication prompts during search
         IEnumerable<Task> collectAndSearchTasks = accounts.Select(async account =>
         {
             try
             {
-                // Collect tenants for this account
+                // Collect tenants for this account using silent auth (no prompts)
                 var tenants = new List<TenantInfo>();
-                await foreach (TenantInfo tenant in AzureResourceService.Instance.GetTenantsAsync(account.AccountId, cancellationToken))
+                await foreach (TenantInfo tenant in AzureResourceService.Instance.GetTenantsForSearchAsync(account.AccountId, cancellationToken))
                 {
                     tenants.Add(tenant);
                 }
@@ -96,7 +98,8 @@ internal sealed class AzureSearchService
                 {
                     try
                     {
-                        await foreach (SubscriptionResource sub in AzureResourceService.Instance.GetSubscriptionsForTenantAsync(
+                        // Use silent auth to avoid prompts during search
+                        await foreach (SubscriptionResource sub in AzureResourceService.Instance.GetSubscriptionsForTenantForSearchAsync(
                             account.AccountId, tenant.TenantId, cancellationToken))
                         {
                             Interlocked.Increment(ref totalSubscriptionsEstimate);
@@ -105,7 +108,8 @@ internal sealed class AzureSearchService
                                 account.AccountId,
                                 account.Username,
                                 sub.Data.SubscriptionId,
-                                sub.Data.DisplayName);
+                                sub.Data.DisplayName,
+                                tenant.TenantId);
 
                             // Start searching this subscription immediately (don't wait for all subs)
                             Task searchTask = SearchSubscriptionAsync(
@@ -127,6 +131,11 @@ internal sealed class AzureSearchService
                             searchTasks.Add(searchTask);
                         }
                     }
+                    catch (AuthenticationRequiredException)
+                    {
+                        // Silent auth failed - skip this tenant without prompting
+                        System.Diagnostics.Debug.WriteLine($"Search: Skipping tenant {tenant.TenantId} - authentication required");
+                    }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($"Search: Failed to get subscriptions for tenant {tenant.TenantId}: {ex.Message}");
@@ -134,6 +143,11 @@ internal sealed class AzureSearchService
                 });
 
                 await Task.WhenAll(tenantTasks).ConfigureAwait(false);
+            }
+            catch (AuthenticationRequiredException)
+            {
+                // Silent auth failed - skip this account without prompting
+                System.Diagnostics.Debug.WriteLine($"Search: Skipping account {account.Username} - authentication required");
             }
             catch (Exception ex)
             {
@@ -161,12 +175,13 @@ internal sealed class AzureSearchService
         await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            ArmClient client = AzureResourceService.Instance.GetClient(subInfo.SubscriptionId);
+            // Use silent client to avoid interactive authentication prompts during search
+            ArmClient client = AzureResourceService.Instance.GetSilentClient(subInfo.AccountId, subInfo.TenantId);
             SubscriptionResource sub = client.GetSubscriptionResource(
                 SubscriptionResource.CreateResourceIdentifier(subInfo.SubscriptionId));
 
             // Search all resource types in parallel within this subscription
-            IEnumerable<Task> resourceTypeTasks = SearchableResourceTypes.Select(async rt =>
+            IEnumerable<Task> resourceTypeTasks = _searchableResourceTypes.Select(async rt =>
             {
                 try
                 {
@@ -211,6 +226,11 @@ internal sealed class AzureSearchService
                 {
                     throw;
                 }
+                catch (AuthenticationRequiredException)
+                {
+                    // Silent auth failed - skip this resource type without prompting
+                    System.Diagnostics.Debug.WriteLine($"Search: Skipping {rt.ResourceType} in {subInfo.SubscriptionId} - authentication required");
+                }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"Search: Failed to search {rt.ResourceType} in {subInfo.SubscriptionId}: {ex.Message}");
@@ -222,6 +242,11 @@ internal sealed class AzureSearchService
         catch (OperationCanceledException)
         {
             throw;
+        }
+        catch (AuthenticationRequiredException)
+        {
+            // Silent auth failed - skip this subscription without prompting
+            System.Diagnostics.Debug.WriteLine($"Search: Skipping subscription {subInfo.SubscriptionId} - authentication required");
         }
         catch (Exception ex)
         {
@@ -279,17 +304,19 @@ internal sealed class AzureSearchService
 
     private sealed class SubscriptionSearchInfo
     {
-        public SubscriptionSearchInfo(string accountId, string accountName, string subscriptionId, string subscriptionName)
+        public SubscriptionSearchInfo(string accountId, string accountName, string subscriptionId, string subscriptionName, string tenantId)
         {
             AccountId = accountId;
             AccountName = accountName;
             SubscriptionId = subscriptionId;
             SubscriptionName = subscriptionName;
+            TenantId = tenantId;
         }
 
         public string AccountId { get; }
         public string AccountName { get; }
         public string SubscriptionId { get; }
         public string SubscriptionName { get; }
+        public string TenantId { get; }
     }
 }

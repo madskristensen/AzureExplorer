@@ -63,27 +63,31 @@ internal sealed class SearchResultNode : ExplorerNodeBase
         if (_actualNode == null)
             return;
 
-        // Load children from the actual node
-        await _actualNode.LoadChildrenAsync(cancellationToken);
+        if (!BeginLoading())
+            return;
 
-        // Copy children to this node, excluding FilesNode to avoid deep loading
-        Children.Clear();
-        foreach (ExplorerNodeBase child in _actualNode.Children)
+        try
         {
-            // Skip Files nodes to avoid loading file trees
-            if (IsFilesNode(child))
-                continue;
+            // Load children from the actual node
+            await _actualNode.LoadChildrenAsync(cancellationToken);
 
-            Children.Add(child);
+            // Copy all children to this node (including FilesNode)
+            // Files are not searched, but users can expand the FilesNode to browse
+            foreach (ExplorerNodeBase child in _actualNode.Children)
+            {
+                // Set parent reference for proper tree navigation
+                child.Parent = this;
+                Children.Add(child);
+            }
         }
-
-        IsLoaded = true;
-    }
-
-    private static bool IsFilesNode(ExplorerNodeBase node)
-    {
-        // Check by type name to avoid coupling to specific namespace
-        var typeName = node.GetType().Name;
-        return typeName == "FilesNode";
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Search result load error: {ex.Message}");
+            Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
+        }
+        finally
+        {
+            EndLoading();
+        }
     }
 }

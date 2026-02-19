@@ -109,6 +109,28 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Yields all accessible Azure AD tenants for a specific account using silent authentication.
+        /// This method will not trigger interactive authentication prompts.
+        /// </summary>
+        public async IAsyncEnumerable<TenantInfo> GetTenantsForSearchAsync(
+            string accountId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = AzureAuthService.Instance.GetSilentCredential(accountId);
+            var client = new ArmClient(credential);
+
+            await foreach (TenantResource tenant in client.GetTenants().GetAllAsync(cancellationToken))
+            {
+                if (tenant.Data.TenantId.HasValue)
+                {
+                    yield return new TenantInfo(
+                        tenant.Data.TenantId.Value.ToString(),
+                        tenant.Data.DisplayName ?? tenant.Data.DefaultDomain);
+                }
+            }
+        }
+
+        /// <summary>
         /// Yields subscriptions belonging to a specific tenant for a specific account.
         /// </summary>
         public async IAsyncEnumerable<SubscriptionResource> GetSubscriptionsForTenantAsync(
@@ -130,6 +152,42 @@ namespace AzureExplorer.Core.Services
                 _subscriptionAccountMap[sub.Data.SubscriptionId] = accountId;
                 yield return sub;
             }
+        }
+
+        /// <summary>
+        /// Yields subscriptions belonging to a specific tenant using silent authentication.
+        /// This method will not trigger interactive authentication prompts.
+        /// </summary>
+        public async IAsyncEnumerable<SubscriptionResource> GetSubscriptionsForTenantForSearchAsync(
+            string accountId,
+            string tenantId,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = AzureAuthService.Instance.GetSilentCredential(accountId);
+            var tenantCredential = new TenantScopedCredential(credential, tenantId);
+            var tenantClient = new ArmClient(tenantCredential);
+
+            await foreach (SubscriptionResource sub in tenantClient.GetSubscriptions().GetAllAsync(cancellationToken))
+            {
+                // Filter to subscriptions owned by this tenant to avoid duplicates from guest access
+                if (sub.Data.TenantId.HasValue && sub.Data.TenantId.Value.ToString() != tenantId)
+                    continue;
+
+                _subscriptionTenantMap[sub.Data.SubscriptionId] = tenantId;
+                _subscriptionAccountMap[sub.Data.SubscriptionId] = accountId;
+                yield return sub;
+            }
+        }
+
+        /// <summary>
+        /// Gets an <see cref="ArmClient"/> with silent authentication for search operations.
+        /// This client will not trigger interactive authentication prompts.
+        /// </summary>
+        internal ArmClient GetSilentClient(string accountId, string tenantId)
+        {
+            TokenCredential credential = AzureAuthService.Instance.GetSilentCredential(accountId);
+            var tenantCredential = new TenantScopedCredential(credential, tenantId);
+            return new ArmClient(tenantCredential);
         }
 
         /// <summary>

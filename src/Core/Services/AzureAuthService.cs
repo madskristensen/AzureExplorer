@@ -70,6 +70,37 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Gets a silent-only credential for a specific account that will never trigger
+        /// interactive authentication prompts. Use this for background operations like search.
+        /// Throws <see cref="AuthenticationRequiredException"/> if interactive auth is needed.
+        /// </summary>
+        public TokenCredential GetSilentCredential(string accountId)
+        {
+            lock (_lock)
+            {
+                if (_accounts.TryGetValue(accountId, out AccountCredential account))
+                {
+                    // Create a new credential with DisableAutomaticAuthentication = true
+                    // This will throw AuthenticationRequiredException instead of prompting
+                    var silentOptions = new InteractiveBrowserCredentialOptions
+                    {
+                        TokenCachePersistenceOptions = new TokenCachePersistenceOptions
+                        {
+                            Name = "AzureExplorer",
+                            UnsafeAllowUnencryptedStorage = true,
+                        },
+                        AdditionallyAllowedTenants = { "*" },
+                        AuthenticationRecord = account.Record,
+                        DisableAutomaticAuthentication = true,
+                    };
+                    return new InteractiveBrowserCredential(silentOptions);
+                }
+            }
+
+            throw new InvalidOperationException($"Account '{accountId}' is not signed in.");
+        }
+
+        /// <summary>
         /// Attempts to restore all previous sessions silently using persisted
         /// authentication records and token cache. Returns number of accounts restored.
         /// This method never opens a browser.
