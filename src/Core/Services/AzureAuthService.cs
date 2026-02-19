@@ -1,5 +1,5 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -23,6 +23,7 @@ namespace AzureExplorer.Core.Services
         private static readonly string _accountsDir = Path.Combine(_cacheDir, "accounts");
 
         private readonly Dictionary<string, AccountCredential> _accounts = new(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, TokenCredential> _silentCredentialCache = new(StringComparer.OrdinalIgnoreCase);
         private readonly object _lock = new();
 
         private AzureAuthService() { }
@@ -76,28 +77,32 @@ namespace AzureExplorer.Core.Services
         /// </summary>
         public TokenCredential GetSilentCredential(string accountId)
         {
-            lock (_lock)
+            // Use cached silent credential if available (avoids creating new objects)
+            return _silentCredentialCache.GetOrAdd(accountId, id =>
             {
-                if (_accounts.TryGetValue(accountId, out AccountCredential account))
+                lock (_lock)
                 {
-                    // Create a new credential with DisableAutomaticAuthentication = true
-                    // This will throw AuthenticationRequiredException instead of prompting
-                    var silentOptions = new InteractiveBrowserCredentialOptions
+                    if (_accounts.TryGetValue(id, out AccountCredential account))
                     {
-                        TokenCachePersistenceOptions = new TokenCachePersistenceOptions
+                        // Create a new credential with DisableAutomaticAuthentication = true
+                        // This will throw AuthenticationRequiredException instead of prompting
+                        var silentOptions = new InteractiveBrowserCredentialOptions
                         {
-                            Name = "AzureExplorer",
-                            UnsafeAllowUnencryptedStorage = true,
-                        },
-                        AdditionallyAllowedTenants = { "*" },
-                        AuthenticationRecord = account.Record,
-                        DisableAutomaticAuthentication = true,
-                    };
-                    return new InteractiveBrowserCredential(silentOptions);
+                            TokenCachePersistenceOptions = new TokenCachePersistenceOptions
+                            {
+                                Name = "AzureExplorer",
+                                UnsafeAllowUnencryptedStorage = true,
+                            },
+                            AdditionallyAllowedTenants = { "*" },
+                            AuthenticationRecord = account.Record,
+                            DisableAutomaticAuthentication = true,
+                        };
+                        return new InteractiveBrowserCredential(silentOptions);
+                    }
                 }
-            }
 
-            throw new InvalidOperationException($"Account '{accountId}' is not signed in.");
+                throw new InvalidOperationException($"Account '{id}' is not signed in.");
+            });
         }
 
         /// <summary>
@@ -116,8 +121,12 @@ namespace AzureExplorer.Core.Services
                     records.Add(legacyRecord);
             }
 
-            var restored = 0;
-            foreach (AuthenticationRecord record in records)
+            if (records.Count == 0)
+                return 0;
+
+            // Restore all accounts in parallel for faster startup
+            var restoredCount = 0;
+            IEnumerable<Task> tasks = records.Select(async record =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -150,7 +159,7 @@ namespace AzureExplorer.Core.Services
                         _accounts[accountId] = new AccountCredential(accountId, record.Username ?? "Azure Account", credential, record);
                     }
 
-                    restored++;
+                    Interlocked.Increment(ref restoredCount);
                 }
                 catch (AuthenticationRequiredException)
                 {
@@ -160,12 +169,14 @@ namespace AzureExplorer.Core.Services
                 {
                     // Credential not available (expired refresh token, revoked, etc.)
                 }
-            }
+            });
 
-            if (restored > 0)
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            if (restoredCount > 0)
                 AuthStateChanged?.Invoke(this, EventArgs.Empty);
 
-            return restored;
+            return restoredCount;
         }
 
         /// <summary>
@@ -227,6 +238,9 @@ namespace AzureExplorer.Core.Services
                 noAccountsRemaining = _accounts.Count == 0;
             }
 
+            // Clear cached silent credential for this account
+            _silentCredentialCache.TryRemove(accountId, out _);
+
             DeleteAuthRecord(accountId);
 
             // When the last account is signed out, also delete legacy auth record
@@ -249,6 +263,9 @@ namespace AzureExplorer.Core.Services
             {
                 _accounts.Clear();
             }
+
+            // Clear all cached silent credentials
+            _silentCredentialCache.Clear();
 
             // Delete ALL auth record files, not just those in memory.
             // This handles cases where silent auth failed during startup

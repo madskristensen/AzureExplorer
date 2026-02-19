@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
+using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Search;
 
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -113,6 +114,18 @@ namespace AzureExplorer.ToolWindows
                 {
                     control.BeginSearch();
                 }
+            }
+
+            /// <summary>
+            /// Gets the cached root nodes for instant local search.
+            /// </summary>
+            internal IReadOnlyList<ExplorerNodeBase> GetCachedNodesForSearch()
+            {
+                if (Content is AzureExplorerControl control)
+                {
+                    return control.GetCachedNodesForSearch();
+                }
+                return [];
             }
 
             /// <summary>

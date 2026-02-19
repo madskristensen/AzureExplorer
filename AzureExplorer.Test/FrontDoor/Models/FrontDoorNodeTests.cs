@@ -23,7 +23,8 @@ namespace AzureExplorer.Test.FrontDoor.Models
             Assert.AreEqual(_testHostName, node.HostName);
             Assert.AreEqual($"https://{_testHostName}", node.BrowseUrl);
             Assert.AreEqual(FrontDoorState.Active, node.State);
-            Assert.AreEqual("Active", node.Description);
+            // Description is only set for non-normal states (Disabled)
+            Assert.IsNull(node.Description);
         }
 
         [TestMethod]

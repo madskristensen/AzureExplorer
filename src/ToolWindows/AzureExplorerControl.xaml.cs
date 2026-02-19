@@ -22,7 +22,7 @@ namespace AzureExplorer.ToolWindows
     public partial class AzureExplorerControl : UserControl
     {
         private static AzureExplorerControl _instance;
-        private readonly List<ExplorerNodeBase> _savedRootNodes = new List<ExplorerNodeBase>();
+        private readonly List<ExplorerNodeBase> _savedRootNodes = [];
         private bool _isSearchActive;
 
         public AzureExplorerControl()
@@ -377,6 +377,15 @@ namespace AzureExplorer.ToolWindows
 
             ExplorerTree.Visibility = Visibility.Visible;
             EmptyStatePanel.Visibility = Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Gets the cached root nodes for local search (instant results).
+        /// Returns the saved nodes if search is active, otherwise the current root nodes.
+        /// </summary>
+        internal IReadOnlyList<ExplorerNodeBase> GetCachedNodesForSearch()
+        {
+            return _isSearchActive ? _savedRootNodes : (IReadOnlyList<ExplorerNodeBase>)RootNodes;
         }
 
         /// <summary>

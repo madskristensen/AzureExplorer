@@ -24,7 +24,8 @@ namespace AzureExplorer.Test.KeyVault.Models
             Assert.AreEqual(_testResourceGroupName, node.ResourceGroupName);
             Assert.AreEqual(_testVaultUri, node.VaultUri);
             Assert.AreEqual(KeyVaultState.Succeeded, node.State);
-            Assert.AreEqual("Succeeded", node.Description);
+            // Description is only set for non-normal states (Failed)
+            Assert.IsNull(node.Description);
         }
 
         [TestMethod]

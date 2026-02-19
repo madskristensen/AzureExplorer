@@ -1,5 +1,6 @@
+using System.Collections.Generic;
 using System.Threading;
-
+using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Search;
 
 using Microsoft.VisualStudio;
@@ -8,7 +9,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace AzureExplorer.ToolWindows;
 
 /// <summary>
-/// Search task that performs parallel Azure resource search across all accounts.
+/// Search task that performs dual-phase Azure resource search:
+/// 1. Instant local search through cached/loaded tree nodes
+/// 2. Background API search for additional results
 /// </summary>
 internal sealed class AzureSearchTask(
     uint dwCookie,
@@ -33,6 +36,9 @@ internal sealed class AzureSearchTask(
                 return;
             }
 
+            // Get cached nodes BEFORE clearing for search (for instant local results)
+            IReadOnlyList<ExplorerNodeBase> cachedNodes = toolWindow.GetCachedNodesForSearch();
+
             // Clear previous results on UI thread using JoinableTaskFactory
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
@@ -40,11 +46,14 @@ internal sealed class AzureSearchTask(
                 toolWindow.ClearSearchResults();
             });
 
-            // Run the async search using JoinableTaskFactory to avoid deadlocks
+            // Run the dual-phase search using JoinableTaskFactory to avoid deadlocks
+            // Phase 1: Instant local search through cached nodes
+            // Phase 2: Background API search for additional results
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 await AzureSearchService.Instance.SearchAllResourcesAsync(
                     _searchText,
+                    cachedNodes,
                     onResultFound: result =>
                     {
                         if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)

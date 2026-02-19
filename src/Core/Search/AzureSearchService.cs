@@ -40,7 +40,7 @@ internal sealed class AzureSearchService
     /// Resource types to search with their display names and icons.
     /// </summary>
     private static readonly (string ResourceType, string DisplayName, ImageMoniker Icon)[] _searchableResourceTypes =
-    {
+    [
         ("Microsoft.Web/sites", "App Service", KnownMonikers.Web),
         ("Microsoft.Web/serverfarms", "App Service Plan", KnownMonikers.ApplicationGroup),
         ("Microsoft.Storage/storageAccounts", "Storage Account", KnownMonikers.AzureStorageAccount),
@@ -48,18 +48,132 @@ internal sealed class AzureSearchService
         ("Microsoft.Sql/servers", "SQL Server", KnownMonikers.Database),
         ("Microsoft.Compute/virtualMachines", "Virtual Machine", KnownMonikers.VirtualMachine),
         ("Microsoft.Cdn/profiles/endpoints", "Front Door", KnownMonikers.CloudGroup),
-    };
+    ];
+
+    /// <summary>
+    /// Fast lookup for resource type metadata (cached for performance).
+    /// </summary>
+    private static readonly Dictionary<string, (string DisplayName, ImageMoniker Icon)> _resourceTypeLookup =
+        _searchableResourceTypes.ToDictionary(
+            rt => rt.ResourceType,
+            rt => (rt.DisplayName, rt.Icon),
+            StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Combined OData filter for all searchable resource types (single API call).
+    /// </summary>
+    private static readonly string _combinedResourceTypeFilter = string.Join(" or ",
+        _searchableResourceTypes.Select(rt => $"resourceType eq '{rt.ResourceType}'"));
+
+    /// <summary>
+    /// Searches through already-loaded tree nodes for instant results (no API calls).
+    /// This provides immediate feedback while the API search runs in the background.
+    /// </summary>
+    /// <param name="rootNodes">The current tree root nodes to search through.</param>
+    /// <param name="searchText">The text to search for (case-insensitive substring match).</param>
+    /// <param name="onResultFound">Callback invoked for each matching node found.</param>
+    /// <param name="foundResourceIds">Set to track found resource IDs for deduplication with API results.</param>
+    /// <returns>Number of local results found.</returns>
+    public int SearchCachedNodes(
+        IEnumerable<ExplorerNodeBase> rootNodes,
+        string searchText,
+        Action<SearchResultNode> onResultFound,
+        ConcurrentDictionary<string, byte> foundResourceIds)
+    {
+        if (rootNodes == null || string.IsNullOrWhiteSpace(searchText))
+            return 0;
+
+        var count = 0;
+
+        foreach (ExplorerNodeBase rootNode in rootNodes)
+        {
+            SearchNodeRecursive(rootNode, searchText, onResultFound, foundResourceIds, ref count, null, null);
+        }
+
+        return count;
+    }
+
+    private void SearchNodeRecursive(
+        ExplorerNodeBase node,
+        string searchText,
+        Action<SearchResultNode> onResultFound,
+        ConcurrentDictionary<string, byte> foundResourceIds,
+        ref int count,
+        string accountName,
+        string subscriptionName)
+    {
+        if (node == null)
+            return;
+
+        // Track context as we descend the tree
+        var currentAccountName = accountName;
+        var currentSubscriptionName = subscriptionName;
+
+        // Update context based on node type
+        if (node is AccountNode acctNode)
+        {
+            currentAccountName = acctNode.Label;
+        }
+        else if (node is SubscriptionNode subNode)
+        {
+            currentSubscriptionName = subNode.Label;
+        }
+
+        // Check if this node is a searchable resource that matches
+        if (node is IPortalResource resource &&
+            !string.IsNullOrEmpty(resource.AzureResourceProvider) &&
+            _resourceTypeLookup.TryGetValue(resource.AzureResourceProvider, out (string DisplayName, ImageMoniker Icon) metadata))
+        {
+            var resourceName = resource.ResourceName ?? node.Label;
+
+            // Case-insensitive substring match on resource name
+            if (resourceName != null && resourceName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                // Build resource ID for deduplication
+                var resourceId = $"/subscriptions/{resource.SubscriptionId}/resourceGroups/{resource.ResourceGroupName}/providers/{resource.AzureResourceProvider}/{resourceName}";
+
+                // Only add if not already found (deduplication)
+                if (foundResourceIds.TryAdd(resourceId.ToLowerInvariant(), 0))
+                {
+                    var resultNode = new SearchResultNode(
+                        resourceName,
+                        metadata.DisplayName,
+                        resourceId,
+                        resource.SubscriptionId,
+                        currentSubscriptionName ?? "Unknown",
+                        currentAccountName ?? "Unknown",
+                        metadata.Icon,
+                        node); // Pass the actual node for expansion
+
+                    onResultFound?.Invoke(resultNode);
+                    count++;
+                }
+            }
+        }
+
+        // Only recurse into children if they're already loaded (don't trigger lazy loading)
+        if (node.IsLoaded && node.Children != null)
+        {
+            foreach (ExplorerNodeBase child in node.Children.ToList()) // ToList to avoid collection modified
+            {
+                SearchNodeRecursive(child, searchText, onResultFound, foundResourceIds, ref count, currentAccountName, currentSubscriptionName);
+            }
+        }
+    }
 
     /// <summary>
     /// Searches all Azure resources across all accounts, streaming SearchResultNode instances for tree display.
+    /// Performs instant local search through cached nodes first, then continues with API search.
     /// </summary>
     /// <param name="searchText">The text to search for (case-insensitive substring match on resource name).</param>
+    /// <param name="cachedRootNodes">Already-loaded tree nodes for instant local search (can be null).</param>
     /// <param name="onResultFound">Callback invoked on each result found (may be called from multiple threads).</param>
     /// <param name="onProgress">Callback for progress updates (subscriptionsSearched, totalSubscriptions).</param>
     /// <param name="cancellationToken">Token to cancel the search.</param>
     /// <returns>Total number of results found.</returns>
     public async Task<uint> SearchAllResourcesAsync(
         string searchText,
+        IEnumerable<ExplorerNodeBase> cachedRootNodes,
         Action<SearchResultNode> onResultFound,
         Action<uint, uint> onProgress,
         CancellationToken cancellationToken)
@@ -67,18 +181,28 @@ internal sealed class AzureSearchService
         if (string.IsNullOrWhiteSpace(searchText))
             return 0;
 
+        // Track found resource IDs for deduplication between local and API results
+        var foundResourceIds = new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
+        var totalResults = 0;
+
+        // Phase 1: Instant local search through cached nodes (no API calls)
+        if (cachedRootNodes != null)
+        {
+            var localResults = SearchCachedNodes(cachedRootNodes, searchText, onResultFound, foundResourceIds);
+            Interlocked.Add(ref totalResults, localResults);
+        }
+
+        // Phase 2: API search continues in background for additional results
         IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
         if (accounts.Count == 0)
-            return 0;
+            return (uint)totalResults;
 
-        var totalResults = 0;
         var subscriptionsSearched = 0;
         var totalSubscriptionsEstimate = 0;
 
         // Higher concurrency for network-bound I/O operations
         var semaphore = new SemaphoreSlim(16);
         var searchTasks = new ConcurrentBag<Task>();
-        var allTasksStarted = new TaskCompletionSource<bool>();
 
         // Stream-start: begin searching subscriptions as they're discovered (no two-phase wait)
         // Use silent credentials to avoid interactive authentication prompts during search
@@ -115,6 +239,7 @@ internal sealed class AzureSearchService
                             Task searchTask = SearchSubscriptionAsync(
                                 subInfo,
                                 searchText,
+                                foundResourceIds,
                                 result =>
                                 {
                                     Interlocked.Increment(ref totalResults);
@@ -167,6 +292,7 @@ internal sealed class AzureSearchService
     private async Task SearchSubscriptionAsync(
         SubscriptionSearchInfo subInfo,
         string searchText,
+        ConcurrentDictionary<string, byte> foundResourceIds,
         Action<SearchResultNode> onResultFound,
         Action onSubscriptionComplete,
         SemaphoreSlim semaphore,
@@ -180,64 +306,51 @@ internal sealed class AzureSearchService
             SubscriptionResource sub = client.GetSubscriptionResource(
                 SubscriptionResource.CreateResourceIdentifier(subInfo.SubscriptionId));
 
-            // Search all resource types in parallel within this subscription
-            IEnumerable<Task> resourceTypeTasks = _searchableResourceTypes.Select(async rt =>
+            // Single API call with combined filter for all resource types (7x fewer API calls)
+            await foreach (GenericResource resource in sub.GetGenericResourcesAsync(
+                filter: _combinedResourceTypeFilter,
+                cancellationToken: cancellationToken))
             {
-                try
-                {
-                    // Don't expand properties - saves significant API overhead
-                    // Properties will load lazily when user expands the node
-                    var filter = $"resourceType eq '{rt.ResourceType}'";
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    await foreach (GenericResource resource in sub.GetGenericResourcesAsync(filter: filter, cancellationToken: cancellationToken))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
+                var resourceName = resource.Data.Name;
 
-                        var resourceName = resource.Data.Name;
+                // Case-insensitive substring match
+                if (resourceName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
 
-                        // Case-insensitive substring match
-                        if (resourceName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            var resourceGroup = resource.Id.ResourceGroupName;
+                // Look up resource type metadata
+                var resourceType = resource.Data.ResourceType.ToString();
+                if (!_resourceTypeLookup.TryGetValue(resourceType, out (string DisplayName, ImageMoniker Icon) metadata))
+                    continue;
 
-                            // Create a lightweight resource node (properties load on expand)
-                            ExplorerNodeBase actualNode = CreateResourceNodeLightweight(
-                                rt.ResourceType,
-                                resourceName,
-                                subInfo.SubscriptionId,
-                                resourceGroup,
-                                resource);
+                // Deduplicate: skip if already found in local search
+                var resourceId = resource.Id.ToString();
+                if (!foundResourceIds.TryAdd(resourceId.ToLowerInvariant(), 0))
+                    continue;
 
-                            var resultNode = new SearchResultNode(
-                                resourceName,
-                                rt.DisplayName,
-                                resource.Id.ToString(),
-                                subInfo.SubscriptionId,
-                                subInfo.SubscriptionName,
-                                subInfo.AccountName,
-                                rt.Icon,
-                                actualNode);
+                var resourceGroup = resource.Id.ResourceGroupName;
 
-                            onResultFound?.Invoke(resultNode);
-                        }
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (AuthenticationRequiredException)
-                {
-                    // Silent auth failed - skip this resource type without prompting
-                    System.Diagnostics.Debug.WriteLine($"Search: Skipping {rt.ResourceType} in {subInfo.SubscriptionId} - authentication required");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Search: Failed to search {rt.ResourceType} in {subInfo.SubscriptionId}: {ex.Message}");
-                }
-            });
+                // Create a lightweight resource node (properties load on expand)
+                ExplorerNodeBase actualNode = CreateResourceNodeLightweight(
+                    resourceType,
+                    resourceName,
+                    subInfo.SubscriptionId,
+                    resourceGroup,
+                    resource);
 
-            await Task.WhenAll(resourceTypeTasks).ConfigureAwait(false);
+                var resultNode = new SearchResultNode(
+                    resourceName,
+                    metadata.DisplayName,
+                    resourceId,
+                    subInfo.SubscriptionId,
+                    subInfo.SubscriptionName,
+                    subInfo.AccountName,
+                    metadata.Icon,
+                    actualNode);
+
+                onResultFound?.Invoke(resultNode);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -302,21 +415,12 @@ internal sealed class AzureSearchService
         return new AppServiceNode(name, subscriptionId, resourceGroup, null, null);
     }
 
-    private sealed class SubscriptionSearchInfo
+    private sealed class SubscriptionSearchInfo(string accountId, string accountName, string subscriptionId, string subscriptionName, string tenantId)
     {
-        public SubscriptionSearchInfo(string accountId, string accountName, string subscriptionId, string subscriptionName, string tenantId)
-        {
-            AccountId = accountId;
-            AccountName = accountName;
-            SubscriptionId = subscriptionId;
-            SubscriptionName = subscriptionName;
-            TenantId = tenantId;
-        }
-
-        public string AccountId { get; }
-        public string AccountName { get; }
-        public string SubscriptionId { get; }
-        public string SubscriptionName { get; }
-        public string TenantId { get; }
+        public string AccountId { get; } = accountId;
+        public string AccountName { get; } = accountName;
+        public string SubscriptionId { get; } = subscriptionId;
+        public string SubscriptionName { get; } = subscriptionName;
+        public string TenantId { get; } = tenantId;
     }
 }
