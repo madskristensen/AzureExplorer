@@ -1,4 +1,7 @@
-using System.Threading;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -19,11 +22,11 @@ namespace AzureExplorer.Core.Models
     /// Abstract base class for Azure Web Sites (App Services and Function Apps) that share
     /// common properties, state management, and file browsing capabilities.
     /// </summary>
-    internal abstract class WebSiteNodeBase : ExplorerNodeBase, IPortalResource, IWebSiteNode
+    internal abstract class WebSiteNodeBase : ExplorerNodeBase, IPortalResource, IWebSiteNode, ITaggableResource
     {
         private WebSiteState _state;
 
-        protected WebSiteNodeBase(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName)
+        protected WebSiteNodeBase(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName, IDictionary<string, string> tags = null)
             : base(name)
         {
             SubscriptionId = subscriptionId;
@@ -33,6 +36,18 @@ namespace AzureExplorer.Core.Models
             _state = ParseState(state);
             Description = _state == WebSiteState.Stopped ? _state.ToString() : null;
 
+            // Store tags, filtering out Azure system/internal tags
+            IDictionary<string, string> filteredTags = tags?.FilterUserTags();
+            Tags = filteredTags != null && filteredTags.Count > 0
+                ? new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(filteredTags))
+                : new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
+            // Register tags with TagService for filtering
+            if (Tags.Count > 0)
+            {
+                TagService.Instance.RegisterTags(Tags);
+            }
+
             // Add loading placeholder for expandable node
             Children.Add(new LoadingNode());
         }
@@ -41,6 +56,11 @@ namespace AzureExplorer.Core.Models
         public string ResourceGroupName { get; }
         public string DefaultHostName { get; }
         public string BrowseUrl { get; }
+
+        // ITaggableResource
+        public IReadOnlyDictionary<string, string> Tags { get; }
+        public string TagsTooltip => Tags.FormatTagsTooltip();
+        public bool HasTag(string key, string value = null) => Tags.ContainsTag(key, value);
 
         // IPortalResource
         public string ResourceName => Label;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
@@ -12,13 +13,8 @@ namespace AzureExplorer.VirtualMachine.Models
     /// <summary>
     /// Category node that lists all Azure Virtual Machines across the entire subscription.
     /// </summary>
-    internal sealed class SubscriptionVirtualMachinesNode : SubscriptionResourceNodeBase
+    internal sealed class SubscriptionVirtualMachinesNode(string subscriptionId) : SubscriptionResourceNodeBase("Virtual Machines", subscriptionId)
     {
-        public SubscriptionVirtualMachinesNode(string subscriptionId)
-            : base("Virtual Machines", subscriptionId)
-        {
-        }
-
         protected override string ResourceType => "Microsoft.Compute/virtualMachines";
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureVirtualMachine;
@@ -57,6 +53,9 @@ namespace AzureExplorer.VirtualMachine.Models
                 }
             }
 
+            // Extract tags from resource
+            IDictionary<string, string> tags = resource.Data.Tags;
+
             // Note: Public/private IP requires additional API calls (network interfaces).
             // The VirtualMachineManager will fetch these when needed.
             return new VirtualMachineNode(
@@ -67,7 +66,8 @@ namespace AzureExplorer.VirtualMachine.Models
                 vmSize,
                 osType,
                 publicIpAddress: null,
-                privateIpAddress: null);
+                privateIpAddress: null,
+                tags);
         }
     }
 }

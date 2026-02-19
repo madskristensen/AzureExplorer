@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
@@ -12,13 +13,8 @@ namespace AzureExplorer.AppService.Models
     /// <summary>
     /// Category node that lists all App Services across the entire subscription.
     /// </summary>
-    internal sealed class SubscriptionAppServicesNode : SubscriptionResourceNodeBase
+    internal sealed class SubscriptionAppServicesNode(string subscriptionId) : SubscriptionResourceNodeBase("App Services", subscriptionId)
     {
-        public SubscriptionAppServicesNode(string subscriptionId)
-            : base("App Services", subscriptionId)
-        {
-        }
-
         protected override string ResourceType => "Microsoft.Web/sites";
 
         public override ImageMoniker IconMoniker => KnownMonikers.Web;
@@ -52,7 +48,10 @@ namespace AzureExplorer.AppService.Models
                 }
             }
 
-            return new AppServiceNode(name, SubscriptionId, resourceGroup, state, defaultHostName);
+            // Extract tags from resource
+            IDictionary<string, string> tags = resource.Data.Tags;
+
+            return new AppServiceNode(name, SubscriptionId, resourceGroup, state, defaultHostName, tags);
         }
     }
 }

@@ -88,7 +88,8 @@ namespace AzureExplorer.VirtualMachine.Models
                         vmSize,
                         osType,
                         publicIpAddress: null,
-                        privateIpAddress: null);
+                        privateIpAddress: null,
+                        tags: resource.Data.Tags);
 
                     InsertChildSorted(node);
                 }

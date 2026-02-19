@@ -61,8 +61,11 @@
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
+    <Compile Include="Core\Models\ITaggableResource.cs" />
     <Compile Include="Core\Models\IWebSiteNode.cs" />
     <Compile Include="Core\Models\ProvisioningState.cs" />
+    <Compile Include="Core\Models\TagNode.cs" />
+    <Compile Include="Core\Models\TagsNode.cs" />
     <Compile Include="Core\Models\WebSiteNodeBase.cs" />
     <Compile Include="Core\Search\AzureSearchResult.cs" />
     <Compile Include="Core\Search\AzureSearchService.cs" />
@@ -70,6 +73,7 @@
     <Compile Include="Core\Search\SearchResultNode.cs" />
     <Compile Include="Core\Search\SearchSubscriptionNode.cs" />
     <Compile Include="Core\Services\AsyncHelper.cs" />
+    <Compile Include="Core\Services\TagService.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppNode.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppsNode.cs" />
     <Compile Include="FunctionApp\Models\SubscriptionFunctionAppsNode.cs" />
@@ -140,6 +144,13 @@
     <Compile Include="Storage\Models\StorageAccountNode.cs" />
     <Compile Include="Storage\Models\StorageAccountsNode.cs" />
     <Compile Include="Storage\Models\SubscriptionStorageAccountsNode.cs" />
+    <Compile Include="Tags\Commands\AddTagCommand.cs" />
+    <Compile Include="Tags\Commands\CopyTagsAsJsonCommand.cs" />
+    <Compile Include="Tags\Commands\CopyTagValueCommand.cs" />
+    <Compile Include="Tags\Commands\FilterByTagCommand.cs" />
+    <Compile Include="Tags\Dialogs\AddTagDialog.xaml.cs">
+      <DependentUpon>AddTagDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ToolWindows\AzureExplorerWindow.cs" />
     <Compile Include="ToolWindows\AzureExplorerControl.xaml.cs">
       <DependentUpon>AzureExplorerControl.xaml</DependentUpon>
@@ -194,6 +205,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="KeyVault\Dialogs\UpdateSecretDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tags\Dialogs\AddTagDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ToolWindows\AzureExplorerControl.xaml">

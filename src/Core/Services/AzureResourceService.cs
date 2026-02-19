@@ -360,6 +360,49 @@ namespace AzureExplorer.Core.Services
                 return inner.GetTokenAsync(scoped, cancellationToken);
             }
         }
+
+        /// <summary>
+        /// Updates the tags on an Azure resource.
+        /// </summary>
+        /// <param name="subscriptionId">The subscription ID.</param>
+        /// <param name="resourceGroup">The resource group name.</param>
+        /// <param name="resourceProvider">The resource provider (e.g., "Microsoft.Web/sites").</param>
+        /// <param name="resourceName">The resource name.</param>
+        /// <param name="tags">The new tags dictionary to apply.</param>
+        public async Task UpdateResourceTagsAsync(
+            string subscriptionId,
+            string resourceGroup,
+            string resourceProvider,
+            string resourceName,
+            IDictionary<string, string> tags,
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+
+            // Build the resource ID
+            var resourceId = ResourceIdentifier.Parse(
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/{resourceProvider}/{resourceName}");
+
+            GenericResource resource = client.GetGenericResource(resourceId);
+
+            // Get current resource to preserve other properties
+            GenericResource currentResource = await resource.GetAsync(cancellationToken);
+
+            // Create update with new tags
+            var data = new GenericResourceData(currentResource.Data.Location)
+            {
+                Tags = { }
+            };
+
+            // Copy new tags
+            foreach (KeyValuePair<string, string> tag in tags)
+            {
+                data.Tags[tag.Key] = tag.Value;
+            }
+
+            // Update the resource (this is a PATCH operation that only updates tags)
+            await resource.UpdateAsync(Azure.WaitUntil.Completed, data, cancellationToken);
+        }
     }
 
     /// <summary>

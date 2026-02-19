@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -18,7 +21,7 @@ namespace AzureExplorer.Sql.Models
     /// <summary>
     /// Represents an Azure SQL Server. Expandable node containing databases.
     /// </summary>
-    internal sealed class SqlServerNode : ExplorerNodeBase, IPortalResource
+    internal sealed class SqlServerNode : ExplorerNodeBase, IPortalResource, ITaggableResource
     {
         private SqlServerState _state;
 
@@ -27,7 +30,8 @@ namespace AzureExplorer.Sql.Models
             string subscriptionId,
             string resourceGroupName,
             string state,
-            string fullyQualifiedDomainName)
+            string fullyQualifiedDomainName,
+            IDictionary<string, string> tags = null)
             : base(name)
         {
             SubscriptionId = subscriptionId;
@@ -35,6 +39,18 @@ namespace AzureExplorer.Sql.Models
             FullyQualifiedDomainName = fullyQualifiedDomainName;
             _state = ParseState(state);
             Description = _state == SqlServerState.Unavailable ? _state.ToString() : fullyQualifiedDomainName;
+
+            // Store tags, filtering out Azure system/internal tags
+            IDictionary<string, string> filteredTags = tags?.FilterUserTags();
+            Tags = filteredTags != null && filteredTags.Count > 0
+                ? new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(filteredTags))
+                : new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
+            // Register tags with TagService for filtering
+            if (Tags.Count > 0)
+            {
+                TagService.Instance.RegisterTags(Tags);
+            }
 
             // Add loading placeholder for databases
             Children.Add(new LoadingNode());
@@ -47,6 +63,11 @@ namespace AzureExplorer.Sql.Models
         // IPortalResource
         public string ResourceName => Label;
         public string AzureResourceProvider => "Microsoft.Sql/servers";
+
+        // ITaggableResource
+        public IReadOnlyDictionary<string, string> Tags { get; }
+        public string TagsTooltip => Tags.FormatTagsTooltip();
+        public bool HasTag(string key, string value = null) => Tags.ContainsTag(key, value);
 
         public SqlServerState State
         {
@@ -80,7 +101,13 @@ namespace AzureExplorer.Sql.Models
 
             await LoadChildrenWithErrorHandlingAsync(async ct =>
             {
-                await foreach (SqlDatabaseNode db in AzureExplorer.Core.Services.AzureResourceService.Instance
+                // Add Tags node if resource has tags
+                if (Tags.Count > 0)
+                {
+                    AddChild(new TagsNode(Tags));
+                }
+
+                await foreach (SqlDatabaseNode db in AzureResourceService.Instance
                     .GetSqlDatabasesAsync(SubscriptionId, ResourceGroupName, Label, ct))
                 {
                     ct.ThrowIfCancellationRequested();

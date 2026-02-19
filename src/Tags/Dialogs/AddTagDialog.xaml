@@ -1,0 +1,73 @@
+<platform:DialogWindow x:Class="AzureExplorer.Tags.Dialogs.AddTagDialog"
+                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                       xmlns:platform="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+                       xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
+                       toolkit:Themes.UseVsTheme="True"
+                       Title="Add Tag"
+                       Width="400"
+                       SizeToContent="Height"
+                       WindowStartupLocation="CenterOwner"
+                       ResizeMode="NoResize"
+                       ShowInTaskbar="False">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="70" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Description -->
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
+                   Text="Add a tag to this resource. Tags are key-value pairs for organizing resources."
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,16"
+                   Opacity="0.8" />
+
+        <!-- Tag Key -->
+        <TextBlock Grid.Row="1" Grid.Column="0" 
+                   Text="Key:"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,8" />
+        <ComboBox x:Name="KeyComboBox"
+                  Grid.Row="1" Grid.Column="1"
+                  IsEditable="True"
+                  IsTextSearchEnabled="True"
+                  Margin="0,0,0,8"
+                  DropDownOpened="KeyComboBox_DropDownOpened"
+                  SelectionChanged="KeyComboBox_SelectionChanged" />
+
+        <!-- Tag Value -->
+        <TextBlock Grid.Row="2" Grid.Column="0" 
+                   Text="Value:"
+                   VerticalAlignment="Center"
+                   Margin="0,0,8,0" />
+        <ComboBox x:Name="ValueComboBox"
+                  Grid.Row="2" Grid.Column="1"
+                  IsEditable="True"
+                  IsTextSearchEnabled="True"
+                  DropDownOpened="ValueComboBox_DropDownOpened" />
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="4" Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <Button x:Name="AddButton"
+                    Content="Add Tag"
+                    Width="80"
+                    Margin="0,0,8,0"
+                    IsDefault="True"
+                    Click="AddButton_Click" />
+            <Button Content="Cancel"
+                    Width="80"
+                    IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</platform:DialogWindow>

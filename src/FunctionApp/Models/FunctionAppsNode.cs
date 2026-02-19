@@ -62,7 +62,8 @@ namespace AzureExplorer.FunctionApp.Models
                         SubscriptionId,
                         ResourceGroupName,
                         site.Data.State,
-                        site.Data.DefaultHostName));
+                        site.Data.DefaultHostName,
+                        site.Data.Tags));
                 }
 
                 // Sort alphabetically by name

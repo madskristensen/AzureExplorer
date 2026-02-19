@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
@@ -12,13 +13,8 @@ namespace AzureExplorer.Storage.Models
     /// <summary>
     /// Category node that lists all Azure Storage Accounts across the entire subscription.
     /// </summary>
-    internal sealed class SubscriptionStorageAccountsNode : SubscriptionResourceNodeBase
+    internal sealed class SubscriptionStorageAccountsNode(string subscriptionId) : SubscriptionResourceNodeBase("Storage Accounts", subscriptionId)
     {
-        public SubscriptionStorageAccountsNode(string subscriptionId)
-            : base("Storage Accounts", subscriptionId)
-        {
-        }
-
         protected override string ResourceType => "Microsoft.Storage/storageAccounts";
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureStorageAccount;
@@ -55,7 +51,10 @@ namespace AzureExplorer.Storage.Models
                 skuName = resource.Data.Sku.Name;
             }
 
-            return new StorageAccountNode(name, SubscriptionId, resourceGroup, state, kind, skuName);
+            // Extract tags from resource
+            IDictionary<string, string> tags = resource.Data.Tags;
+
+            return new StorageAccountNode(name, SubscriptionId, resourceGroup, state, kind, skuName, tags);
         }
     }
 }

@@ -57,7 +57,8 @@ namespace AzureExplorer.KeyVault.Models
                         SubscriptionId,
                         ResourceGroupName,
                         vault.Data.Properties.ProvisioningState?.ToString(),
-                        vault.Data.Properties.VaultUri?.ToString()));
+                        vault.Data.Properties.VaultUri?.ToString(),
+                        vault.Data.Tags));
                 }
 
                 // Sort alphabetically by name

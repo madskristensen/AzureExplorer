@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
@@ -12,13 +13,8 @@ namespace AzureExplorer.Sql.Models
     /// <summary>
     /// Category node that lists all Azure SQL Servers across the entire subscription.
     /// </summary>
-    internal sealed class SubscriptionSqlServersNode : SubscriptionResourceNodeBase
+    internal sealed class SubscriptionSqlServersNode(string subscriptionId) : SubscriptionResourceNodeBase("SQL Servers", subscriptionId)
     {
-        public SubscriptionSqlServersNode(string subscriptionId)
-            : base("SQL Servers", subscriptionId)
-        {
-        }
-
         protected override string ResourceType => "Microsoft.Sql/servers";
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureSqlDatabase;
@@ -52,7 +48,10 @@ namespace AzureExplorer.Sql.Models
                 }
             }
 
-            return new SqlServerNode(name, SubscriptionId, resourceGroup, state, fqdn);
+            // Extract tags from resource
+            IDictionary<string, string> tags = resource.Data.Tags;
+
+            return new SqlServerNode(name, SubscriptionId, resourceGroup, state, fqdn, tags);
         }
     }
 }

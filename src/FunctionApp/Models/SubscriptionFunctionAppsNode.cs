@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
@@ -13,13 +14,8 @@ namespace AzureExplorer.FunctionApp.Models
     /// Category node that lists all Function Apps across the entire subscription.
     /// Filters Microsoft.Web/sites by kind containing "functionapp".
     /// </summary>
-    internal sealed class SubscriptionFunctionAppsNode : SubscriptionResourceNodeBase
+    internal sealed class SubscriptionFunctionAppsNode(string subscriptionId) : SubscriptionResourceNodeBase("Function Apps", subscriptionId)
     {
-        public SubscriptionFunctionAppsNode(string subscriptionId)
-            : base("Function Apps", subscriptionId)
-        {
-        }
-
         protected override string ResourceType => "Microsoft.Web/sites";
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureFunctionsApp;
@@ -59,7 +55,10 @@ namespace AzureExplorer.FunctionApp.Models
                 }
             }
 
-            return new FunctionAppNode(name, SubscriptionId, resourceGroup, state, defaultHostName);
+            // Extract tags from resource
+            IDictionary<string, string> tags = resource.Data.Tags;
+
+            return new FunctionAppNode(name, SubscriptionId, resourceGroup, state, defaultHostName, tags);
         }
     }
 }

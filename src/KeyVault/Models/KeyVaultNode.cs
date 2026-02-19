@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 
@@ -13,11 +14,11 @@ namespace AzureExplorer.KeyVault.Models
     /// <summary>
     /// Represents an Azure Key Vault. Expandable node containing secrets directly.
     /// </summary>
-    internal sealed class KeyVaultNode : ExplorerNodeBase, IPortalResource
+    internal sealed class KeyVaultNode : ExplorerNodeBase, IPortalResource, ITaggableResource
     {
         private ProvisioningState _state;
 
-        public KeyVaultNode(string name, string subscriptionId, string resourceGroupName, string state, string vaultUri)
+        public KeyVaultNode(string name, string subscriptionId, string resourceGroupName, string state, string vaultUri, IDictionary<string, string> tags = null)
             : base(name)
         {
             SubscriptionId = subscriptionId;
@@ -26,6 +27,18 @@ namespace AzureExplorer.KeyVault.Models
             VaultUri = vaultUri ?? $"https://{name}.vault.azure.net/";
             _state = ProvisioningStateParser.Parse(state);
             Description = _state == ProvisioningState.Failed ? _state.ToString() : null;
+
+            // Store tags, filtering out Azure system/internal tags
+            IDictionary<string, string> filteredTags = tags?.FilterUserTags();
+            Tags = filteredTags != null && filteredTags.Count > 0
+                ? new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(filteredTags))
+                : new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
+            // Register tags with TagService for filtering
+            if (Tags.Count > 0)
+            {
+                TagService.Instance.RegisterTags(Tags);
+            }
 
             // Add loading placeholder
             Children.Add(new LoadingNode());
@@ -38,6 +51,11 @@ namespace AzureExplorer.KeyVault.Models
         // IPortalResource
         public string ResourceName => Label;
         public string AzureResourceProvider => "Microsoft.KeyVault/vaults";
+
+        // ITaggableResource
+        public IReadOnlyDictionary<string, string> Tags { get; }
+        public string TagsTooltip => Tags.FormatTagsTooltip();
+        public bool HasTag(string key, string value = null) => Tags.ContainsTag(key, value);
 
         public ProvisioningState State
         {
@@ -71,6 +89,12 @@ namespace AzureExplorer.KeyVault.Models
 
             await LoadChildrenWithErrorHandlingAsync(async ct =>
             {
+                // Add Tags node if resource has tags
+                if (Tags.Count > 0)
+                {
+                    AddChild(new TagsNode(Tags));
+                }
+
                 var secrets = new List<SecretNode>();
 
                 await foreach (SecretNode secret in AzureResourceService.Instance.GetSecretsAsync(

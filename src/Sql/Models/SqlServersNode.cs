@@ -57,7 +57,8 @@ namespace AzureExplorer.Sql.Models
                         SubscriptionId,
                         ResourceGroupName,
                         server.Data.State?.ToString(),
-                        server.Data.FullyQualifiedDomainName));
+                        server.Data.FullyQualifiedDomainName,
+                        server.Data.Tags));
                 }
 
                 // Sort alphabetically by name

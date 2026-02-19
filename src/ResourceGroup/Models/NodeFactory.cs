@@ -69,7 +69,8 @@ namespace AzureExplorer.ResourceGroup.Models
                     subscriptionId,
                     resourceGroupName,
                     state: null,
-                    defaultHostName: null);
+                    defaultHostName: null,
+                    tags: resource.Tags);
             }
 
             // Regular App Service (Web App)
@@ -78,7 +79,8 @@ namespace AzureExplorer.ResourceGroup.Models
                 subscriptionId,
                 resourceGroupName,
                 state: null,
-                defaultHostName: null);
+                defaultHostName: null,
+                tags: resource.Tags);
         }
 
         private static ExplorerNodeBase CreateAppServicePlanNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
@@ -115,7 +117,8 @@ namespace AzureExplorer.ResourceGroup.Models
                 subscriptionId,
                 resourceGroupName,
                 state: null,
-                vaultUri: null);
+                vaultUri: null,
+                tags: resource.Tags);
         }
 
         private static ExplorerNodeBase CreateStorageAccountNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
@@ -128,7 +131,8 @@ namespace AzureExplorer.ResourceGroup.Models
                 resourceGroupName,
                 state: null,
                 kind: null,
-                skuName: null);
+                skuName: null,
+                tags: resource.Tags);
         }
 
         private static ExplorerNodeBase CreateSqlServerNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
@@ -140,7 +144,8 @@ namespace AzureExplorer.ResourceGroup.Models
                 subscriptionId,
                 resourceGroupName,
                 state: null,
-                fullyQualifiedDomainName: null);
+                fullyQualifiedDomainName: null,
+                tags: resource.Tags);
         }
 
         private static ExplorerNodeBase CreateVirtualMachineNode(GenericResourceData resource, string subscriptionId, string resourceGroupName)
@@ -182,7 +187,8 @@ namespace AzureExplorer.ResourceGroup.Models
                 vmSize,
                 osType,
                 publicIpAddress: null,
-                privateIpAddress: null);
+                privateIpAddress: null,
+                tags: resource.Tags);
         }
     }
 }

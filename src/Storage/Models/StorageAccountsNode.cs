@@ -60,7 +60,8 @@ namespace AzureExplorer.Storage.Models
                         ResourceGroupName,
                         account.Data.ProvisioningState?.ToString(),
                         account.Data.Kind?.ToString(),
-                        account.Data.Sku?.Name.ToString()));
+                        account.Data.Sku?.Name.ToString(),
+                        account.Data.Tags));
                 }
 
                 // Sort alphabetically by name

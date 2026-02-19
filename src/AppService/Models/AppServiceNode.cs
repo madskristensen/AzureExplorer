@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 
 using AzureExplorer.Core.Models;
@@ -10,7 +11,7 @@ namespace AzureExplorer.AppService.Models
     /// <summary>
     /// Represents an Azure App Service (Web App). Expandable node with Files child and context menu actions.
     /// </summary>
-    internal sealed class AppServiceNode(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName) : WebSiteNodeBase(name, subscriptionId, resourceGroupName, state, defaultHostName)
+    internal sealed class AppServiceNode(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName, IDictionary<string, string> tags = null) : WebSiteNodeBase(name, subscriptionId, resourceGroupName, state, defaultHostName, tags)
     {
         protected override ImageMoniker RunningIconMoniker => KnownMonikers.AzureWebSites;
 
@@ -23,6 +24,12 @@ namespace AzureExplorer.AppService.Models
 
             await LoadChildrenWithErrorHandlingAsync(_ =>
             {
+                // Add Tags node if resource has tags
+                if (Tags.Count > 0)
+                {
+                    AddChild(new TagsNode(Tags));
+                }
+
                 AddChild(new FilesNode(SubscriptionId, Label));
                 return Task.CompletedTask;
             }, cancellationToken);

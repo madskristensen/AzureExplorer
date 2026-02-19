@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 
 using AzureExplorer.AppService.Models;
@@ -11,7 +12,7 @@ namespace AzureExplorer.FunctionApp.Models
     /// <summary>
     /// Represents an Azure Function App. Similar to App Service but with Function-specific icon and context.
     /// </summary>
-    internal sealed class FunctionAppNode(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName) : WebSiteNodeBase(name, subscriptionId, resourceGroupName, state, defaultHostName)
+    internal sealed class FunctionAppNode(string name, string subscriptionId, string resourceGroupName, string state, string defaultHostName, IDictionary<string, string> tags = null) : WebSiteNodeBase(name, subscriptionId, resourceGroupName, state, defaultHostName, tags)
     {
         protected override ImageMoniker RunningIconMoniker => KnownMonikers.AzureFunctionsApp;
 
@@ -24,6 +25,12 @@ namespace AzureExplorer.FunctionApp.Models
 
             await LoadChildrenWithErrorHandlingAsync(_ =>
             {
+                // Add Tags node if resource has tags
+                if (Tags.Count > 0)
+                {
+                    AddChild(new TagsNode(Tags));
+                }
+
                 // Function Apps also support file browsing via Kudu
                 AddChild(new FilesNode(SubscriptionId, Label));
                 return Task.CompletedTask;

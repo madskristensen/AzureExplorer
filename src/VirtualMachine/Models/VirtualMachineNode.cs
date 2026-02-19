@@ -1,4 +1,8 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -26,7 +30,7 @@ namespace AzureExplorer.VirtualMachine.Models
     /// <summary>
     /// Represents an Azure Virtual Machine in the explorer tree.
     /// </summary>
-    internal sealed class VirtualMachineNode : ExplorerNodeBase, IPortalResource
+    internal sealed class VirtualMachineNode : ExplorerNodeBase, IPortalResource, ITaggableResource
     {
         private VirtualMachineState _state;
 
@@ -38,7 +42,8 @@ namespace AzureExplorer.VirtualMachine.Models
             string vmSize,
             string osType,
             string publicIpAddress,
-            string privateIpAddress)
+            string privateIpAddress,
+            IDictionary<string, string> tags = null)
             : base(name)
         {
             SubscriptionId = subscriptionId;
@@ -48,6 +53,18 @@ namespace AzureExplorer.VirtualMachine.Models
             PublicIpAddress = publicIpAddress;
             PrivateIpAddress = privateIpAddress;
             _state = ParseState(state);
+
+            // Store tags, filtering out Azure system/internal tags
+            IDictionary<string, string> filteredTags = tags?.FilterUserTags();
+            Tags = filteredTags != null && filteredTags.Count > 0
+                ? new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(filteredTags))
+                : new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
+            // Register tags with TagService for filtering
+            if (Tags.Count > 0)
+            {
+                TagService.Instance.RegisterTags(Tags);
+            }
 
             UpdateDescription();
         }
@@ -62,6 +79,11 @@ namespace AzureExplorer.VirtualMachine.Models
         // IPortalResource
         public string ResourceName => Label;
         public string AzureResourceProvider => "Microsoft.Compute/virtualMachines";
+
+        // ITaggableResource
+        public IReadOnlyDictionary<string, string> Tags { get; }
+        public string TagsTooltip => Tags.FormatTagsTooltip();
+        public bool HasTag(string key, string value = null) => Tags.ContainsTag(key, value);
 
         public VirtualMachineState State
         {

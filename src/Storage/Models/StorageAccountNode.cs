@@ -1,8 +1,9 @@
-using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
-using System.Threading.Tasks;
 
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -12,7 +13,7 @@ namespace AzureExplorer.Storage.Models
     /// <summary>
     /// Represents an Azure Storage Account in the explorer tree. Expandable to show blob containers.
     /// </summary>
-    internal sealed class StorageAccountNode : ExplorerNodeBase, IPortalResource
+    internal sealed class StorageAccountNode : ExplorerNodeBase, IPortalResource, ITaggableResource
     {
         private ProvisioningState _state;
 
@@ -22,7 +23,8 @@ namespace AzureExplorer.Storage.Models
             string resourceGroupName,
             string state,
             string kind,
-            string skuName)
+            string skuName,
+            IDictionary<string, string> tags = null)
             : base(name)
         {
             SubscriptionId = subscriptionId;
@@ -30,6 +32,18 @@ namespace AzureExplorer.Storage.Models
             Kind = kind;
             SkuName = skuName;
             _state = ProvisioningStateParser.Parse(state);
+
+            // Store tags, filtering out Azure system/internal tags
+            IDictionary<string, string> filteredTags = tags?.FilterUserTags();
+            Tags = filteredTags != null && filteredTags.Count > 0
+                ? new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(filteredTags))
+                : new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
+            // Register tags with TagService for filtering
+            if (Tags.Count > 0)
+            {
+                TagService.Instance.RegisterTags(Tags);
+            }
 
             // Show SKU info as description, or state if failed
             Description = _state == ProvisioningState.Failed
@@ -48,6 +62,11 @@ namespace AzureExplorer.Storage.Models
         // IPortalResource
         public string ResourceName => Label;
         public string AzureResourceProvider => "Microsoft.Storage/storageAccounts";
+
+        // ITaggableResource
+        public IReadOnlyDictionary<string, string> Tags { get; }
+        public string TagsTooltip => Tags.FormatTagsTooltip();
+        public bool HasTag(string key, string value = null) => Tags.ContainsTag(key, value);
 
         public ProvisioningState State
         {
@@ -81,6 +100,12 @@ namespace AzureExplorer.Storage.Models
 
             await LoadChildrenWithErrorHandlingAsync(_ =>
             {
+                // Add Tags node if resource has tags
+                if (Tags.Count > 0)
+                {
+                    AddChild(new TagsNode(Tags));
+                }
+
                 // Add Blob Containers node
                 AddChild(new ContainersNode(SubscriptionId, ResourceGroupName, Label));
                 return Task.CompletedTask;

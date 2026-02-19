@@ -33,18 +33,18 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 
 ### Supported Azure Resource Types
 
-| Resource Type | Actions |
-|---------------|---------|
-| **App Services** | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings |
-| **Function Apps** | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings |
-| **Virtual Machines** | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address |
-| **Storage Accounts** | Copy Connection String, Browse Blob Containers |
-| **Blob Containers** | Upload, Download, Delete, Copy URL |
-| **Key Vaults** | Add/Update/Copy/Delete Secrets |
-| **SQL Servers** | Copy Connection String, Browse Databases |
-| **SQL Databases** | Copy Connection String |
-| **Front Door** | Browse Endpoints |
-| **App Service Plans** | View Hosting Plans |
+| Resource Type         | Actions                                                                                |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| **App Services**      | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, Add Tags |
+| **Function Apps**     | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, Add Tags |
+| **Virtual Machines**  | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address, Add Tags                     |
+| **Storage Accounts**  | Copy Connection String, Browse Blob Containers, Add Tags                               |
+| **Blob Containers**   | Upload, Download, Delete, Copy URL                                                     |
+| **Key Vaults**        | Add/Update/Copy/Delete Secrets, Add Tags                                               |
+| **SQL Servers**       | Copy Connection String, Browse Databases, Add Tags                                     |
+| **SQL Databases**     | Copy Connection String                                                                 |
+| **Front Door**        | Browse Endpoints                                                                       |
+| **App Service Plans** | View Hosting Plans                                                                     |
 
 ### Browse Your Azure Resources
 
@@ -58,6 +58,19 @@ Quickly find any resource using the integrated Visual Studio search box in the t
 - **Background Search** — Azure API search runs in parallel for comprehensive results
 - **Grouped by Account** — Results are organized by Account → Subscription for easy navigation
 - **All Resource Types** — Searches App Services, Function Apps, VMs, Storage, Key Vaults, SQL, and more
+- **Tag Search** — Use `tag:Key=Value` syntax to find resources by tag (case-insensitive)
+
+**Search syntax examples:**
+
+| Query                        | Description                                       |
+| ---------------------------- | ------------------------------------------------- |
+| `myapp`                      | Find resources with "myapp" in the name           |
+| `tag:Environment=Production` | Find resources tagged with Environment=Production |
+| `tag:environment=production` | Same as above (case-insensitive)                  |
+| `tag:Team`                   | Find resources with any value for the Team tag    |
+| `api tag:Environment=Dev`    | Combine name and tag filters                      |
+
+You can also right-click on any tag in the tree and select **"Filter by This Tag"** to quickly search for all resources with that tag.
 
 ### App Service & Function App Management
 
@@ -106,6 +119,16 @@ Connect to your Azure SQL resources:
 ### Front Door & App Service Plans
 
 Browse Front Door profiles and endpoints, view your hosting plans, and quickly access the Portal for advanced configuration.
+
+### Resource Tags
+
+Organize and filter your Azure resources using tags:
+
+- **View Tags** — Expand any resource to see its tags as key-value pairs
+- **Add Tags** — Right-click a resource and select "Add Tag..." to create new tags
+- **Search by Tag** — Use `tag:Key=Value` syntax in the search box to find resources
+- **Copy Tags** — Copy all tags as JSON or individual tag values
+- **Auto-complete** — Tag keys and values auto-populate from previously used tags
 
 ### Virtual Machine Management
 

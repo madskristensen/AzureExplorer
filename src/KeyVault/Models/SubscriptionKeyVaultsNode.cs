@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
@@ -12,13 +13,8 @@ namespace AzureExplorer.KeyVault.Models
     /// <summary>
     /// Category node that lists all Azure Key Vaults across the entire subscription.
     /// </summary>
-    internal sealed class SubscriptionKeyVaultsNode : SubscriptionResourceNodeBase
+    internal sealed class SubscriptionKeyVaultsNode(string subscriptionId) : SubscriptionResourceNodeBase("Key Vaults", subscriptionId)
     {
-        public SubscriptionKeyVaultsNode(string subscriptionId)
-            : base("Key Vaults", subscriptionId)
-        {
-        }
-
         protected override string ResourceType => "Microsoft.KeyVault/vaults";
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureKeyVault;
@@ -52,7 +48,10 @@ namespace AzureExplorer.KeyVault.Models
                 }
             }
 
-            return new KeyVaultNode(name, SubscriptionId, resourceGroup, state, vaultUri);
+            // Extract tags from resource
+            IDictionary<string, string> tags = resource.Data.Tags;
+
+            return new KeyVaultNode(name, SubscriptionId, resourceGroup, state, vaultUri, tags);
         }
     }
 }

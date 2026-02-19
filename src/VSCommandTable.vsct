@@ -206,6 +206,20 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Tags node -->
+      <Menu guid="AzureExplorer" id="TagsNodeContextMenu" type="Context">
+        <Strings>
+          <CommandName>Tags</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Tag node (individual tag) -->
+      <Menu guid="AzureExplorer" id="TagContextMenu" type="Context">
+        <Strings>
+          <CommandName>Tag</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Flyout: Streaming Logs (inside App Service context menu) -->
       <Menu guid="AzureExplorer" id="StreamingLogsFlyout" priority="0x0250" type="Menu">
         <Parent guid="AzureExplorer" id="AppServiceDiagnosticsGroup"/>
@@ -389,6 +403,16 @@
       <!-- Folder context menu groups -->
       <Group guid="AzureExplorer" id="FolderContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="FolderContextMenu"/>
+      </Group>
+
+      <!-- Tags node context menu groups -->
+      <Group guid="AzureExplorer" id="TagsNodeContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="TagsNodeContextMenu"/>
+      </Group>
+
+      <!-- Tag context menu groups -->
+      <Group guid="AzureExplorer" id="TagContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="TagContextMenu"/>
       </Group>
 
       <!-- App Service Plan context menu groups -->
@@ -844,6 +868,50 @@
         </Strings>
       </Button>
 
+      <!-- Tags node context: Copy Tags as JSON -->
+      <Button guid="AzureExplorer" id="CopyTagsAsJson" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="TagsNodeContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Tags as JSON</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyTagsAsJson</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Tag context: Copy Value -->
+      <Button guid="AzureExplorer" id="CopyTagValue" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Value</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyTagValue</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Tag context: Filter by Tag -->
+      <Button guid="AzureExplorer" id="FilterByTag" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Filter"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Filter by This Tag</ButtonText>
+          <LocCanonicalName>.AzureExplorer.FilterByTag</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Add Tag command (placed on multiple resource context menus) -->
+      <Button guid="AzureExplorer" id="AddTag" priority="0x0800" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Bookmark"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Add Tag...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.AddTag</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -998,6 +1066,26 @@
     <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
       <Parent guid="AzureExplorer" id="VirtualMachinesCategoryContextMenuGroup"/>
     </CommandPlacement>
+
+    <!-- Add Tag placements on all taggable resource context menus -->
+    <CommandPlacement guid="AzureExplorer" id="AddTag" priority="0x0800">
+      <Parent guid="AzureExplorer" id="AppServiceRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="AddTag" priority="0x0800">
+      <Parent guid="AzureExplorer" id="FunctionAppRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="AddTag" priority="0x0800">
+      <Parent guid="AzureExplorer" id="StorageAccountRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="AddTag" priority="0x0800">
+      <Parent guid="AzureExplorer" id="VirtualMachineRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="AddTag" priority="0x0800">
+      <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="AddTag" priority="0x0800">
+      <Parent guid="AzureExplorer" id="SqlServerRefreshGroup"/>
+    </CommandPlacement>
   </CommandPlacements>
 
   <!-- Keybindings scoped to Azure Explorer tool window -->
@@ -1037,6 +1125,8 @@
       <IDSymbol name="AccountContextMenu" value="0x002B" />
       <IDSymbol name="FileContextMenu" value="0x002C" />
       <IDSymbol name="FolderContextMenu" value="0x002D" />
+      <IDSymbol name="TagsNodeContextMenu" value="0x01C0" />
+      <IDSymbol name="TagContextMenu" value="0x01C2" />
 
       <!-- Groups -->
       <IDSymbol name="ViewMenuGroup" value="0x0030" />
@@ -1079,6 +1169,8 @@
       <IDSymbol name="AccountContextMenuGroup" value="0x004F" />
       <IDSymbol name="FileContextMenuGroup" value="0x0060" />
       <IDSymbol name="FolderContextMenuGroup" value="0x0061" />
+      <IDSymbol name="TagsNodeContextMenuGroup" value="0x01C1" />
+      <IDSymbol name="TagContextMenuGroup" value="0x01C3" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
       <IDSymbol name="AppServiceActionsGroup" value="0x0043" />
       <IDSymbol name="AppServiceDiagnosticsGroup" value="0x0045" />
@@ -1140,6 +1232,10 @@
       <IDSymbol name="CopyVmIpAddress" value="0x01B3" />
       <IDSymbol name="ConnectRdp" value="0x01B4" />
       <IDSymbol name="ConnectSsh" value="0x01B5" />
+      <IDSymbol name="CopyTagsAsJson" value="0x01C4" />
+      <IDSymbol name="CopyTagValue" value="0x01C5" />
+      <IDSymbol name="FilterByTag" value="0x01C6" />
+      <IDSymbol name="AddTag" value="0x01C7" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

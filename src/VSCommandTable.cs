@@ -152,5 +152,15 @@ namespace AzureExplorer
         public const int CopyVmIpAddress = 0x01B3;
         public const int ConnectRdp = 0x01B4;
         public const int ConnectSsh = 0x01B5;
+
+        // Tags
+        public const int TagsNodeContextMenu = 0x01C0;
+        public const int TagsNodeContextMenuGroup = 0x01C1;
+        public const int TagContextMenu = 0x01C2;
+        public const int TagContextMenuGroup = 0x01C3;
+        public const int CopyTagsAsJson = 0x01C4;
+        public const int CopyTagValue = 0x01C5;
+        public const int FilterByTag = 0x01C6;
+        public const int AddTag = 0x01C7;
     }
 }
