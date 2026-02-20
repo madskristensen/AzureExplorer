@@ -178,6 +178,41 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Key node -->
+      <Menu guid="AzureExplorer" id="KeyContextMenu" type="Context">
+        <Strings>
+          <CommandName>Key</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Certificate node -->
+      <Menu guid="AzureExplorer" id="CertificateContextMenu" type="Context">
+        <Strings>
+          <CommandName>Certificate</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Secrets node (folder) -->
+      <Menu guid="AzureExplorer" id="SecretsNodeContextMenu" type="Context">
+        <Strings>
+          <CommandName>Secrets</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Queue node -->
+      <Menu guid="AzureExplorer" id="QueueContextMenu" type="Context">
+        <Strings>
+          <CommandName>Queue</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Table node -->
+      <Menu guid="AzureExplorer" id="TableContextMenu" type="Context">
+        <Strings>
+          <CommandName>Table</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Context menu: Tenant node -->
       <Menu guid="AzureExplorer" id="TenantContextMenu" type="Context">
         <Strings>
@@ -390,6 +425,31 @@
       </Group>
       <Group guid="AzureExplorer" id="SecretDeleteGroup" priority="0x0200">
         <Parent guid="AzureExplorer" id="SecretContextMenu"/>
+      </Group>
+
+      <!-- Key context menu groups -->
+      <Group guid="AzureExplorer" id="KeyActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="KeyContextMenu"/>
+      </Group>
+
+      <!-- Certificate context menu groups -->
+      <Group guid="AzureExplorer" id="CertificateActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="CertificateContextMenu"/>
+      </Group>
+
+      <!-- Secrets node context menu groups -->
+      <Group guid="AzureExplorer" id="SecretsNodeActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SecretsNodeContextMenu"/>
+      </Group>
+
+      <!-- Queue context menu groups -->
+      <Group guid="AzureExplorer" id="QueueActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="QueueContextMenu"/>
+      </Group>
+
+      <!-- Table context menu groups -->
+      <Group guid="AzureExplorer" id="TableActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="TableContextMenu"/>
       </Group>
 
       <!-- Tenant context menu groups -->
@@ -795,6 +855,50 @@
         <Strings>
           <ButtonText>Copy URL</ButtonText>
           <LocCanonicalName>.AzureExplorer.CopyBlobUrl</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Queue context: Copy URL -->
+      <Button guid="AzureExplorer" id="CopyQueueUrl" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="QueueActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy URL</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyQueueUrl</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Table context: Copy URL -->
+      <Button guid="AzureExplorer" id="CopyTableUrl" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="TableActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy URL</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyTableUrl</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Key context: Copy Key ID -->
+      <Button guid="AzureExplorer" id="CopyKeyId" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="KeyActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Key ID</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyKeyId</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Certificate context: Copy Certificate ID -->
+      <Button guid="AzureExplorer" id="CopyCertificateId" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="CertificateActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Copy"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Copy Certificate ID</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CopyCertificateId</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -1205,6 +1309,31 @@
       <Parent guid="AzureExplorer" id="BlobFolderRefreshGroup"/>
     </CommandPlacement>
 
+    <!-- Queue command placements -->
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0200">
+      <Parent guid="AzureExplorer" id="QueueActionsGroup"/>
+    </CommandPlacement>
+
+    <!-- Table command placements -->
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0200">
+      <Parent guid="AzureExplorer" id="TableActionsGroup"/>
+    </CommandPlacement>
+
+    <!-- Key command placements -->
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0200">
+      <Parent guid="AzureExplorer" id="KeyActionsGroup"/>
+    </CommandPlacement>
+
+    <!-- Certificate command placements -->
+    <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0200">
+      <Parent guid="AzureExplorer" id="CertificateActionsGroup"/>
+    </CommandPlacement>
+
+    <!-- Secrets node command placements -->
+    <CommandPlacement guid="AzureExplorer" id="AddSecret" priority="0x0100">
+      <Parent guid="AzureExplorer" id="SecretsNodeActionsGroup"/>
+    </CommandPlacement>
+
     <!-- Virtual Machine command placements -->
     <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0400">
       <Parent guid="AzureExplorer" id="VirtualMachineConnectGroup"/>
@@ -1269,7 +1398,12 @@
       <IDSymbol name="BlobContainerContextMenu" value="0x0190" />
       <IDSymbol name="BlobContextMenu" value="0x0191" />
       <IDSymbol name="BlobFolderContextMenu" value="0x0192" />
+      <IDSymbol name="QueueContextMenu" value="0x1193" />
+      <IDSymbol name="TableContextMenu" value="0x1194" />
       <IDSymbol name="SecretContextMenu" value="0x0055" />
+      <IDSymbol name="KeyContextMenu" value="0x0059" />
+      <IDSymbol name="CertificateContextMenu" value="0x005A" />
+      <IDSymbol name="SecretsNodeContextMenu" value="0x005B" />
       <IDSymbol name="TenantContextMenu" value="0x002A" />
       <IDSymbol name="AccountContextMenu" value="0x002B" />
       <IDSymbol name="FileContextMenu" value="0x002C" />
@@ -1315,6 +1449,11 @@
       <IDSymbol name="BlobFolderRefreshGroup" value="0x0197" />
       <IDSymbol name="SecretActionsGroup" value="0x0057" />
       <IDSymbol name="SecretDeleteGroup" value="0x0058" />
+      <IDSymbol name="KeyActionsGroup" value="0x005E" />
+      <IDSymbol name="CertificateActionsGroup" value="0x005F" />
+      <IDSymbol name="SecretsNodeActionsGroup" value="0x0062" />
+      <IDSymbol name="QueueActionsGroup" value="0x019E" />
+      <IDSymbol name="TableActionsGroup" value="0x019F" />
       <IDSymbol name="TenantContextMenuGroup" value="0x004E" />
       <IDSymbol name="AccountContextMenuGroup" value="0x004F" />
       <IDSymbol name="FileContextMenuGroup" value="0x0060" />
@@ -1380,6 +1519,10 @@
       <IDSymbol name="DeleteBlob" value="0x0199" />
       <IDSymbol name="DownloadBlob" value="0x019A" />
       <IDSymbol name="UploadBlob" value="0x019B" />
+      <IDSymbol name="CopyQueueUrl" value="0x019C" />
+      <IDSymbol name="CopyTableUrl" value="0x019D" />
+      <IDSymbol name="CopyKeyId" value="0x005C" />
+      <IDSymbol name="CopyCertificateId" value="0x005D" />
       <IDSymbol name="StartVm" value="0x01B0" />
       <IDSymbol name="StopVm" value="0x01B1" />
       <IDSymbol name="RestartVm" value="0x01B2" />

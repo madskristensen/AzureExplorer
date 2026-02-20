@@ -108,6 +108,13 @@ namespace AzureExplorer.Storage.Models
 
                 // Add Blob Containers node
                 AddChild(new ContainersNode(SubscriptionId, ResourceGroupName, Label));
+
+                // Add Queues node
+                AddChild(new QueuesNode(SubscriptionId, ResourceGroupName, Label));
+
+                // Add Tables node
+                AddChild(new TablesNode(SubscriptionId, ResourceGroupName, Label));
+
                 return Task.CompletedTask;
             }, cancellationToken);
         }

@@ -43,7 +43,7 @@ namespace AzureExplorer.Core.Services
             // Use the constructor with ArmClientOptions to avoid version conflicts.
             // The simple ArmClient(TokenCredential) constructor may not exist in all versions
             // of Azure.ResourceManager that could be loaded by other VS extensions/workloads.
-            return new ArmClient(credential, default(string), new ArmClientOptions());
+            return new ArmClient(credential, default, new ArmClientOptions());
         }
 
         /// <summary>
@@ -327,6 +327,52 @@ namespace AzureExplorer.Core.Services
             var client = new Azure.Security.KeyVault.Secrets.SecretClient(new Uri(vaultUri), credential);
 
             await client.StartDeleteSecretAsync(secretName, cancellationToken);
+        }
+
+        /// <summary>
+        /// Yields keys in the given Key Vault.
+        /// </summary>
+        public async IAsyncEnumerable<KeyVault.Models.KeyNode> GetKeysAsync(
+            string subscriptionId,
+            string vaultUri,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = GetCredential(subscriptionId);
+            var client = new Azure.Security.KeyVault.Keys.KeyClient(new Uri(vaultUri), credential);
+
+            await foreach (Azure.Security.KeyVault.Keys.KeyProperties key in
+                client.GetPropertiesOfKeysAsync(cancellationToken))
+            {
+                yield return new KeyVault.Models.KeyNode(
+                    key.Name,
+                    subscriptionId,
+                    vaultUri,
+                    key.Enabled ?? true,
+                    null); // KeyType is retrieved only when getting the full key
+            }
+        }
+
+        /// <summary>
+        /// Yields certificates in the given Key Vault.
+        /// </summary>
+        public async IAsyncEnumerable<KeyVault.Models.CertificateNode> GetCertificatesAsync(
+            string subscriptionId,
+            string vaultUri,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = GetCredential(subscriptionId);
+            var client = new Azure.Security.KeyVault.Certificates.CertificateClient(new Uri(vaultUri), credential);
+
+            await foreach (Azure.Security.KeyVault.Certificates.CertificateProperties cert in
+                client.GetPropertiesOfCertificatesAsync(includePending: false, cancellationToken))
+            {
+                yield return new KeyVault.Models.CertificateNode(
+                    cert.Name,
+                    subscriptionId,
+                    vaultUri,
+                    cert.Enabled ?? true,
+                    cert.ExpiresOn);
+            }
         }
 
         /// <summary>

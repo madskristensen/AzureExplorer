@@ -48,7 +48,12 @@ namespace AzureExplorer
         public const int BlobContainerContextMenu = 0x0190;
         public const int BlobContextMenu = 0x0191;
         public const int BlobFolderContextMenu = 0x0192;
+        public const int QueueContextMenu = 0x1193;
+        public const int TableContextMenu = 0x1194;
         public const int SecretContextMenu = 0x0055;
+        public const int KeyContextMenu = 0x0059;
+        public const int CertificateContextMenu = 0x005A;
+        public const int SecretsNodeContextMenu = 0x005B;
         public const int TenantContextMenu = 0x002A;
         public const int AccountContextMenu = 0x002B;
         public const int FileContextMenu = 0x002C;
@@ -92,6 +97,11 @@ namespace AzureExplorer
         public const int BlobFolderRefreshGroup = 0x0197;
         public const int SecretActionsGroup = 0x0057;
         public const int SecretDeleteGroup = 0x0058;
+        public const int KeyActionsGroup = 0x005E;
+        public const int CertificateActionsGroup = 0x005F;
+        public const int SecretsNodeActionsGroup = 0x0062;
+        public const int QueueActionsGroup = 0x019E;
+        public const int TableActionsGroup = 0x019F;
         public const int TenantContextMenuGroup = 0x004E;
         public const int AccountContextMenuGroup = 0x004F;
         public const int FileContextMenuGroup = 0x0060;
@@ -155,6 +165,10 @@ namespace AzureExplorer
         public const int DeleteBlob = 0x0199;
         public const int DownloadBlob = 0x019A;
         public const int UploadBlob = 0x019B;
+        public const int CopyQueueUrl = 0x019C;
+        public const int CopyTableUrl = 0x019D;
+        public const int CopyKeyId = 0x005C;
+        public const int CopyCertificateId = 0x005D;
         public const int StartVm = 0x01B0;
         public const int StopVm = 0x01B1;
         public const int RestartVm = 0x01B2;

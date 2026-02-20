@@ -25,26 +25,31 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 - **Real-time Logs** — Stream application and HTTP logs from App Services directly in VS
 - **Context Menu Actions** — Right-click to start, stop, restart, browse, or open in Portal
 - **VM Management** — Start, stop, and connect to Virtual Machines via RDP or SSH
-- **Key Vault Integration** — Create, update, and copy secrets without touching the Portal
-- **Blob Storage** — Browse containers, upload, download, and delete blobs
+- **Key Vault Integration** — Manage secrets, keys, and certificates without touching the Portal
+- **Blob Storage** — Browse containers, queues, tables, upload, download, and delete blobs
 - **SQL Database** — Copy connection strings for quick database access
 
 ## Features
 
 ### Supported Azure Resource Types
 
-| Resource Type         | Actions                                                                                |
-| --------------------- | -------------------------------------------------------------------------------------- |
+| Resource Type         | Actions                                                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | **App Services**      | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, File Browser, Drag & Drop Upload, Add Tags |
 | **Function Apps**     | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, File Browser, Drag & Drop Upload, Add Tags |
-| **Virtual Machines**  | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address, Add Tags                     |
-| **Storage Accounts**  | Copy Connection String, Browse Blob Containers, Add Tags                               |
-| **Blob Containers**   | Upload, Download, Delete, Copy URL                                                     |
-| **Key Vaults**        | Add/Update/Copy/Delete Secrets, Add Tags                                               |
-| **SQL Servers**       | Copy Connection String, Browse Databases, Add Tags                                     |
-| **SQL Databases**     | Copy Connection String                                                                 |
-| **Front Door**        | Browse Endpoints                                                                       |
-| **App Service Plans** | View Hosting Plans                                                                     |
+| **Virtual Machines**  | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address, Add Tags                                                       |
+| **Storage Accounts**  | Copy Connection String, Browse Blobs/Queues/Tables, Add Tags                                                             |
+| **Blob Containers**   | Upload, Download, Delete, Copy URL                                                                                       |
+| **Queues**            | Copy URL, Open in Portal                                                                                                 |
+| **Tables**            | Copy URL, Open in Portal                                                                                                 |
+| **Key Vaults**        | Browse Secrets/Keys/Certificates, Add Tags                                                                               |
+| **Secrets**           | Add, Update, Copy Value, Delete                                                                                          |
+| **Keys**              | Copy Key ID, Open in Portal                                                                                              |
+| **Certificates**      | Copy Certificate ID, Open in Portal                                                                                      |
+| **SQL Servers**       | Copy Connection String, Browse Databases, Add Tags                                                                       |
+| **SQL Databases**     | Copy Connection String                                                                                                   |
+| **Front Door**        | Browse Endpoints                                                                                                         |
+| **App Service Plans** | View Hosting Plans                                                                                                       |
 
 ### Browse Your Azure Resources
 
@@ -98,25 +103,40 @@ Browse and manage files deployed to your App Services and Function Apps:
 - **Recursive Upload** — Dropping a folder uploads all its contents, preserving the folder structure
 - **Delete Files** — Right-click files or folders to delete them
 
-### Storage Account & Blob Management
+### Storage Account Management
 
-Browse and manage your blob storage:
+Browse and manage your storage resources:
 
 - **Copy Connection String** — Quick access to storage credentials
 - **Browse Containers** — Navigate blob containers and virtual folders
-- **Upload Files** — Drag and drop or select files to upload
+- **Browse Queues** — View storage queues and copy URLs
+- **Browse Tables** — View storage tables and copy URLs
+- **Upload Files** — Drag and drop or select files to upload to blobs
 - **Download Blobs** — Save blobs to your local machine
 - **Delete Blobs** — Remove blobs with confirmation
-- **Copy URL** — Get the blob URL for sharing
+- **Copy URL** — Get the URL for blobs, queues, or tables
 
-### Key Vault Secrets
+### Key Vault Management
 
-Securely manage your application secrets:
+Securely manage your secrets, keys, and certificates:
+
+**Secrets:**
 
 - **Add Secret** — Create new secrets directly from VS
 - **Update Value** — Modify existing secret values
 - **Copy Value** — One-click copy to clipboard
 - **Delete** — Remove secrets with confirmation
+
+**Keys:**
+
+- **Copy Key ID** — Copy the full key identifier URL
+- **Open in Portal** — Jump to the key in Azure Portal
+
+**Certificates:**
+
+- **Copy Certificate ID** — Copy the full certificate identifier URL
+- **View Expiration** — See certificate expiry dates at a glance
+- **Open in Portal** — Jump to the certificate in Azure Portal
 
 ![Key Vault Context Menu](art/key-vault-context-menu.png)
 

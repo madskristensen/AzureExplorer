@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading;
 
 using AzureExplorer.Core.Models;
@@ -12,7 +11,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 namespace AzureExplorer.KeyVault.Models
 {
     /// <summary>
-    /// Represents an Azure Key Vault. Expandable node containing secrets directly.
+    /// Represents an Azure Key Vault. Expandable node containing Secrets, Keys, and Certificates folders.
     /// </summary>
     internal sealed class KeyVaultNode : ExplorerNodeBase, IPortalResource, ITaggableResource
     {
@@ -87,7 +86,7 @@ namespace AzureExplorer.KeyVault.Models
             if (!BeginLoading())
                 return;
 
-            await LoadChildrenWithErrorHandlingAsync(async ct =>
+            await LoadChildrenWithErrorHandlingAsync(_ =>
             {
                 // Add Tags node if resource has tags
                 if (Tags.Count > 0)
@@ -95,20 +94,12 @@ namespace AzureExplorer.KeyVault.Models
                     AddChild(new TagsNode(Tags));
                 }
 
-                var secrets = new List<SecretNode>();
+                // Add folder nodes for Secrets, Keys, and Certificates
+                AddChild(new SecretsNode(SubscriptionId, VaultUri));
+                AddChild(new KeysNode(SubscriptionId, VaultUri));
+                AddChild(new CertificatesNode(SubscriptionId, VaultUri));
 
-                await foreach (SecretNode secret in AzureResourceService.Instance.GetSecretsAsync(
-                    SubscriptionId, VaultUri, ct))
-                {
-                    ct.ThrowIfCancellationRequested();
-                    secrets.Add(secret);
-                }
-
-                // Sort alphabetically by name
-                foreach (SecretNode node in secrets.OrderBy(s => s.Label, StringComparer.OrdinalIgnoreCase))
-                {
-                    AddChild(node);
-                }
+                return Task.CompletedTask;
             }, cancellationToken);
         }
     }
