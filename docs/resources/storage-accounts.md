@@ -7,6 +7,7 @@ Create and manage your storage resources directly from Visual Studio.
 | Action | Description |
 |--------|-------------|
 | **Create** | Create a new storage account with performance/replication options |
+| **Delete** | Delete storage accounts with confirmation |
 | **Copy Connection String** | Quick access to storage credentials |
 | **Browse Containers** | Navigate blob containers and virtual folders |
 | **Browse Queues** | View storage queues and copy URLs |
@@ -20,7 +21,7 @@ Create and manage your storage resources directly from Visual Studio.
 3. Select **Create Storage Account...**
 4. Enter the required information:
    - **Name**: 3-24 characters, lowercase letters and numbers only (globally unique)
-   - **Location**: Azure region for the storage account
+   - **Location**: Azure region (defaults to resource group's location)
    - **Performance/Replication**: Choose based on your needs
 5. Click **Create**
 
@@ -39,6 +40,14 @@ Storage account names must:
 | **Standard / GRS** | Production with geo-redundancy, data replicated to secondary region |
 | **Standard / ZRS** | Production with zone redundancy, data replicated across 3 availability zones |
 | **Premium / LRS** | High-performance workloads requiring SSD storage |
+
+## Deleting a Storage Account
+
+1. Right-click on the storage account
+2. Select **Delete**
+3. Confirm the deletion
+
+> **Warning:** Deleting a storage account will permanently delete all data inside it, including all blob containers, queues, tables, and file shares. This action cannot be undone.
 
 ## Blob Containers
 

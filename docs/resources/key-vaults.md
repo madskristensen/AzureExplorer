@@ -2,7 +2,21 @@
 
 Securely manage your secrets, keys, and certificates.
 
-![Key Vault Context Menu](../../art/key-vault-context-menu.png)
+## Features
+
+| Action | Description |
+|--------|-------------|
+| **Delete** | Delete Key Vaults with confirmation |
+| **Open in Portal** | Jump to the Key Vault in Azure Portal |
+| **Refresh** | Reload Key Vault contents |
+
+## Deleting a Key Vault
+
+1. Right-click on the Key Vault
+2. Select **Delete**
+3. Confirm the deletion
+
+> **Warning:** Deleting a Key Vault will delete all secrets, keys, and certificates inside it. If soft-delete is enabled on the vault, you can recover it within the retention period.
 
 ## Secrets
 
@@ -32,11 +46,19 @@ Securely manage your secrets, keys, and certificates.
 
 Key Vault uses a separate permission model from Azure RBAC. You need **data plane** permissions to access secrets, keys, and certificates.
 
-### RBAC Model (Recommended)
+### Management Plane (Resource Level)
 
 | Action | Minimum Role |
 |--------|--------------|
 | View Key Vault resource | Reader |
+| Delete Key Vault | Contributor or Key Vault Contributor |
+
+### Data Plane (Secrets/Keys/Certificates)
+
+#### RBAC Model (Recommended)
+
+| Action | Minimum Role |
+|--------|--------------|
 | List/read secrets | Key Vault Secrets User |
 | Create/update/delete secrets | Key Vault Secrets Officer |
 | List/read keys | Key Vault Crypto User |
