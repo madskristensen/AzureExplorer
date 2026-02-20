@@ -74,24 +74,29 @@ namespace AzureExplorer.Core.Models
                 if (SetProperty(ref _state, value))
                 {
                     // Only show description for non-normal states (Stopped)
-                    // Don't show "Unknown" or "Running" as they're not useful
                     Description = value == WebSiteState.Stopped ? value.ToString() : null;
                     OnPropertyChanged(nameof(IconMoniker));
+                    OnPropertyChanged(nameof(HealthOverlayIcon));
                 }
             }
         }
 
         /// <summary>
-        /// The icon to display when the site is running.
+        /// Shows a stopped overlay icon when the site is not running.
+        /// </summary>
+        public override ImageMoniker HealthOverlayIcon => State == WebSiteState.Stopped
+            ? KnownMonikers.StatusStopped
+            : default;
+
+        /// <summary>
+        /// The icon to display for this web site type (e.g., AzureWebSites for App Services).
         /// </summary>
         protected abstract ImageMoniker RunningIconMoniker { get; }
 
-        public override ImageMoniker IconMoniker => State switch
-        {
-            WebSiteState.Running => RunningIconMoniker,
-            WebSiteState.Stopped => KnownMonikers.CloudStopped,
-            _ => RunningIconMoniker
-        };
+        /// <summary>
+        /// Always shows the same icon regardless of state. The overlay indicates stopped state.
+        /// </summary>
+        public override ImageMoniker IconMoniker => RunningIconMoniker;
 
         public override bool SupportsChildren => true;
 

@@ -45,13 +45,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppService\Commands\BrowseSlotCommand.cs" />
     <Compile Include="AppService\Commands\DeleteFileCommand.cs" />
     <Compile Include="AppService\Commands\DeleteFolderCommand.cs" />
     <Compile Include="AppService\Commands\DownloadPublishProfileCommand.cs" />
     <Compile Include="AppService\Commands\ManageAppSettingsCommand.cs" />
+    <Compile Include="AppService\Commands\RestartSlotCommand.cs" />
+    <Compile Include="AppService\Commands\StartSlotCommand.cs" />
+    <Compile Include="AppService\Commands\StopSlotCommand.cs" />
+    <Compile Include="AppService\Commands\SwapSlotCommand.cs" />
     <Compile Include="AppService\Dialogs\AppSettingsDialog.xaml.cs">
       <DependentUpon>AppSettingsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AppService\Models\DeploymentSlotNode.cs" />
+    <Compile Include="AppService\Models\DeploymentSlotsNode.cs" />
     <Compile Include="AppService\Models\FileNode.cs" />
     <Compile Include="AppService\Models\FilesNode.cs" />
     <Compile Include="AppService\Models\FolderNode.cs" />

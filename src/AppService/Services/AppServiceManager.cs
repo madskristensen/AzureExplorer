@@ -127,6 +127,107 @@ namespace AzureExplorer.AppService.Services
             return await reader.ReadToEndAsync();
         }
 
+        /// <summary>
+        /// Gets all deployment slots for the specified App Service.
+        /// </summary>
+        public async Task<List<Models.DeploymentSlotNode>> GetDeploymentSlotsAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string appServiceName,
+            CancellationToken cancellationToken = default)
+        {
+            var slots = new List<Models.DeploymentSlotNode>();
+
+            WebSiteResource site = await GetWebSiteAsync(subscriptionId, resourceGroupName, appServiceName, cancellationToken);
+            WebSiteSlotCollection slotCollection = site.GetWebSiteSlots();
+
+            await foreach (WebSiteSlotResource slot in slotCollection.GetAllAsync(cancellationToken))
+            {
+                var slotNode = new Models.DeploymentSlotNode(
+                    slot.Data.Name.Contains("/") ? slot.Data.Name.Split('/')[1] : slot.Data.Name,
+                    appServiceName,
+                    subscriptionId,
+                    resourceGroupName,
+                    slot.Data.State,
+                    slot.Data.DefaultHostName);
+                slots.Add(slotNode);
+            }
+
+            return slots;
+        }
+
+        /// <summary>
+        /// Swaps a deployment slot with the production slot.
+        /// </summary>
+        public async Task SwapSlotAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string appServiceName,
+            string slotName,
+            CancellationToken cancellationToken = default)
+        {
+            WebSiteResource site = await GetWebSiteAsync(subscriptionId, resourceGroupName, appServiceName, cancellationToken);
+            var slotSwapEntity = new CsmSlotEntity("production", preserveVnet: true);
+            WebSiteSlotResource slot = (await site.GetWebSiteSlots().GetAsync(slotName, cancellationToken: cancellationToken)).Value;
+            await slot.SwapSlotAsync(WaitUntil.Completed, slotSwapEntity, cancellationToken);
+        }
+
+        /// <summary>
+        /// Starts a deployment slot.
+        /// </summary>
+        public async Task StartSlotAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string appServiceName,
+            string slotName,
+            CancellationToken cancellationToken = default)
+        {
+            WebSiteSlotResource slot = await GetWebSiteSlotAsync(subscriptionId, resourceGroupName, appServiceName, slotName, cancellationToken);
+            await slot.StartSlotAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Stops a deployment slot.
+        /// </summary>
+        public async Task StopSlotAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string appServiceName,
+            string slotName,
+            CancellationToken cancellationToken = default)
+        {
+            WebSiteSlotResource slot = await GetWebSiteSlotAsync(subscriptionId, resourceGroupName, appServiceName, slotName, cancellationToken);
+            await slot.StopSlotAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Restarts a deployment slot.
+        /// </summary>
+        public async Task RestartSlotAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string appServiceName,
+            string slotName,
+            CancellationToken cancellationToken = default)
+        {
+            WebSiteSlotResource slot = await GetWebSiteSlotAsync(subscriptionId, resourceGroupName, appServiceName, slotName, cancellationToken);
+            await slot.RestartSlotAsync(cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the current state of a deployment slot.
+        /// </summary>
+        public async Task<string> GetSlotStateAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string appServiceName,
+            string slotName,
+            CancellationToken cancellationToken = default)
+        {
+            WebSiteSlotResource slot = await GetWebSiteSlotAsync(subscriptionId, resourceGroupName, appServiceName, slotName, cancellationToken);
+            return slot.Data.State;
+        }
+
         private async Task<WebSiteResource> GetWebSiteAsync(string subscriptionId, string resourceGroupName, string name, CancellationToken cancellationToken)
         {
             return await AsyncHelper.WithTimeoutAsync(async ct =>
@@ -136,6 +237,20 @@ namespace AzureExplorer.AppService.Services
                 ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, ct)).Value;
                 WebSiteCollection webSites = rg.GetWebSites();
                 return (await webSites.GetAsync(name, cancellationToken: ct)).Value;
+            }, cancellationToken: cancellationToken);
+        }
+
+        private async Task<WebSiteSlotResource> GetWebSiteSlotAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string appServiceName,
+            string slotName,
+            CancellationToken cancellationToken)
+        {
+            return await AsyncHelper.WithTimeoutAsync(async ct =>
+            {
+                WebSiteResource site = await GetWebSiteAsync(subscriptionId, resourceGroupName, appServiceName, ct);
+                return (await site.GetWebSiteSlots().GetAsync(slotName, cancellationToken: ct)).Value;
             }, cancellationToken: cancellationToken);
         }
     }

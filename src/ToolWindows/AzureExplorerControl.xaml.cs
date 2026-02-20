@@ -60,6 +60,11 @@ namespace AzureExplorer.ToolWindows
         internal ObservableCollection<ExplorerNodeBase> RootNodes { get; }
 
         /// <summary>
+        /// Gets the singleton instance of the Azure Explorer control.
+        /// </summary>
+        internal static AzureExplorerControl Instance => _instance;
+
+        /// <summary>
         /// Gets the node that was right-clicked for context menu operations.
         /// This is more reliable than SelectedNode because it's set synchronously
         /// during the right-click event, before BeforeQueryStatus runs.
@@ -108,12 +113,13 @@ namespace AzureExplorer.ToolWindows
         /// </summary>
         private void SetupTreeView()
         {
-            // Data template: StackPanel with Icon + Label + Description text
+            // Data template: StackPanel with Icon + Health Overlay + Label + Description text
             var stackFactory = new FrameworkElementFactory(typeof(StackPanel));
             stackFactory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
             stackFactory.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 2, 0, 2));
             stackFactory.SetBinding(UIElement.OpacityProperty, new Binding("Opacity"));
 
+            // Main resource icon
             var imageFactory = new FrameworkElementFactory(typeof(CrispImage));
             imageFactory.SetBinding(CrispImage.MonikerProperty, new Binding("IconMoniker"));
             imageFactory.SetValue(FrameworkElement.WidthProperty, 16.0);
@@ -121,6 +127,15 @@ namespace AzureExplorer.ToolWindows
             imageFactory.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 4, 0));
             imageFactory.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
             stackFactory.AppendChild(imageFactory);
+
+            // Health overlay icon (small status indicator after main icon)
+            var healthOverlayFactory = new FrameworkElementFactory(typeof(CrispImage));
+            healthOverlayFactory.SetBinding(CrispImage.MonikerProperty, new Binding("HealthOverlayIcon"));
+            healthOverlayFactory.SetValue(FrameworkElement.WidthProperty, 10.0);
+            healthOverlayFactory.SetValue(FrameworkElement.HeightProperty, 10.0);
+            healthOverlayFactory.SetValue(FrameworkElement.MarginProperty, new Thickness(-8, 6, 2, 0)); // Overlap bottom-right of main icon
+            healthOverlayFactory.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+            stackFactory.AppendChild(healthOverlayFactory);
 
             var labelFactory = new FrameworkElementFactory(typeof(TextBlock));
             labelFactory.SetBinding(TextBlock.TextProperty, new Binding("Label"));

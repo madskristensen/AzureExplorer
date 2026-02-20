@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json;
 
 using Azure.ResourceManager.Resources;
@@ -18,7 +17,7 @@ namespace AzureExplorer.AppService.Models
     {
         protected override string ResourceType => "Microsoft.Web/sites";
 
-        public override ImageMoniker IconMoniker => KnownMonikers.Web;
+        public override ImageMoniker IconMoniker => KnownMonikers.AzureWebSites;
         public override int ContextMenuId => PackageIds.AppServicesCategoryContextMenu;
 
         protected override bool ShouldIncludeResource(ResourceGraphResult resource)

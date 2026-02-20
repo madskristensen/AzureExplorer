@@ -65,6 +65,12 @@ namespace AzureExplorer.Core.Models
         public virtual double Opacity => 1.0;
 
         /// <summary>
+        /// Gets the health status overlay icon for this node. Default returns no icon.
+        /// Nodes implementing IHealthAwareNode will override this to show health indicators.
+        /// </summary>
+        public virtual ImageMoniker HealthOverlayIcon => default;
+
+        /// <summary>
         /// Gets the actual node for command operations. For wrapper nodes like SearchResultNode,
         /// this returns the underlying wrapped node. For regular nodes, returns this instance.
         /// Commands should use this property when checking node types or performing operations.

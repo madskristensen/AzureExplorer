@@ -220,6 +220,13 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Deployment Slot node -->
+      <Menu guid="AzureExplorer" id="DeploymentSlotContextMenu" type="Context">
+        <Strings>
+          <CommandName>Deployment Slot</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Flyout: Streaming Logs (inside App Service context menu) -->
       <Menu guid="AzureExplorer" id="StreamingLogsFlyout" priority="0x0250" type="Menu">
         <Parent guid="AzureExplorer" id="AppServiceDiagnosticsGroup"/>
@@ -413,6 +420,14 @@
       <!-- Tag context menu groups -->
       <Group guid="AzureExplorer" id="TagContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="TagContextMenu"/>
+      </Group>
+
+      <!-- Deployment Slot context menu groups -->
+      <Group guid="AzureExplorer" id="DeploymentSlotBrowseGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="DeploymentSlotContextMenu"/>
+      </Group>
+      <Group guid="AzureExplorer" id="DeploymentSlotActionsGroup" priority="0x0200">
+        <Parent guid="AzureExplorer" id="DeploymentSlotContextMenu"/>
       </Group>
 
       <!-- App Service Plan context menu groups -->
@@ -961,6 +976,65 @@
         </Strings>
       </Button>
 
+      <!-- Deployment Slot context: Browse -->
+      <Button guid="AzureExplorer" id="BrowseSlot" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="DeploymentSlotBrowseGroup"/>
+        <Icon guid="ImageCatalogGuid" id="WebURL"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Browse Site</ButtonText>
+          <LocCanonicalName>.AzureExplorer.BrowseSlot</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Deployment Slot context: Swap with Production -->
+      <Button guid="AzureExplorer" id="SwapSlot" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="DeploymentSlotActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Sync"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Swap with Production</ButtonText>
+          <LocCanonicalName>.AzureExplorer.SwapSlot</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Deployment Slot context: Start -->
+      <Button guid="AzureExplorer" id="StartSlot" priority="0x0200" type="Button">
+        <Parent guid="AzureExplorer" id="DeploymentSlotActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Run"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Start</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StartSlot</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Deployment Slot context: Stop -->
+      <Button guid="AzureExplorer" id="StopSlot" priority="0x0300" type="Button">
+        <Parent guid="AzureExplorer" id="DeploymentSlotActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Stop"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Stop</ButtonText>
+          <LocCanonicalName>.AzureExplorer.StopSlot</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Deployment Slot context: Restart -->
+      <Button guid="AzureExplorer" id="RestartSlot" priority="0x0400" type="Button">
+        <Parent guid="AzureExplorer" id="DeploymentSlotActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Restart"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Restart</ButtonText>
+          <LocCanonicalName>.AzureExplorer.RestartSlot</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Subscription context: Hide/Unhide Subscription -->
       <Button guid="AzureExplorer" id="HideSubscription" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="SubscriptionContextMenuGroup"/>
@@ -1202,6 +1276,7 @@
       <IDSymbol name="FolderContextMenu" value="0x002D" />
       <IDSymbol name="TagsNodeContextMenu" value="0x01C0" />
       <IDSymbol name="TagContextMenu" value="0x01C2" />
+      <IDSymbol name="DeploymentSlotContextMenu" value="0x01E0" />
 
       <!-- Groups -->
       <IDSymbol name="ViewMenuGroup" value="0x0030" />
@@ -1246,6 +1321,8 @@
       <IDSymbol name="FolderContextMenuGroup" value="0x0061" />
       <IDSymbol name="TagsNodeContextMenuGroup" value="0x01C1" />
       <IDSymbol name="TagContextMenuGroup" value="0x01C3" />
+      <IDSymbol name="DeploymentSlotBrowseGroup" value="0x01E1" />
+      <IDSymbol name="DeploymentSlotActionsGroup" value="0x01E2" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
       <IDSymbol name="AppServiceActionsGroup" value="0x0043" />
       <IDSymbol name="AppServiceDiagnosticsGroup" value="0x0045" />
@@ -1317,6 +1394,11 @@
       <IDSymbol name="AddTagFromTagsNode" value="0x01C9" />
       <IDSymbol name="HideSubscription" value="0x01D0" />
       <IDSymbol name="HideTenant" value="0x01D1" />
+      <IDSymbol name="BrowseSlot" value="0x01E3" />
+      <IDSymbol name="SwapSlot" value="0x01E4" />
+      <IDSymbol name="StartSlot" value="0x01E5" />
+      <IDSymbol name="StopSlot" value="0x01E6" />
+      <IDSymbol name="RestartSlot" value="0x01E7" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

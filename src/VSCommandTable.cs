@@ -55,6 +55,7 @@ namespace AzureExplorer
         public const int FolderContextMenu = 0x002D;
         public const int TagsNodeContextMenu = 0x01C0;
         public const int TagContextMenu = 0x01C2;
+        public const int DeploymentSlotContextMenu = 0x01E0;
         public const int ViewMenuGroup = 0x0030;
         public const int ToolbarGroup = 0x0031;
         public const int SubscriptionContextMenuGroup = 0x0040;
@@ -97,6 +98,8 @@ namespace AzureExplorer
         public const int FolderContextMenuGroup = 0x0061;
         public const int TagsNodeContextMenuGroup = 0x01C1;
         public const int TagContextMenuGroup = 0x01C3;
+        public const int DeploymentSlotBrowseGroup = 0x01E1;
+        public const int DeploymentSlotActionsGroup = 0x01E2;
         public const int AppServiceBrowseGroup = 0x0042;
         public const int AppServiceActionsGroup = 0x0043;
         public const int AppServiceDiagnosticsGroup = 0x0045;
@@ -166,5 +169,10 @@ namespace AzureExplorer
         public const int AddTagFromTagsNode = 0x01C9;
         public const int HideSubscription = 0x01D0;
         public const int HideTenant = 0x01D1;
+        public const int BrowseSlot = 0x01E3;
+        public const int SwapSlot = 0x01E4;
+        public const int StartSlot = 0x01E5;
+        public const int StopSlot = 0x01E6;
+        public const int RestartSlot = 0x01E7;
     }
 }

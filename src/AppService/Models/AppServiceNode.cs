@@ -24,6 +24,9 @@ namespace AzureExplorer.AppService.Models
 
             await LoadChildrenWithErrorHandlingAsync(_ =>
             {
+                // Add Deployment Slots node for managing staging/preview slots
+                AddChild(new DeploymentSlotsNode(SubscriptionId, ResourceGroupName, Label));
+
                 // Add Files node for browsing wwwroot contents
                 AddChild(new FilesNode(SubscriptionId, Label));
 
