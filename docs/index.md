@@ -24,6 +24,7 @@ Detailed guides for each supported Azure resource:
 
 | Resource | Description |
 |----------|-------------|
+| [Resource Groups](resources/resource-groups.md) | Create and manage resource containers |
 | [App Services & Function Apps](resources/app-services.md) | Web apps, APIs, and serverless functions |
 | [Virtual Machines](resources/virtual-machines.md) | VMs with RDP/SSH connectivity |
 | [Storage Accounts](resources/storage-accounts.md) | Blobs, queues, and tables |
@@ -35,6 +36,7 @@ Detailed guides for each supported Azure resource:
 
 | Resource Type         | Key Actions |
 | --------------------- | ----------- |
+| **Resource Groups**   | Create, Delete (if empty), Open in Portal |
 | **App Services**      | Browse, Start/Stop/Restart, Stream Logs, File Browser, Drag & Drop Upload |
 | **Function Apps**     | Browse, Start/Stop/Restart, Stream Logs, File Browser, Drag & Drop Upload |
 | **Virtual Machines**  | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address |

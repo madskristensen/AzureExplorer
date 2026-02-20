@@ -118,6 +118,10 @@
     <Compile Include="KeyVault\Models\KeyVaultNode.cs" />
     <Compile Include="KeyVault\Models\KeyVaultsNode.cs" />
     <Compile Include="KeyVault\Models\SecretsNode.cs" />
+    <Compile Include="ResourceGroup\Commands\CreateResourceGroupCommand.cs" />
+    <Compile Include="ResourceGroup\Dialogs\CreateResourceGroupDialog.xaml.cs">
+      <DependentUpon>CreateResourceGroupDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ResourceGroup\Models\ResourceGroupsNode.cs" />
     <Compile Include="KeyVault\Models\SecretNode.cs" />
     <Compile Include="AppService\Models\SubscriptionAppServicesNode.cs" />
@@ -232,6 +236,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="KeyVault\Dialogs\UpdateSecretDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ResourceGroup\Dialogs\CreateResourceGroupDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Tags\Dialogs\AddTagDialog.xaml">

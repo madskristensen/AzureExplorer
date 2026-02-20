@@ -29,7 +29,7 @@ namespace AzureExplorer.ResourceGroup.Models
         public string SubscriptionId { get; }
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureResourceGroup;
-        public override int ContextMenuId => 0; // No context menu for now
+        public override int ContextMenuId => PackageIds.ResourceGroupsCategoryContextMenu;
         public override bool SupportsChildren => true;
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
@@ -63,6 +63,15 @@ namespace AzureExplorer.ResourceGroup.Models
             {
                 EndLoading();
             }
+        }
+
+        /// <summary>
+        /// Adds a new resource group node in sorted order without refreshing existing nodes.
+        /// </summary>
+        public void AddResourceGroup(string name)
+        {
+            var newNode = new ResourceGroupNode(name, SubscriptionId);
+            InsertChildSorted(newNode);
         }
     }
 }

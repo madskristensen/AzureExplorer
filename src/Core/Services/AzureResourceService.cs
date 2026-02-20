@@ -403,6 +403,99 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Gets available Azure locations for a subscription.
+        /// </summary>
+        public async Task<IReadOnlyList<AzureLocation>> GetLocationsAsync(
+            string subscriptionId,
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+
+            var locations = new List<AzureLocation>();
+
+            // GetLocationsAsync returns AsyncPageable<LocationExpanded>
+            await foreach (Azure.ResourceManager.Resources.Models.LocationExpanded location in sub.GetLocationsAsync(includeExtendedLocations: false, cancellationToken: cancellationToken))
+            {
+                // Only include physical regions, not logical/extended locations
+                if (!string.IsNullOrEmpty(location.Name) && !string.IsNullOrEmpty(location.DisplayName))
+                {
+                    locations.Add(new AzureLocation(location.Name, location.DisplayName));
+                }
+            }
+
+            // Sort by display name
+            locations.Sort((a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.DisplayName, b.DisplayName));
+            return locations;
+        }
+
+        /// <summary>
+        /// Creates a new resource group in the given subscription.
+        /// </summary>
+        public async Task<ResourceGroupResource> CreateResourceGroupAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string location,
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+
+            var data = new ResourceGroupData(new Azure.Core.AzureLocation(location));
+            ArmOperation<ResourceGroupResource> operation = await sub.GetResourceGroups()
+                .CreateOrUpdateAsync(Azure.WaitUntil.Completed, resourceGroupName, data, cancellationToken);
+
+            return operation.Value;
+        }
+
+        /// <summary>
+        /// Checks if a resource group is empty (contains no resources).
+        /// </summary>
+        public async Task<bool> IsResourceGroupEmptyAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+            ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, cancellationToken)).Value;
+
+            // Check if there are any resources in the group
+            await foreach (GenericResource _ in rg.GetGenericResourcesAsync(cancellationToken: cancellationToken))
+            {
+                // Found at least one resource, so it's not empty
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Deletes a resource group. Only succeeds if the resource group is empty.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if the resource group contains resources.</exception>
+        public async Task DeleteResourceGroupAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            CancellationToken cancellationToken = default)
+        {
+            // Safety check: only allow deletion of empty resource groups
+            bool isEmpty = await IsResourceGroupEmptyAsync(subscriptionId, resourceGroupName, cancellationToken);
+            if (!isEmpty)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot delete resource group '{resourceGroupName}' because it contains resources. " +
+                    "Delete all resources first or use the Azure Portal.");
+            }
+
+            ArmClient client = GetClient(subscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+            ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, cancellationToken)).Value;
+
+            await rg.DeleteAsync(Azure.WaitUntil.Completed, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
         /// Wraps a <see cref="TokenCredential"/> to inject a specific tenant ID
         /// into every token request, enabling multi-tenant token acquisition.
         /// </summary>
@@ -498,5 +591,16 @@ namespace AzureExplorer.Core.Services
     {
         public string TenantId { get; } = tenantId;
         public string DisplayName { get; } = displayName;
+    }
+
+    /// <summary>
+    /// Represents an Azure location/region.
+    /// </summary>
+    internal sealed class AzureLocation(string name, string displayName)
+    {
+        public string Name { get; } = name;
+        public string DisplayName { get; } = displayName;
+
+        public override string ToString() => DisplayName;
     }
 }

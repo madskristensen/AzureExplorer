@@ -255,6 +255,13 @@
         </Strings>
       </Menu>
 
+      <!-- Context menu: Resource Groups category node -->
+      <Menu guid="AzureExplorer" id="ResourceGroupsCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Resource Groups</CommandName>
+        </Strings>
+      </Menu>
+
       <!-- Context menu: Deployment Slot node -->
       <Menu guid="AzureExplorer" id="DeploymentSlotContextMenu" type="Context">
         <Strings>
@@ -480,6 +487,11 @@
       <!-- Tag context menu groups -->
       <Group guid="AzureExplorer" id="TagContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="TagContextMenu"/>
+      </Group>
+
+      <!-- Resource Groups category context menu groups -->
+      <Group guid="AzureExplorer" id="ResourceGroupsCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="ResourceGroupsCategoryContextMenu"/>
       </Group>
 
       <!-- Deployment Slot context menu groups -->
@@ -1120,6 +1132,17 @@
         </Strings>
       </Button>
 
+      <!-- Resource Groups category: Create Resource Group -->
+      <Button guid="AzureExplorer" id="CreateResourceGroup" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="ResourceGroupsCategoryContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Add"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Create Resource Group...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CreateResourceGroup</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -1268,6 +1291,9 @@
     <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0100">
       <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
     </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0900">
+      <Parent guid="AzureExplorer" id="ResourceGroupContextMenuGroup"/>
+    </CommandPlacement>
 
     <!-- Blob Folder command placements -->
     <CommandPlacement guid="AzureExplorer" id="UploadBlob" priority="0x0100">
@@ -1381,6 +1407,7 @@
       <IDSymbol name="TagsNodeContextMenu" value="0x01C0" />
       <IDSymbol name="TagContextMenu" value="0x01C2" />
       <IDSymbol name="DeploymentSlotContextMenu" value="0x01E0" />
+      <IDSymbol name="ResourceGroupsCategoryContextMenu" value="0x01F0" />
 
       <!-- Groups -->
       <IDSymbol name="ViewMenuGroup" value="0x0030" />
@@ -1432,6 +1459,7 @@
       <IDSymbol name="TagContextMenuGroup" value="0x01C3" />
       <IDSymbol name="DeploymentSlotBrowseGroup" value="0x01E1" />
       <IDSymbol name="DeploymentSlotActionsGroup" value="0x01E2" />
+      <IDSymbol name="ResourceGroupsCategoryContextMenuGroup" value="0x01F1" />
       <IDSymbol name="AppServiceBrowseGroup" value="0x0042" />
       <IDSymbol name="AppServiceActionsGroup" value="0x0043" />
       <IDSymbol name="AppServiceDiagnosticsGroup" value="0x0045" />
@@ -1509,6 +1537,7 @@
       <IDSymbol name="StartSlot" value="0x01E5" />
       <IDSymbol name="StopSlot" value="0x01E6" />
       <IDSymbol name="RestartSlot" value="0x01E7" />
+      <IDSymbol name="CreateResourceGroup" value="0x01F2" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

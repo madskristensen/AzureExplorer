@@ -4,6 +4,7 @@ using AzureExplorer.AppService.Models;
 using AzureExplorer.AppServicePlan.Models;
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Options;
+using AzureExplorer.Core.Services;
 using AzureExplorer.FrontDoor.Models;
 using AzureExplorer.FunctionApp.Models;
 using AzureExplorer.KeyVault.Models;
@@ -19,7 +20,7 @@ namespace AzureExplorer.ResourceGroup.Models
     /// Represents an Azure resource group. Contains category nodes for different
     /// resource types (App Services, App Service Plans, etc.).
     /// </summary>
-    internal sealed class ResourceGroupNode : ExplorerNodeBase, IPortalResource
+    internal sealed class ResourceGroupNode : ExplorerNodeBase, IPortalResource, IDeletableResource
     {
         public ResourceGroupNode(string name, string subscriptionId) : base(name)
         {
@@ -35,9 +36,21 @@ namespace AzureExplorer.ResourceGroup.Models
         string IPortalResource.ResourceName => null;
         string IPortalResource.AzureResourceProvider => null;
 
+        // IDeletableResource
+        string IDeletableResource.DeleteResourceType => "Resource Group";
+        string IDeletableResource.DeleteResourceName => ResourceGroupName;
+
         public override ImageMoniker IconMoniker => KnownMonikers.AzureResourceGroup;
         public override int ContextMenuId => PackageIds.ResourceGroupContextMenu;
         public override bool SupportsChildren => true;
+
+        /// <summary>
+        /// Deletes this resource group. Only succeeds if the resource group is empty.
+        /// </summary>
+        async Task IDeletableResource.DeleteAsync()
+        {
+            await AzureResourceService.Instance.DeleteResourceGroupAsync(SubscriptionId, ResourceGroupName);
+        }
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {

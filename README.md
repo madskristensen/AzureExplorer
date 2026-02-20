@@ -39,6 +39,7 @@ When Microsoft removed **Cloud Explorer** from Visual Studio, many developers lo
 
 | Resource Type | Key Actions |
 |---------------|-------------|
+| **Resource Groups** | Create, Delete (if empty), Open in Portal |
 | **App Services & Function Apps** | Browse, Start/Stop/Restart, Stream Logs, File Browser, Drag & Drop Upload |
 | **Virtual Machines** | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address |
 | **Storage Accounts** | Copy Connection String, Browse Blobs/Queues/Tables, Upload/Download |
