@@ -1,4 +1,5 @@
 using AzureExplorer.Core.Models;
+using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 
 namespace AzureExplorer.Core.Commands
@@ -53,6 +54,16 @@ namespace AzureExplorer.Core.Commands
                 if (node.Parent is ExplorerNodeBase parent)
                 {
                     parent.Children.Remove(node);
+                }
+
+                // Notify other views that this resource was deleted
+                if (!string.IsNullOrEmpty(resource.DeleteResourceProvider))
+                {
+                    ResourceNotificationService.NotifyDeleted(
+                        resource.DeleteResourceProvider,
+                        resource.DeleteSubscriptionId,
+                        resource.DeleteResourceGroupName,
+                        resource.DeleteResourceName);
                 }
             }
             catch (Exception ex)

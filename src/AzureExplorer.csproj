@@ -87,6 +87,7 @@
     <Compile Include="Core\Search\SearchSubscriptionNode.cs" />
     <Compile Include="Core\Services\ActivityLogService.cs" />
     <Compile Include="Core\Services\AsyncHelper.cs" />
+    <Compile Include="Core\Services\ResourceDeletionService.cs" />
     <Compile Include="Core\Services\ResourceGraphService.cs" />
     <Compile Include="Core\Services\TagService.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppNode.cs" />
@@ -162,8 +163,12 @@
     <Compile Include="Storage\Commands\CopyConnectionStringCommand.cs" />
     <Compile Include="Storage\Commands\CopyQueueUrlCommand.cs" />
     <Compile Include="Storage\Commands\CopyTableUrlCommand.cs" />
+    <Compile Include="Storage\Commands\CreateStorageAccountCommand.cs" />
     <Compile Include="Storage\Commands\DownloadBlobCommand.cs" />
     <Compile Include="Storage\Commands\UploadBlobCommand.cs" />
+    <Compile Include="Storage\Dialogs\CreateStorageAccountDialog.xaml.cs">
+      <DependentUpon>CreateStorageAccountDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Storage\Models\BlobNode.cs" />
     <Compile Include="Storage\Models\ContainerNode.cs" />
     <Compile Include="Storage\Models\ContainersNode.cs" />
@@ -239,6 +244,9 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ResourceGroup\Dialogs\CreateResourceGroupDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Storage\Dialogs\CreateStorageAccountDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Tags\Dialogs\AddTagDialog.xaml">

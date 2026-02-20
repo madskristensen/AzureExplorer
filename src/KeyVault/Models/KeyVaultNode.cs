@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
 
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
@@ -13,7 +14,7 @@ namespace AzureExplorer.KeyVault.Models
     /// <summary>
     /// Represents an Azure Key Vault. Expandable node containing Secrets, Keys, and Certificates folders.
     /// </summary>
-    internal sealed class KeyVaultNode : ExplorerNodeBase, IPortalResource, ITaggableResource
+    internal sealed class KeyVaultNode : ExplorerNodeBase, IPortalResource, ITaggableResource, IDeletableResource
     {
         private ProvisioningState _state;
 
@@ -55,6 +56,18 @@ namespace AzureExplorer.KeyVault.Models
         public IReadOnlyDictionary<string, string> Tags { get; }
         public string TagsTooltip => Tags.FormatTagsTooltip();
         public bool HasTag(string key, string value = null) => Tags.ContainsTag(key, value);
+
+        // IDeletableResource
+        string IDeletableResource.DeleteResourceType => "Key Vault";
+        string IDeletableResource.DeleteResourceName => Label;
+        string IDeletableResource.DeleteResourceProvider => "Microsoft.KeyVault/vaults";
+        string IDeletableResource.DeleteSubscriptionId => SubscriptionId;
+        string IDeletableResource.DeleteResourceGroupName => ResourceGroupName;
+
+        async Task IDeletableResource.DeleteAsync()
+        {
+            await AzureResourceService.Instance.DeleteKeyVaultAsync(SubscriptionId, ResourceGroupName, Label);
+        }
 
         public ProvisioningState State
         {

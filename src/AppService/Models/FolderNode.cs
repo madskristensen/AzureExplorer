@@ -243,6 +243,9 @@ namespace AzureExplorer.AppService.Models
         // IDeletableResource implementation
         string IDeletableResource.DeleteResourceType => "Folder";
         string IDeletableResource.DeleteResourceName => Label;
+        string IDeletableResource.DeleteResourceProvider => null; // Folders don't appear in multiple views
+        string IDeletableResource.DeleteSubscriptionId => null;
+        string IDeletableResource.DeleteResourceGroupName => null;
 
         async Task IDeletableResource.DeleteAsync()
         {

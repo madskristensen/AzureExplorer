@@ -20,6 +20,22 @@ namespace AzureExplorer.Core.Models
         string DeleteResourceName { get; }
 
         /// <summary>
+        /// The Azure resource provider type (e.g., "Microsoft.Storage/storageAccounts").
+        /// Used to notify other views when the resource is deleted. Return null if not applicable.
+        /// </summary>
+        string DeleteResourceProvider { get; }
+
+        /// <summary>
+        /// The subscription ID containing this resource. Return null if not applicable.
+        /// </summary>
+        string DeleteSubscriptionId { get; }
+
+        /// <summary>
+        /// The resource group containing this resource. Return null if not applicable.
+        /// </summary>
+        string DeleteResourceGroupName { get; }
+
+        /// <summary>
         /// Performs the delete operation.
         /// </summary>
         Task DeleteAsync();

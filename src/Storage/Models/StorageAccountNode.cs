@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
 
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Services;
@@ -13,7 +14,7 @@ namespace AzureExplorer.Storage.Models
     /// <summary>
     /// Represents an Azure Storage Account in the explorer tree. Expandable to show blob containers.
     /// </summary>
-    internal sealed class StorageAccountNode : ExplorerNodeBase, IPortalResource, ITaggableResource
+    internal sealed class StorageAccountNode : ExplorerNodeBase, IPortalResource, ITaggableResource, IDeletableResource
     {
         private ProvisioningState _state;
 
@@ -67,6 +68,21 @@ namespace AzureExplorer.Storage.Models
         public IReadOnlyDictionary<string, string> Tags { get; }
         public string TagsTooltip => Tags.FormatTagsTooltip();
         public bool HasTag(string key, string value = null) => Tags.ContainsTag(key, value);
+
+        // IDeletableResource
+        string IDeletableResource.DeleteResourceType => "Storage Account";
+        string IDeletableResource.DeleteResourceName => Label;
+        string IDeletableResource.DeleteResourceProvider => "Microsoft.Storage/storageAccounts";
+        string IDeletableResource.DeleteSubscriptionId => SubscriptionId;
+        string IDeletableResource.DeleteResourceGroupName => ResourceGroupName;
+
+        /// <summary>
+        /// Deletes this storage account.
+        /// </summary>
+        async Task IDeletableResource.DeleteAsync()
+        {
+            await AzureResourceService.Instance.DeleteStorageAccountAsync(SubscriptionId, ResourceGroupName, Label);
+        }
 
         public ProvisioningState State
         {

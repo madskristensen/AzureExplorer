@@ -99,6 +99,9 @@ namespace AzureExplorer.AppService.Models
         // IDeletableResource implementation
         string IDeletableResource.DeleteResourceType => "File";
         string IDeletableResource.DeleteResourceName => Label;
+        string IDeletableResource.DeleteResourceProvider => null; // Files don't appear in multiple views
+        string IDeletableResource.DeleteSubscriptionId => null;
+        string IDeletableResource.DeleteResourceGroupName => null;
 
         async Task IDeletableResource.DeleteAsync()
         {

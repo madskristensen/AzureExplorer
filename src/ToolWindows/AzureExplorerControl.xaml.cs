@@ -62,6 +62,14 @@ namespace AzureExplorer.ToolWindows
 
         internal static ExplorerNodeBase SelectedNode => _instance?.ExplorerTree.SelectedItem as ExplorerNodeBase;
 
+        /// <summary>
+        /// Selects the specified node in the tree view, expanding parent nodes as needed.
+        /// </summary>
+        internal static void SelectNode(ExplorerNodeBase node)
+        {
+            _instance?.SelectAndExpandToNode(node);
+        }
+
         internal static async System.Threading.Tasks.Task ReloadTreeAsync()
         {
             if (_instance != null)

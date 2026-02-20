@@ -35,6 +35,9 @@ namespace AzureExplorer.ResourceGroup.Commands
             if (dialog.ShowModal() != true)
                 return;
 
+            // Show "Creating..." on the parent node while API call is in progress
+            node.Description = "Creating...";
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Creating resource group '{dialog.ResourceGroupName}'...");
@@ -46,14 +49,28 @@ namespace AzureExplorer.ResourceGroup.Commands
 
                 await VS.StatusBar.ShowMessageAsync($"Resource group '{dialog.ResourceGroupName}' created successfully.");
 
-                // Insert the new node directly in sorted order (no refresh needed)
+                // Insert the new node, expand parent, and select the new node
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                node.AddResourceGroup(dialog.ResourceGroupName);
+                var newNode = node.AddResourceGroup(dialog.ResourceGroupName);
+                node.IsExpanded = true;
+                AzureExplorerControl.SelectNode(newNode);
+
+                // Notify other views (for consistency with other resource types)
+                ResourceNotificationService.NotifyCreated(
+                    "Microsoft.Resources/resourceGroups",
+                    node.SubscriptionId,
+                    dialog.ResourceGroupName, // Resource group name is its own "resource group"
+                    dialog.ResourceGroupName);
             }
             catch (Exception ex)
             {
                 await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Failed to create resource group: {ex.Message}");
+            }
+            finally
+            {
+                // Clear the "Creating..." status
+                node.Description = null;
             }
         }
     }

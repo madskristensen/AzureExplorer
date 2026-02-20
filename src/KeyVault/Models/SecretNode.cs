@@ -41,6 +41,9 @@ namespace AzureExplorer.KeyVault.Models
         // IDeletableResource implementation
         string IDeletableResource.DeleteResourceType => "Secret";
         string IDeletableResource.DeleteResourceName => Label;
+        string IDeletableResource.DeleteResourceProvider => null; // Secrets don't appear in multiple views
+        string IDeletableResource.DeleteSubscriptionId => null;
+        string IDeletableResource.DeleteResourceGroupName => null;
 
         async Task IDeletableResource.DeleteAsync()
         {

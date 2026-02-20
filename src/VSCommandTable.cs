@@ -187,5 +187,6 @@ namespace AzureExplorer
         public const int StopSlot = 0x01E6;
         public const int RestartSlot = 0x01E7;
         public const int CreateResourceGroup = 0x01F2;
+        public const int CreateStorageAccount = 0x01F3;
     }
 }

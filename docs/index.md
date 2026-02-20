@@ -40,7 +40,7 @@ Detailed guides for each supported Azure resource:
 | **App Services**      | Browse, Start/Stop/Restart, Stream Logs, File Browser, Drag & Drop Upload |
 | **Function Apps**     | Browse, Start/Stop/Restart, Stream Logs, File Browser, Drag & Drop Upload |
 | **Virtual Machines**  | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address |
-| **Storage Accounts**  | Copy Connection String, Browse Blobs/Queues/Tables |
+| **Storage Accounts**  | Create, Copy Connection String, Browse Blobs/Queues/Tables |
 | **Blob Containers**   | Upload, Download, Delete, Copy URL |
 | **Key Vaults**        | Browse Secrets/Keys/Certificates |
 | **Secrets**           | Add, Update, Copy Value, Delete |

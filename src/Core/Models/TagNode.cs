@@ -41,6 +41,9 @@ namespace AzureExplorer.Core.Models
         // IDeletableResource implementation
         string IDeletableResource.DeleteResourceType => "Tag";
         string IDeletableResource.DeleteResourceName => string.IsNullOrEmpty(Value) ? Key : $"{Key}={Value}";
+        string IDeletableResource.DeleteResourceProvider => null; // Tags don't appear in multiple views
+        string IDeletableResource.DeleteSubscriptionId => null;
+        string IDeletableResource.DeleteResourceGroupName => null;
 
         async Task IDeletableResource.DeleteAsync()
         {

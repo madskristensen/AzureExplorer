@@ -1,16 +1,44 @@
 # Storage Accounts
 
-Browse and manage your storage resources.
+Create and manage your storage resources directly from Visual Studio.
 
-## Actions
+## Features
 
 | Action | Description |
 |--------|-------------|
+| **Create** | Create a new storage account with performance/replication options |
 | **Copy Connection String** | Quick access to storage credentials |
 | **Browse Containers** | Navigate blob containers and virtual folders |
 | **Browse Queues** | View storage queues and copy URLs |
 | **Browse Tables** | View storage tables and copy URLs |
 | **Add Tags** | Organize with resource tags |
+
+## Creating a Storage Account
+
+1. Expand a resource group in the tree view
+2. Right-click on **Storage Accounts**
+3. Select **Create Storage Account...**
+4. Enter the required information:
+   - **Name**: 3-24 characters, lowercase letters and numbers only (globally unique)
+   - **Location**: Azure region for the storage account
+   - **Performance/Replication**: Choose based on your needs
+5. Click **Create**
+
+### Naming Rules
+
+Storage account names must:
+- Be 3-24 characters long
+- Contain only lowercase letters and numbers
+- Be globally unique across all of Azure
+
+### Performance & Replication Options
+
+| Option | Best For |
+|--------|----------|
+| **Standard / LRS** | Dev/test, lowest cost, data replicated 3x in one datacenter |
+| **Standard / GRS** | Production with geo-redundancy, data replicated to secondary region |
+| **Standard / ZRS** | Production with zone redundancy, data replicated across 3 availability zones |
+| **Premium / LRS** | High-performance workloads requiring SSD storage |
 
 ## Blob Containers
 

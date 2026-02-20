@@ -193,6 +193,9 @@ namespace AzureExplorer.Storage.Models
         // IDeletableResource implementation (only for actual blobs, not directories)
         string IDeletableResource.DeleteResourceType => "Blob";
         string IDeletableResource.DeleteResourceName => Label;
+        string IDeletableResource.DeleteResourceProvider => null; // Blobs don't appear in multiple views
+        string IDeletableResource.DeleteSubscriptionId => null;
+        string IDeletableResource.DeleteResourceGroupName => null;
 
         async Task IDeletableResource.DeleteAsync()
         {

@@ -245,6 +245,21 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Gets the location of a resource group.
+        /// </summary>
+        public async Task<string> GetResourceGroupLocationAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+            ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, cancellationToken)).Value;
+
+            return rg.Data.Location.Name;
+        }
+
+        /// <summary>
         /// Lists all resources in the given resource group using the async pageable API.
         /// </summary>
         public async Task<IReadOnlyList<GenericResourceData>> GetResourcesInGroupAsync(string subscriptionId, string resourceGroupName, CancellationToken cancellationToken = default)
@@ -493,6 +508,101 @@ namespace AzureExplorer.Core.Services
             ResourceGroupResource rg = (await sub.GetResourceGroupAsync(resourceGroupName, cancellationToken)).Value;
 
             await rg.DeleteAsync(Azure.WaitUntil.Completed, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates a new storage account in the specified resource group.
+        /// </summary>
+        /// <param name="subscriptionId">The subscription ID.</param>
+        /// <param name="resourceGroupName">The resource group name.</param>
+        /// <param name="accountName">The storage account name (3-24 chars, lowercase alphanumeric).</param>
+        /// <param name="location">The Azure region.</param>
+        /// <param name="skuName">The SKU name (e.g., "Standard_LRS", "Standard_GRS", "Premium_LRS").</param>
+        /// <param name="kind">The storage account kind (default: "StorageV2").</param>
+        public async Task CreateStorageAccountAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string accountName,
+            string location,
+            string skuName,
+            string kind = "StorageV2",
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+
+            // Build the resource ID for the storage account
+            var resourceId = ResourceIdentifier.Parse(
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}");
+
+            // Create storage account using generic resource API
+            // Include SKU in the data structure that ARM expects
+            var data = new GenericResourceData(new Azure.Core.AzureLocation(location))
+            {
+                Kind = kind,
+                Properties = BinaryData.FromObjectAsJson(new
+                {
+                    accessTier = "Hot",
+                    supportsHttpsTrafficOnly = true,
+                    minimumTlsVersion = "TLS1_2",
+                    allowBlobPublicAccess = false
+                })
+            };
+
+            // Set the SKU - GenericResourceData.Sku requires ResourcesSku
+            data.Sku = new Azure.ResourceManager.Resources.Models.ResourcesSku()
+            {
+                Name = skuName
+            };
+
+            await client.GetGenericResources().CreateOrUpdateAsync(
+                Azure.WaitUntil.Completed,
+                resourceId,
+                data,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Deletes a storage account.
+        /// </summary>
+        public async Task DeleteStorageAccountAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string storageAccountName,
+            CancellationToken cancellationToken = default)
+        {
+            await DeleteResourceAsync(subscriptionId, resourceGroupName, "Microsoft.Storage/storageAccounts", storageAccountName, cancellationToken);
+        }
+
+        /// <summary>
+        /// Deletes a Key Vault.
+        /// </summary>
+        public async Task DeleteKeyVaultAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string vaultName,
+            CancellationToken cancellationToken = default)
+        {
+            await DeleteResourceAsync(subscriptionId, resourceGroupName, "Microsoft.KeyVault/vaults", vaultName, cancellationToken);
+        }
+
+        /// <summary>
+        /// Deletes a generic Azure resource by provider type.
+        /// </summary>
+        public async Task DeleteResourceAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string resourceProvider,
+            string resourceName,
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+
+            // Build the resource ID
+            var resourceId = ResourceIdentifier.Parse(
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProvider}/{resourceName}");
+
+            GenericResource resource = client.GetGenericResource(resourceId);
+            await resource.DeleteAsync(Azure.WaitUntil.Completed, cancellationToken);
         }
 
         /// <summary>

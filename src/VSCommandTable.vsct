@@ -1143,6 +1143,17 @@
         </Strings>
       </Button>
 
+      <!-- Storage Accounts category: Create Storage Account -->
+      <Button guid="AzureExplorer" id="CreateStorageAccount" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="StorageAccountsCategoryContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Add"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Create Storage Account...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CreateStorageAccount</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -1293,6 +1304,12 @@
     </CommandPlacement>
     <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0900">
       <Parent guid="AzureExplorer" id="ResourceGroupContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0900">
+      <Parent guid="AzureExplorer" id="StorageAccountRefreshGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0900">
+      <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
     </CommandPlacement>
 
     <!-- Blob Folder command placements -->
@@ -1538,6 +1555,7 @@
       <IDSymbol name="StopSlot" value="0x01E6" />
       <IDSymbol name="RestartSlot" value="0x01E7" />
       <IDSymbol name="CreateResourceGroup" value="0x01F2" />
+      <IDSymbol name="CreateStorageAccount" value="0x01F3" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

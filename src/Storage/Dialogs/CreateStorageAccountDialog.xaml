@@ -1,0 +1,47 @@
+<platformUI:DialogWindow x:Class="AzureExplorer.Storage.Dialogs.CreateStorageAccountDialog"
+                        x:ClassModifier="internal"
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:platformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+                        xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
+                        toolkit:Themes.UseVsTheme="True"
+                        Title="Create Storage Account"
+                        Width="420"
+                        Height="340"
+                        WindowStartupLocation="CenterOwner"
+                        ShowInTaskbar="False"
+                        ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Storage Account Name:" Margin="0,0,0,4" />
+        <TextBox Grid.Row="1" x:Name="AccountNameBox" Margin="0,0,0,4" MaxLength="24" CharacterCasing="Lower" />
+        <TextBlock Grid.Row="2" Text="3-24 characters, lowercase letters and numbers only" 
+                   FontSize="10" Foreground="Gray" Margin="0,0,0,12" />
+
+        <TextBlock Grid.Row="3" Text="Location:" Margin="0,0,0,4" />
+        <ComboBox Grid.Row="4" x:Name="LocationComboBox" Margin="0,0,0,12" DisplayMemberPath="DisplayName" />
+
+        <TextBlock Grid.Row="5" Text="Performance / Replication:" Margin="0,0,0,4" />
+        <ComboBox Grid.Row="6" x:Name="SkuComboBox" Margin="0,0,0,12" DisplayMemberPath="DisplayName" />
+
+        <TextBlock Grid.Row="7" x:Name="SkuDescriptionText" Text="" 
+                   FontSize="10" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,12" />
+
+        <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Create" Width="75" Margin="0,0,8,0" IsDefault="True" Click="OnCreateClick" />
+            <Button Content="Cancel" Width="75" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</platformUI:DialogWindow>

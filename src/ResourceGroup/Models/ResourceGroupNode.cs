@@ -39,6 +39,9 @@ namespace AzureExplorer.ResourceGroup.Models
         // IDeletableResource
         string IDeletableResource.DeleteResourceType => "Resource Group";
         string IDeletableResource.DeleteResourceName => ResourceGroupName;
+        string IDeletableResource.DeleteResourceProvider => "Microsoft.Resources/resourceGroups";
+        string IDeletableResource.DeleteSubscriptionId => SubscriptionId;
+        string IDeletableResource.DeleteResourceGroupName => ResourceGroupName;
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureResourceGroup;
         public override int ContextMenuId => PackageIds.ResourceGroupContextMenu;

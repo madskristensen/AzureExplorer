@@ -21,6 +21,10 @@ namespace AzureExplorer.Storage.Models
             SubscriptionId = subscriptionId;
             ResourceGroupName = resourceGroupName;
             Children.Add(new LoadingNode());
+
+            // Subscribe to resource events to sync with other views
+            ResourceNotificationService.ResourceCreated += OnResourceCreated;
+            ResourceNotificationService.ResourceDeleted += OnResourceDeleted;
         }
 
         public string SubscriptionId { get; }
@@ -29,6 +33,65 @@ namespace AzureExplorer.Storage.Models
         public override ImageMoniker IconMoniker => KnownMonikers.AzureStorageAccount;
         public override int ContextMenuId => PackageIds.StorageAccountsCategoryContextMenu;
         public override bool SupportsChildren => true;
+
+        private void OnResourceCreated(object sender, ResourceCreatedEventArgs e)
+        {
+            // Only handle storage account creations in our subscription/resource group
+            if (!string.Equals(e.ResourceType, "Microsoft.Storage/storageAccounts", System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (!string.Equals(e.SubscriptionId, SubscriptionId, System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (!string.Equals(e.ResourceGroupName, ResourceGroupName, System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            // Don't add if not yet loaded or if already exists
+            if (!IsLoaded)
+                return;
+
+            foreach (var child in Children)
+            {
+                if (child is StorageAccountNode existing &&
+                    string.Equals(existing.Label, e.ResourceName, System.StringComparison.OrdinalIgnoreCase))
+                    return; // Already exists
+            }
+
+            // Add the new storage account
+            var skuName = e.AdditionalData as string ?? "Standard_LRS";
+            var newNode = new StorageAccountNode(
+                e.ResourceName,
+                SubscriptionId,
+                ResourceGroupName,
+                "Succeeded",
+                "StorageV2",
+                skuName);
+            InsertChildSorted(newNode);
+        }
+
+        private void OnResourceDeleted(object sender, ResourceDeletedEventArgs e)
+        {
+            // Only handle storage account deletions in our subscription/resource group
+            if (!string.Equals(e.ResourceType, "Microsoft.Storage/storageAccounts", System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (!string.Equals(e.SubscriptionId, SubscriptionId, System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            if (!string.Equals(e.ResourceGroupName, ResourceGroupName, System.StringComparison.OrdinalIgnoreCase))
+                return;
+
+            // Find and remove the matching child node
+            for (int i = Children.Count - 1; i >= 0; i--)
+            {
+                if (Children[i] is StorageAccountNode node &&
+                    string.Equals(node.Label, e.ResourceName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    Children.RemoveAt(i);
+                    break;
+                }
+            }
+        }
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {
@@ -70,6 +133,23 @@ namespace AzureExplorer.Storage.Models
             {
                 EndLoading();
             }
+        }
+
+        /// <summary>
+        /// Adds a new storage account node in sorted order without refreshing existing nodes.
+        /// </summary>
+        /// <returns>The newly created node.</returns>
+        public StorageAccountNode AddStorageAccount(string name, string skuName)
+        {
+            var newNode = new StorageAccountNode(
+                name,
+                SubscriptionId,
+                ResourceGroupName,
+                "Succeeded",
+                "StorageV2",
+                skuName);
+            InsertChildSorted(newNode);
+            return newNode;
         }
     }
 }
