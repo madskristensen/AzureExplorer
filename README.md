@@ -5,9 +5,6 @@
 # Azure Explorer for Visual Studio
 
 [![Build](https://github.com/madskristensen/AzureExplorer/actions/workflows/build.yaml/badge.svg)](https://github.com/madskristensen/AzureExplorer/actions/workflows/build.yaml)
-[![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/MadsKristensen.AzureExplorer?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/MadsKristensen.AzureExplorer)](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer)
-[![Rating](https://img.shields.io/visual-studio-marketplace/r/MadsKristensen.AzureExplorer)](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/madskristensen)](https://github.com/sponsors/madskristensen)
 
 **Your Azure resources, right inside Visual Studio.** No Portal tab-switching. No context loss. Just code and cloud, together.
