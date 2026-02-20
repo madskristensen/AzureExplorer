@@ -25,13 +25,15 @@ When Microsoft removed **Cloud Explorer** from Visual Studio, many developers lo
 
 ## What Can You Do?
 
-| | |
-|---|---|
-| 🚀 **Deploy & Debug Faster** | Stream live logs, browse deployed files, drag-and-drop upload — without leaving your code |
-| 🔍 **Find Anything Instantly** | Search across all subscriptions with `tag:Environment=Production` syntax |
-| 🔐 **Manage Secrets Securely** | View, edit, and copy Key Vault secrets without touching the Azure Portal |
-| 💻 **Connect to VMs** | One-click RDP/SSH connections to your Virtual Machines |
-| 📦 **Browse Storage** | Navigate blob containers, upload files, copy connection strings |
+🚀 **Deploy & Debug Faster** — Stream live logs, browse deployed files, drag-and-drop upload — without leaving your code
+
+🔍 **Find Anything Instantly** — Search across all subscriptions with `tag:Environment=Production` syntax
+
+🔐 **Manage Secrets Securely** — View, edit, and copy Key Vault secrets without touching the Azure Portal
+
+💻 **Connect to VMs** — One-click RDP/SSH connections to your Virtual Machines
+
+📦 **Browse Storage** — Navigate blob containers, upload files, copy connection strings
 
 ## Supported Resources
 

@@ -15,7 +15,7 @@ namespace AzureExplorer.AppService.Models
     /// <summary>
     /// Represents a folder in the App Service file system. Expandable node with lazy-loaded children.
     /// </summary>
-    internal sealed class FolderNode : ExplorerNodeBase, IDropTarget
+    internal sealed class FolderNode : ExplorerNodeBase, IDropTarget, IDeletableResource
     {
         public FolderNode(string name, string subscriptionId, string appName, string relativePath)
             : base(name)
@@ -238,6 +238,15 @@ namespace AzureExplorer.AppService.Models
             {
                 EndLoading();
             }
+        }
+
+        // IDeletableResource implementation
+        string IDeletableResource.DeleteResourceType => "Folder";
+        string IDeletableResource.DeleteResourceName => Label;
+
+        async Task IDeletableResource.DeleteAsync()
+        {
+            await KuduVfsService.Instance.DeleteAsync(SubscriptionId, AppName, RelativePath, isDirectory: true);
         }
     }
 }

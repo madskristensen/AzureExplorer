@@ -633,17 +633,6 @@
         </Strings>
       </Button>
 
-      <!-- Secret context: Delete -->
-      <Button guid="AzureExplorer" id="DeleteSecret" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="SecretDeleteGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Cancel"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Delete...</ButtonText>
-          <LocCanonicalName>.AzureExplorer.DeleteSecret</LocCanonicalName>
-        </Strings>
-      </Button>
-
       <!-- Front Door context: Browse Endpoint -->
       <Button guid="AzureExplorer" id="BrowseFrontDoor" priority="0x0100" type="Button">
         <Parent guid="AzureExplorer" id="FrontDoorBrowseGroup"/>
@@ -792,6 +781,17 @@
         </Strings>
       </Button>
 
+      <!-- Delete (consolidated command for all deletable resource types) -->
+      <Button guid="AzureExplorer" id="Delete" priority="0x0900" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Cancel"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>Delete</ButtonText>
+          <LocCanonicalName>.AzureExplorer.Delete</LocCanonicalName>
+        </Strings>
+      </Button>
+
       <!-- Refresh Node (consolidated command for all node types with children) -->
       <Button guid="AzureExplorer" id="RefreshNode" priority="0x0100" type="Button">
         <Icon guid="ImageCatalogGuid" id="CloudRefresh"/>
@@ -800,28 +800,6 @@
         <Strings>
           <ButtonText>Refresh</ButtonText>
           <LocCanonicalName>.AzureExplorer.RefreshNode</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Delete File (App Service VFS) -->
-      <Button guid="AzureExplorer" id="DeleteFile" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="FileContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Cancel"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Delete...</ButtonText>
-          <LocCanonicalName>.AzureExplorer.DeleteFile</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Delete Folder (App Service VFS) -->
-      <Button guid="AzureExplorer" id="DeleteFolder" priority="0x0100" type="Button">
-        <Parent guid="AzureExplorer" id="FolderContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Cancel"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Delete...</ButtonText>
-          <LocCanonicalName>.AzureExplorer.DeleteFolder</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -902,18 +880,7 @@
         </Strings>
       </Button>
 
-      <!-- Blob context: Delete -->
-      <Button guid="AzureExplorer" id="DeleteBlob" priority="0x0100" type="Button">
-        <Icon guid="ImageCatalogGuid" id="Cancel"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <Strings>
-          <ButtonText>Delete...</ButtonText>
-          <LocCanonicalName>.AzureExplorer.DeleteBlob</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Blob context: Download -->
+            <!-- Blob context: Download -->
       <Button guid="AzureExplorer" id="DownloadBlob" priority="0x0200" type="Button">
         <Icon guid="ImageCatalogGuid" id="Download"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
@@ -1054,18 +1021,6 @@
         <Strings>
           <ButtonText>Filter by This Tag</ButtonText>
           <LocCanonicalName>.AzureExplorer.FilterByTag</LocCanonicalName>
-        </Strings>
-      </Button>
-
-      <!-- Tag context: Remove Tag -->
-      <Button guid="AzureExplorer" id="RemoveTag" priority="0x0300" type="Button">
-        <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
-        <Icon guid="ImageCatalogGuid" id="Cancel"/>
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <Strings>
-          <ButtonText>Remove Tag</ButtonText>
-          <LocCanonicalName>.AzureExplorer.RemoveTag</LocCanonicalName>
         </Strings>
       </Button>
 
@@ -1297,8 +1252,21 @@
     <CommandPlacement guid="AzureExplorer" id="DownloadBlob" priority="0x0200">
       <Parent guid="AzureExplorer" id="BlobActionsGroup"/>
     </CommandPlacement>
-    <CommandPlacement guid="AzureExplorer" id="DeleteBlob" priority="0x0100">
+    <!-- Unified Delete command placements -->
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0100">
       <Parent guid="AzureExplorer" id="BlobDeleteGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0100">
+      <Parent guid="AzureExplorer" id="SecretDeleteGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0100">
+      <Parent guid="AzureExplorer" id="FileContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0100">
+      <Parent guid="AzureExplorer" id="FolderContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="Delete" priority="0x0100">
+      <Parent guid="AzureExplorer" id="TagContextMenuGroup"/>
     </CommandPlacement>
 
     <!-- Blob Folder command placements -->
@@ -1369,6 +1337,8 @@
   <!-- Keybindings scoped to Azure Explorer tool window -->
   <KeyBindings>
     <KeyBinding guid="AzureExplorer" id="OpenInPortal" editor="AzureExplorerToolWindow" key1="P" mod1="Control Alt"/>
+    <KeyBinding guid="AzureExplorer" id="RefreshNode" editor="AzureExplorerToolWindow" key1="VK_F5"/>
+    <KeyBinding guid="AzureExplorer" id="Delete" editor="AzureExplorerToolWindow" key1="VK_DELETE"/>
   </KeyBindings>
 
   <Symbols>
@@ -1509,9 +1479,7 @@
       <IDSymbol name="AddSecret" value="0x0144" />
       <IDSymbol name="CopySecretValue" value="0x0145" />
       <IDSymbol name="UpdateSecretValue" value="0x0146" />
-      <IDSymbol name="DeleteSecret" value="0x0147" />
-      <IDSymbol name="DeleteFile" value="0x0148" />
-      <IDSymbol name="DeleteFolder" value="0x0149" />
+      <IDSymbol name="Delete" value="0x014A" />
       <IDSymbol name="OpenInPortal" value="0x0150" />
       <IDSymbol name="CopyStorageConnectionString" value="0x0165" />
       <IDSymbol name="CopySqlConnectionString" value="0x0187" />
@@ -1533,7 +1501,6 @@
       <IDSymbol name="CopyTagValue" value="0x01C5" />
       <IDSymbol name="FilterByTag" value="0x01C6" />
       <IDSymbol name="AddTag" value="0x01C7" />
-      <IDSymbol name="RemoveTag" value="0x01C8" />
       <IDSymbol name="AddTagFromTagsNode" value="0x01C9" />
       <IDSymbol name="HideSubscription" value="0x01D0" />
       <IDSymbol name="HideTenant" value="0x01D1" />

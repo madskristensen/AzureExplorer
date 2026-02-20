@@ -1,3 +1,6 @@
+using System.Threading.Tasks;
+
+using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
 
 using Microsoft.VisualStudio.Imaging;
@@ -10,7 +13,7 @@ namespace AzureExplorer.AppService.Models
     /// <summary>
     /// Represents a file in the App Service file system. Leaf node that can be opened in VS editor.
     /// </summary>
-    internal sealed class FileNode : ExplorerNodeBase
+    internal sealed class FileNode : ExplorerNodeBase, IDeletableResource
     {
         private ImageMoniker? _iconMoniker;
 
@@ -91,6 +94,15 @@ namespace AzureExplorer.AppService.Models
                 return $"{bytes / (1024.0 * 1024.0):F1} MB";
 
             return $"{bytes / (1024.0 * 1024.0 * 1024.0):F1} GB";
+        }
+
+        // IDeletableResource implementation
+        string IDeletableResource.DeleteResourceType => "File";
+        string IDeletableResource.DeleteResourceName => Label;
+
+        async Task IDeletableResource.DeleteAsync()
+        {
+            await KuduVfsService.Instance.DeleteAsync(SubscriptionId, AppName, RelativePath, isDirectory: false);
         }
     }
 }

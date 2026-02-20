@@ -155,14 +155,11 @@ namespace AzureExplorer
         public const int AddSecret = 0x0144;
         public const int CopySecretValue = 0x0145;
         public const int UpdateSecretValue = 0x0146;
-        public const int DeleteSecret = 0x0147;
-        public const int DeleteFile = 0x0148;
-        public const int DeleteFolder = 0x0149;
+        public const int Delete = 0x014A;
         public const int OpenInPortal = 0x0150;
         public const int CopyStorageConnectionString = 0x0165;
         public const int CopySqlConnectionString = 0x0187;
         public const int CopyBlobUrl = 0x0198;
-        public const int DeleteBlob = 0x0199;
         public const int DownloadBlob = 0x019A;
         public const int UploadBlob = 0x019B;
         public const int CopyQueueUrl = 0x019C;
@@ -179,7 +176,6 @@ namespace AzureExplorer
         public const int CopyTagValue = 0x01C5;
         public const int FilterByTag = 0x01C6;
         public const int AddTag = 0x01C7;
-        public const int RemoveTag = 0x01C8;
         public const int AddTagFromTagsNode = 0x01C9;
         public const int HideSubscription = 0x01D0;
         public const int HideTenant = 0x01D1;

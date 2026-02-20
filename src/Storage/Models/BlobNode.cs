@@ -18,7 +18,7 @@ namespace AzureExplorer.Storage.Models
     /// <summary>
     /// Represents a blob or virtual directory within a container.
     /// </summary>
-    internal sealed class BlobNode : ExplorerNodeBase
+    internal sealed class BlobNode : ExplorerNodeBase, IDeletableResource
     {
         public BlobNode(
             string name,
@@ -188,6 +188,20 @@ namespace AzureExplorer.Storage.Models
             return suffixIndex == 0
                 ? $"{size:N0} {suffixes[suffixIndex]}"
                 : $"{size:N1} {suffixes[suffixIndex]}";
+        }
+
+        // IDeletableResource implementation (only for actual blobs, not directories)
+        string IDeletableResource.DeleteResourceType => "Blob";
+        string IDeletableResource.DeleteResourceName => Label;
+
+        async Task IDeletableResource.DeleteAsync()
+        {
+            if (IsDirectory)
+                throw new InvalidOperationException("Cannot delete blob directories through this interface.");
+
+            BlobContainerClient containerClient = await GetContainerClientAsync();
+            BlobClient blobClient = containerClient.GetBlobClient(BlobPath);
+            await blobClient.DeleteIfExistsAsync();
         }
     }
 }

@@ -46,8 +46,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AppService\Commands\BrowseSlotCommand.cs" />
-    <Compile Include="AppService\Commands\DeleteFileCommand.cs" />
-    <Compile Include="AppService\Commands\DeleteFolderCommand.cs" />
     <Compile Include="AppService\Commands\DownloadPublishProfileCommand.cs" />
     <Compile Include="AppService\Commands\ManageAppSettingsCommand.cs" />
     <Compile Include="AppService\Commands\RestartSlotCommand.cs" />
@@ -65,12 +63,14 @@
     <Compile Include="AppService\Models\VfsEntry.cs" />
     <Compile Include="AppService\Services\FileOpenService.cs" />
     <Compile Include="AppService\Services\KuduVfsService.cs" />
+    <Compile Include="Core\Commands\DeleteCommand.cs" />
     <Compile Include="Core\Commands\HideSubscriptionCommand.cs" />
     <Compile Include="Core\Commands\HideTenantCommand.cs" />
     <Compile Include="Core\Commands\OpenInPortalCommand.cs" />
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
     <Compile Include="Core\Commands\ToggleActivityLogCommand.cs" />
     <Compile Include="Core\Commands\ToggleShowAllCommand.cs" />
+    <Compile Include="Core\Models\IDeletableResource.cs" />
     <Compile Include="Core\Models\IDropTarget.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="Core\Models\ITaggableResource.cs" />
@@ -98,7 +98,6 @@
     <Compile Include="KeyVault\Commands\CopyKeyIdCommand.cs" />
     <Compile Include="KeyVault\Commands\CopySecretValueCommand.cs" />
     <Compile Include="KeyVault\Commands\CopyVaultUriCommand.cs" />
-    <Compile Include="KeyVault\Commands\DeleteSecretCommand.cs" />
     <Compile Include="AppService\Commands\DisconnectLogStreamCommand.cs" />
     <Compile Include="KeyVault\Commands\UpdateSecretCommand.cs" />
     <Compile Include="KeyVault\Dialogs\AddSecretDialog.xaml.cs">
@@ -159,7 +158,6 @@
     <Compile Include="Storage\Commands\CopyConnectionStringCommand.cs" />
     <Compile Include="Storage\Commands\CopyQueueUrlCommand.cs" />
     <Compile Include="Storage\Commands\CopyTableUrlCommand.cs" />
-    <Compile Include="Storage\Commands\DeleteBlobCommand.cs" />
     <Compile Include="Storage\Commands\DownloadBlobCommand.cs" />
     <Compile Include="Storage\Commands\UploadBlobCommand.cs" />
     <Compile Include="Storage\Models\BlobNode.cs" />
@@ -177,7 +175,6 @@
     <Compile Include="Tags\Commands\CopyTagsAsJsonCommand.cs" />
     <Compile Include="Tags\Commands\CopyTagValueCommand.cs" />
     <Compile Include="Tags\Commands\FilterByTagCommand.cs" />
-    <Compile Include="Tags\Commands\RemoveTagCommand.cs" />
     <Compile Include="Tags\Dialogs\AddTagDialog.xaml.cs">
       <DependentUpon>AddTagDialog.xaml</DependentUpon>
     </Compile>
@@ -297,6 +294,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="AppServicePlan\Commands\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="VSPackage.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
