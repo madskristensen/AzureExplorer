@@ -32,15 +32,10 @@ namespace AzureExplorer.AppService.Commands
 
                 await VS.StatusBar.ShowMessageAsync($"'{node.Label}' deleted.");
 
-                // Refresh the parent folder to remove the deleted file
-                if (node.Parent is FolderNode folder)
-                {
-                    await folder.RefreshAsync();
-                }
-                else if (node.Parent is FilesNode files)
-                {
-                    await files.RefreshAsync();
-                }
+                // Remove the deleted file from the tree
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                node.Parent?.Children.Remove(node);
+                node.Parent = null;
             }
             catch (Exception ex)
             {

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using AzureExplorer.AppService.Services;
 using AzureExplorer.Core.Models;
@@ -13,7 +15,7 @@ namespace AzureExplorer.AppService.Models
     /// <summary>
     /// Represents a folder in the App Service file system. Expandable node with lazy-loaded children.
     /// </summary>
-    internal sealed class FolderNode : ExplorerNodeBase
+    internal sealed class FolderNode : ExplorerNodeBase, IDropTarget
     {
         public FolderNode(string name, string subscriptionId, string appName, string relativePath)
             : base(name)
@@ -41,11 +43,159 @@ namespace AzureExplorer.AppService.Models
         /// </summary>
         public string RelativePath { get; }
 
+        /// <inheritdoc />
+        public string TargetPath => RelativePath;
+
         public override ImageMoniker IconMoniker => KnownMonikers.FolderClosed;
 
         public override int ContextMenuId => PackageIds.FolderContextMenu;
 
         public override bool SupportsChildren => true;
+
+        /// <inheritdoc />
+        public async Task<int> UploadAndAddNodesAsync(string[] paths, CancellationToken cancellationToken = default)
+        {
+            var uploadedCount = 0;
+
+            foreach (var path in paths)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (Directory.Exists(path))
+                {
+                    var dirName = Path.GetFileName(path);
+                    var remoteDirPath = $"{RelativePath.TrimEnd('/')}/{dirName}";
+
+                    // Create the directory on the remote
+                    await KuduVfsService.Instance.CreateDirectoryAsync(SubscriptionId, AppName, remoteDirPath, cancellationToken);
+
+                    // Create folder node and add to tree (or find existing)
+                    var folderNode = FindOrCreateFolderNode(dirName, remoteDirPath);
+
+                    // Upload contents recursively
+                    uploadedCount += await UploadDirectoryContentsAsync(path, folderNode, cancellationToken);
+                }
+                else if (File.Exists(path))
+                {
+                    var fileName = Path.GetFileName(path);
+                    var remotePath = $"{RelativePath.TrimEnd('/')}/{fileName}";
+                    var fileInfo = new FileInfo(path);
+
+                    await KuduVfsService.Instance.UploadFileAsync(SubscriptionId, AppName, remotePath, path, cancellationToken);
+
+                    // Add file node to tree (or update existing)
+                    AddOrUpdateFileNode(fileName, remotePath, fileInfo.Length);
+                    uploadedCount++;
+                }
+            }
+
+            return uploadedCount;
+        }
+
+        internal FolderNode FindOrCreateFolderNode(string name, string remotePath)
+        {
+            // Check if folder already exists in children
+            foreach (var child in Children)
+            {
+                if (child is FolderNode existing && string.Equals(existing.Label, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return existing;
+                }
+            }
+
+            // Create new folder node and insert in sorted position
+            var folderNode = new FolderNode(name, SubscriptionId, AppName, remotePath);
+            folderNode.Children.Clear(); // Remove loading placeholder since we'll populate it
+            folderNode.IsLoaded = true;
+            InsertNodeSorted(folderNode);
+            return folderNode;
+        }
+
+        internal void AddOrUpdateFileNode(string name, string remotePath, long size)
+        {
+            // Check if file already exists (overwrite case)
+            for (int i = 0; i < Children.Count; i++)
+            {
+                if (Children[i] is FileNode existing && string.Equals(existing.Label, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Replace with updated node
+                    var newNode = new FileNode(name, SubscriptionId, AppName, remotePath, size) { Parent = this };
+                    Children[i] = newNode;
+                    return;
+                }
+            }
+
+            // Insert new file node in sorted position
+            var fileNode = new FileNode(name, SubscriptionId, AppName, remotePath, size);
+            InsertNodeSorted(fileNode);
+        }
+
+        private void InsertNodeSorted(ExplorerNodeBase newNode)
+        {
+            newNode.Parent = this;
+            bool isFolder = newNode is FolderNode;
+
+            for (int i = 0; i < Children.Count; i++)
+            {
+                var child = Children[i];
+                bool childIsFolder = child is FolderNode;
+
+                // Folders come before files
+                if (isFolder && !childIsFolder)
+                {
+                    Children.Insert(i, newNode);
+                    return;
+                }
+
+                // Within same type, sort alphabetically
+                if (isFolder == childIsFolder && string.Compare(newNode.Label, child.Label, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    Children.Insert(i, newNode);
+                    return;
+                }
+            }
+
+            Children.Add(newNode);
+        }
+
+        private async Task<int> UploadDirectoryContentsAsync(string localDir, FolderNode parentNode, CancellationToken cancellationToken)
+        {
+            var uploadedCount = 0;
+
+            // Upload all files in this directory
+            foreach (var file in Directory.GetFiles(localDir))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var fileName = Path.GetFileName(file);
+                var remotePath = $"{parentNode.RelativePath}/{fileName}";
+                var fileInfo = new FileInfo(file);
+
+                await KuduVfsService.Instance.UploadFileAsync(SubscriptionId, AppName, remotePath, file, cancellationToken);
+
+                // Add file node to folder
+                parentNode.AddOrUpdateFileNode(fileName, remotePath, fileInfo.Length);
+                uploadedCount++;
+            }
+
+            // Recursively upload subdirectories
+            foreach (var subDir in Directory.GetDirectories(localDir))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var dirName = Path.GetFileName(subDir);
+                var remoteDirPath = $"{parentNode.RelativePath}/{dirName}";
+
+                // Create the directory on the remote
+                await KuduVfsService.Instance.CreateDirectoryAsync(SubscriptionId, AppName, remoteDirPath, cancellationToken);
+
+                // Create folder node
+                var subFolderNode = parentNode.FindOrCreateFolderNode(dirName, remoteDirPath);
+
+                // Upload contents recursively
+                uploadedCount += await UploadDirectoryContentsAsync(subDir, subFolderNode, cancellationToken);
+            }
+
+            return uploadedCount;
+        }
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
         {

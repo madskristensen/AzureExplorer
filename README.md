@@ -1,4 +1,4 @@
-[marketplace]: <https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer>
+does does nothin[marketplace]: <https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer>
 [vsixgallery]: <http://vsixgallery.com/extension/AzureExplorer.5e5465aa-805e-4395-b20d-a439f7c92ca1/>
 [repo]: <https://github.com/madskristensen/AzureExplorer>
 
@@ -35,8 +35,8 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 
 | Resource Type         | Actions                                                                                |
 | --------------------- | -------------------------------------------------------------------------------------- |
-| **App Services**      | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, Add Tags |
-| **Function Apps**     | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, Add Tags |
+| **App Services**      | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, File Browser, Drag & Drop Upload, Add Tags |
+| **Function Apps**     | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, File Browser, Drag & Drop Upload, Add Tags |
 | **Virtual Machines**  | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address, Add Tags                     |
 | **Storage Accounts**  | Copy Connection String, Browse Blob Containers, Add Tags                               |
 | **Blob Containers**   | Upload, Download, Delete, Copy URL                                                     |
@@ -83,8 +83,20 @@ Take control of your web apps and functions without leaving your code:
 - **Stream Logs** — Watch application and HTTP logs in real-time
 - **Download Publish Profile** — Get deployment credentials
 - **Manage App Settings** — View and edit configuration
+- **File Browser** — Browse and edit files in your wwwroot folder
+- **Drag & Drop Upload** — Upload files and folders directly from File Explorer or Solution Explorer
 
 ![App Service Context Menu](art/app-service-context-menu.png)
+
+### File Browser & Drag-and-Drop Upload
+
+Browse and manage files deployed to your App Services and Function Apps:
+
+- **Browse Files** — Expand the "Files" node to explore your wwwroot folder
+- **Edit Files** — Double-click any file to open it in the Visual Studio editor
+- **Drag & Drop Upload** — Drag files or folders from Windows File Explorer or Solution Explorer onto any folder
+- **Recursive Upload** — Dropping a folder uploads all its contents, preserving the folder structure
+- **Delete Files** — Right-click files or folders to delete them
 
 ### Storage Account & Blob Management
 
@@ -181,6 +193,7 @@ Manage your Azure VMs without leaving Visual Studio:
 - **Search** using the search box in the tool window to find resources across all subscriptions
 - **Double-click** an App Service or Function App to open it in your browser
 - **Double-click** a file in App Service to open it in the editor
+- **Drag & drop** files from File Explorer or Solution Explorer onto any folder in the Files node to upload
 - **Right-click** anywhere for context-specific actions
 - Use the **toolbar refresh** button to sync with Azure
 - **Ctrl+Alt+P** to open selected resource in Azure Portal

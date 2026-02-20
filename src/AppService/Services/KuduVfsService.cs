@@ -174,6 +174,61 @@ namespace AzureExplorer.AppService.Services
         }
 
         /// <summary>
+        /// Uploads a file to the App Service file system.
+        /// </summary>
+        /// <param name="subscriptionId">The subscription ID.</param>
+        /// <param name="appName">The App Service name.</param>
+        /// <param name="remotePath">The path relative to site root (e.g., "site/wwwroot/script.js").</param>
+        /// <param name="localFilePath">The local file path to upload.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task UploadFileAsync(
+            string subscriptionId,
+            string appName,
+            string remotePath,
+            string localFilePath,
+            CancellationToken cancellationToken = default)
+        {
+            var normalizedPath = remotePath.TrimStart('/');
+            var url = $"https://{appName}.scm.azurewebsites.net/api/vfs/{normalizedPath}";
+
+            using var fileStream = new FileStream(localFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var content = new StreamContent(fileStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+
+            using var request = new HttpRequestMessage(HttpMethod.Put, url) { Content = content };
+            await AddAuthenticationAsync(request, subscriptionId, cancellationToken);
+            // If-Match header allows overwriting existing files
+            request.Headers.Add("If-Match", "*");
+
+            using HttpResponseMessage response = await _sharedClient.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
+        /// Creates a directory in the App Service file system.
+        /// </summary>
+        /// <param name="subscriptionId">The subscription ID.</param>
+        /// <param name="appName">The App Service name.</param>
+        /// <param name="remotePath">The directory path relative to site root (e.g., "site/wwwroot/images").</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task CreateDirectoryAsync(
+            string subscriptionId,
+            string appName,
+            string remotePath,
+            CancellationToken cancellationToken = default)
+        {
+            // Directory paths must end with /
+            var normalizedPath = remotePath.TrimStart('/').TrimEnd('/') + "/";
+            var url = $"https://{appName}.scm.azurewebsites.net/api/vfs/{normalizedPath}";
+
+            using var request = new HttpRequestMessage(HttpMethod.Put, url);
+            await AddAuthenticationAsync(request, subscriptionId, cancellationToken);
+
+            using HttpResponseMessage response = await _sharedClient.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
         /// Adds Azure authentication to an HTTP request.
         /// </summary>
         private static async Task AddAuthenticationAsync(HttpRequestMessage request, string subscriptionId, CancellationToken cancellationToken)

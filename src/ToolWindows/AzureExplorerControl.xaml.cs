@@ -163,6 +163,11 @@ namespace AzureExplorer.ToolWindows
             ExplorerTree.PreviewMouseRightButtonDown += ExplorerTree_PreviewMouseRightButtonDown;
             ExplorerTree.PreviewMouseRightButtonUp += ExplorerTree_PreviewMouseRightButtonUp;
             ExplorerTree.MouseDoubleClick += ExplorerTree_MouseDoubleClick;
+
+            // Enable drag-and-drop for file uploads
+            ExplorerTree.AllowDrop = true;
+            ExplorerTree.DragOver += ExplorerTree_DragOver;
+            ExplorerTree.Drop += ExplorerTree_Drop;
         }
 
         public void RefreshRootNodes()
@@ -722,6 +727,176 @@ namespace AzureExplorer.ToolWindows
                     return result;
             }
             return null;
+        }
+
+        #endregion
+
+        #region Drag and Drop
+
+        private void ExplorerTree_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effects = DragDropEffects.None;
+
+            // Check if we have file data
+            if (!HasFilePaths(e.Data))
+                return;
+
+            // Find the node under the cursor
+            IDropTarget dropTarget = GetDropTargetUnderCursor(e);
+            if (dropTarget != null)
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+
+            e.Handled = true;
+        }
+
+        private void ExplorerTree_Drop(object sender, DragEventArgs e)
+        {
+            IDropTarget dropTarget = GetDropTargetUnderCursor(e);
+            if (dropTarget == null)
+                return;
+
+            string[] filePaths = GetFilePaths(e.Data);
+            if (filePaths == null || filePaths.Length == 0)
+                return;
+
+            e.Handled = true;
+
+            // Perform upload asynchronously
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await VS.StatusBar.ShowMessageAsync($"Uploading {filePaths.Length} item(s)...");
+
+                    int uploadedCount = await dropTarget.UploadAndAddNodesAsync(filePaths);
+
+                    await VS.StatusBar.ShowMessageAsync($"Uploaded {uploadedCount} file(s)");
+                }
+                catch (OperationCanceledException)
+                {
+                    await VS.StatusBar.ShowMessageAsync("Upload cancelled");
+                }
+                catch (Exception ex)
+                {
+                    await ex.LogAsync();
+                    await VS.MessageBox.ShowErrorAsync("Upload Failed", ex.Message);
+                }
+            }).FireAndForget();
+        }
+
+        private IDropTarget GetDropTargetUnderCursor(DragEventArgs e)
+        {
+            if (e.OriginalSource is not DependencyObject source)
+                return null;
+
+            // Walk up the visual tree to find the TreeViewItem
+            while (source != null && source is not TreeViewItem)
+            {
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            if (source is TreeViewItem item && item.DataContext is ExplorerNodeBase node)
+            {
+                // Check the actual node (unwrap SearchResultNode if needed)
+                ExplorerNodeBase actualNode = node.ActualNode;
+                if (actualNode is IDropTarget dropTarget)
+                {
+                    return dropTarget;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool HasFilePaths(IDataObject data)
+        {
+            // Check for Windows Explorer file drop
+            if (data.GetDataPresent(DataFormats.FileDrop))
+                return true;
+
+            // Check for Solution Explorer items (CF_VSSTGPROJECTITEMS or CF_VSREFPROJECTITEMS)
+            if (data.GetDataPresent("CF_VSSTGPROJECTITEMS") || data.GetDataPresent("CF_VSREFPROJECTITEMS"))
+                return true;
+
+            return false;
+        }
+
+        private static string[] GetFilePaths(IDataObject data)
+        {
+            // Try Windows Explorer file drop first
+            if (data.GetDataPresent(DataFormats.FileDrop))
+            {
+                return data.GetData(DataFormats.FileDrop) as string[];
+            }
+
+            // Try Solution Explorer items
+            // Solution Explorer uses a custom format that contains file paths
+            try
+            {
+                // For Solution Explorer, try to get the file paths from the clipboard format
+                // The format contains DROPFILES structure followed by null-terminated paths
+                if (data.GetDataPresent("CF_VSSTGPROJECTITEMS"))
+                {
+                    return ExtractVsProjectItems(data, "CF_VSSTGPROJECTITEMS");
+                }
+
+                if (data.GetDataPresent("CF_VSREFPROJECTITEMS"))
+                {
+                    return ExtractVsProjectItems(data, "CF_VSREFPROJECTITEMS");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to extract VS project items: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private static string[] ExtractVsProjectItems(IDataObject data, string format)
+        {
+            // VS project items format contains:
+            // - 4 bytes: count of items
+            // - For each item: null-terminated project path, null-terminated item path
+            var paths = new List<string>();
+
+            try
+            {
+                using (var stream = data.GetData(format) as System.IO.MemoryStream)
+                {
+                    if (stream == null)
+                        return null;
+
+                    using (var reader = new System.IO.BinaryReader(stream))
+                    {
+                        // Skip the DROPFILES header (20 bytes on x86, varies on x64)
+                        // The actual file paths follow as null-terminated strings
+                        byte[] allBytes = reader.ReadBytes((int)stream.Length);
+                        string allText = System.Text.Encoding.Unicode.GetString(allBytes);
+
+                        // Split by null characters and filter valid file paths
+                        string[] parts = allText.Split(new[] { '\0' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (string part in parts)
+                        {
+                            string trimmed = part.Trim();
+                            // Check if it looks like a valid file path
+                            if (!string.IsNullOrEmpty(trimmed) &&
+                                (System.IO.File.Exists(trimmed) || System.IO.Directory.Exists(trimmed)))
+                            {
+                                paths.Add(trimmed);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error parsing VS project items: {ex.Message}");
+            }
+
+            return paths.Count > 0 ? paths.ToArray() : null;
         }
 
         #endregion

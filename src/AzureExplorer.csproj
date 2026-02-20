@@ -64,6 +64,7 @@
     <Compile Include="Core\Commands\RefreshNodeCommand.cs" />
     <Compile Include="Core\Commands\ToggleActivityLogCommand.cs" />
     <Compile Include="Core\Commands\ToggleShowAllCommand.cs" />
+    <Compile Include="Core\Models\IDropTarget.cs" />
     <Compile Include="Core\Models\IPortalResource.cs" />
     <Compile Include="Core\Models\ITaggableResource.cs" />
     <Compile Include="Core\Models\IWebSiteNode.cs" />
