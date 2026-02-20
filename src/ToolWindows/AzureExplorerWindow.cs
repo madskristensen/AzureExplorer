@@ -9,6 +9,7 @@ using System.Windows.Controls;
 
 using AzureExplorer.Core.Models;
 using AzureExplorer.Core.Search;
+using AzureExplorer.Core.Services;
 
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
@@ -23,17 +24,34 @@ namespace AzureExplorer.ToolWindows
 
         public override Type PaneType => typeof(Pane);
 
-        public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
+        public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
         {
             try
             {
-                return Task.FromResult<FrameworkElement>(new AzureExplorerControl());
+                // Attempt to restore previous session silently before creating the UI
+                // This prevents the welcome screen from flashing when cached credentials exist
+                if (AzureAuthService.Instance.HasPersistedAccounts())
+                {
+                    try
+                    {
+                        await AzureAuthService.Instance.TrySilentSignInAsync(cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Silent sign-in failed: {ex.Message}");
+                    }
+                }
+
+                return new AzureExplorerControl();
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Azure Explorer: Failed to create tool window content: {ex}");
-                return Task.FromResult<FrameworkElement>(
-                    new TextBlock { Text = $"Failed to load Azure Explorer:\n{ex.Message}", Margin = new Thickness(10) });
+                return new TextBlock { Text = $"Failed to load Azure Explorer:\n{ex.Message}", Margin = new Thickness(10) };
             }
         }
 

@@ -41,20 +41,9 @@ namespace AzureExplorer.ToolWindows
             AzureAuthService.Instance.AuthStateChanged += OnAuthStateChanged;
             Unloaded += OnUnloaded;
 
+            // Silent sign-in is handled in AzureExplorerWindow.CreateAsync before this control is created,
+            // so we can directly show the appropriate UI based on current auth state
             RefreshRootNodes();
-
-            // Attempt to restore a previous session silently (no browser popup)
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                try
-                {
-                    await AzureAuthService.Instance.TrySilentSignInAsync();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Silent sign-in failed: {ex.Message}");
-                }
-            }).FireAndForget();
         }
 
         internal ObservableCollection<ExplorerNodeBase> RootNodes { get; }

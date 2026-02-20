@@ -40,6 +40,31 @@ namespace AzureExplorer.Core.Services
         public bool IsSigningIn { get; private set; }
 
         /// <summary>
+        /// Checks if there are persisted authentication records on disk.
+        /// This is a quick check that doesn't load or validate the records.
+        /// </summary>
+        public bool HasPersistedAccounts()
+        {
+            try
+            {
+                // Check for multi-account auth records
+                if (Directory.Exists(_accountsDir) && Directory.GetFiles(_accountsDir, "*.bin").Length > 0)
+                    return true;
+
+                // Check for legacy single-account auth record
+                var legacyPath = Path.Combine(_cacheDir, "auth-record.bin");
+                if (File.Exists(legacyPath))
+                    return true;
+            }
+            catch
+            {
+                // Ignore errors - assume no persisted accounts
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Gets a read-only collection of all signed-in accounts.
         /// </summary>
         public IReadOnlyList<AccountInfo> Accounts
