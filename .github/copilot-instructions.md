@@ -69,6 +69,7 @@ General.Instance.Save(); // Save options
 | External process hangs | Use async process with cancellation |
 | Fail to write to .csproj files | Always use NuGet MCP server to add/update packages |
 | PackageIDs doesn't contain the member | When modifying the .vsct file, also update the VSCommandTable.cs file |
+| NuGet versioning issues | Always check AssemblyInfo.cs for codebases and binding redirects |
 
 ## External Processes
 

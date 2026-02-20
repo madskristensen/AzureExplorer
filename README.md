@@ -5,31 +5,36 @@
 # Azure Explorer for Visual Studio
 
 [![Build](https://github.com/madskristensen/AzureExplorer/actions/workflows/build.yaml/badge.svg)](https://github.com/madskristensen/AzureExplorer/actions/workflows/build.yaml)
-![GitHub Sponsors](https://img.shields.io/github/sponsors/madskristensen)
+[![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/MadsKristensen.AzureExplorer?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/MadsKristensen.AzureExplorer)](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer)
+[![Rating](https://img.shields.io/visual-studio-marketplace/r/MadsKristensen.AzureExplorer)](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.AzureExplorer)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/madskristensen)](https://github.com/sponsors/madskristensen)
+
+**Your Azure resources, right inside Visual Studio.** No Portal tab-switching. No context loss. Just code and cloud, together.
 
 Download from the [Visual Studio Marketplace][marketplace] or get the latest [CI build][vsixgallery].
 
-> **Note:** This extension only works on Visual Studio 2026 and later.
-
----
-
-**Stop context-switching.**
-
-Azure Explorer brings your cloud infrastructure into your IDE with a fast, lightweight tool window. If you miss the old **Cloud Explorer** that was removed from Visual Studio, this extension is for you. Browse subscriptions, manage App Services and Function Apps, control Virtual Machines, access Key Vault secrets, browse Storage Account blobs, connect to SQL databases, and stream live logs — all from the comfort of Visual Studio.
+> **Requires Visual Studio 2026** or later on Windows 10+
 
 ![Azure Explorer tool window](art/azure-explorer.png)
 
-## Why Azure Explorer?
+---
 
-- **Lightweight & Fast** — No heavy SDKs or bloated dependencies, just a clean tree view
-- **Instant Search** — Find any resource across all subscriptions with integrated VS search
-- **Secure by Design** — Uses your existing Azure credentials with modern authentication
-- **Real-time Logs** — Stream application and HTTP logs from App Services directly in VS
-- **Context Menu Actions** — Right-click to start, stop, restart, browse, or open in Portal
-- **VM Management** — Start, stop, and connect to Virtual Machines via RDP or SSH
-- **Key Vault Integration** — Manage secrets, keys, and certificates without touching the Portal
-- **Blob Storage** — Browse containers, queues, tables, upload, download, and delete blobs
-- **SQL Database** — Copy connection strings for quick database access
+## Miss the old Cloud Explorer?
+
+When Microsoft removed **Cloud Explorer** from Visual Studio, many developers lost a crucial workflow. Azure Explorer brings it back — rebuilt from the ground up with modern authentication, better performance, and features Cloud Explorer never had.
+
+**Built by [Mads Kristensen](https://github.com/madskristensen)**, a Microsoft developer and author of some of Visual Studio's most popular extensions (Web Essentials, Markdown Editor, Editor Enhancements, and 100+ more).
+
+## What Can You Do?
+
+| | |
+|---|---|
+| 🚀 **Deploy & Debug Faster** | Stream live logs, browse deployed files, drag-and-drop upload — without leaving your code |
+| 🔍 **Find Anything Instantly** | Search across all subscriptions with `tag:Environment=Production` syntax |
+| 🔐 **Manage Secrets Securely** | View, edit, and copy Key Vault secrets without touching the Azure Portal |
+| 💻 **Connect to VMs** | One-click RDP/SSH connections to your Virtual Machines |
+| 📦 **Browse Storage** | Navigate blob containers, upload files, copy connection strings |
 
 ## Supported Resources
 
@@ -42,36 +47,64 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 | **SQL Servers & Databases** | Copy Connection String, Browse Databases |
 | **Front Door** | Browse Endpoints |
 
-📖 **[Full Documentation](https://github.com/madskristensen/AzureExplorer/blob/master/docs/index.md)** — Detailed guides for all features and resource types.
+*More resource types coming soon!*
 
-## Getting Started
+📖 **[Full Documentation](https://github.com/madskristensen/AzureExplorer/blob/master/docs/index.md)** — Detailed guides, troubleshooting, and tips.
 
-1. **Install** the extension from the [Visual Studio Marketplace][marketplace]
-2. **Open** Azure Explorer from **View → Azure Explorer** (next to Server Explorer)
-3. **Sign in** with your Azure account using Windows native authentication
-4. **Explore** your subscriptions and resources
+## Get Started in 30 Seconds
+
+1. **Install** from the [Visual Studio Marketplace][marketplace]
+2. **Open** via **View → Azure Explorer**
+3. **Sign in** with your Azure account (uses Windows native authentication)
+4. **Explore** — your subscriptions appear automatically
 
 ![Welcome screen](art/welcome.png)
 
-## Quick Tips
+## Keyboard Shortcuts
 
-- **Search** with `tag:Key=Value` syntax to find resources by tag
-- **Double-click** resources to open in browser, files to edit
-- **Drag & drop** files onto App Services to upload
-- **Ctrl+Alt+P** to open selected resource in Azure Portal
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Alt+P` | Open selected resource in Azure Portal |
+| `F5` | Refresh current view |
+| `Enter` | Expand/collapse or execute default action |
+| `Delete` | Delete selected item (with confirmation) |
 
-📖 See [Getting Started](https://github.com/madskristensen/AzureExplorer/blob/master/docs/getting-started.md) for more tips and detailed setup instructions.
+## FAQ
+
+**Q: Which Azure accounts are supported?**  
+A: Personal Microsoft accounts, work/school (Entra ID), and accounts with multiple tenants. Uses Windows native authentication (WAM) for secure, seamless sign-in.
+
+**Q: Why don't I see all my subscriptions?**  
+A: Check if you're signed into the correct account. You can also hide/show subscriptions via right-click. See [Authentication docs](https://github.com/madskristensen/AzureExplorer/blob/master/docs/authentication.md) for details.
+
+**Q: Is my data secure?**  
+A: Azure Explorer never stores credentials. It uses your existing Visual Studio/Windows Azure credentials with Microsoft's authentication libraries. All API calls go directly to Azure.
+
+**Q: Can I use this with Azure Government or other sovereign clouds?**  
+A: Not currently, but it's on the roadmap. [Open an issue][repo] if this is important to you.
+
+📖 See [FAQ](https://github.com/madskristensen/AzureExplorer/blob/master/docs/faq.md) and [Troubleshooting](https://github.com/madskristensen/AzureExplorer/blob/master/docs/troubleshooting.md) for more.
+
+## Works Great With
+
+These extensions complement Azure Explorer for a complete Azure development experience:
+
+- **[Azure Functions](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)** — Develop and deploy serverless functions
+- **[SQL Server Data Tools](https://learn.microsoft.com/en-us/sql/ssdt/)** — Database development and deployment
+- **[Cloud Sync](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.CloudSync)** — Sync VS settings across machines
 
 ## Contributing
 
 This is a passion project, and contributions are welcome!
 
-- **Found a bug?** [Open an issue][repo]
-- **Have an idea?** [Start a discussion][repo]
-- **Want to contribute?** Pull requests are always welcome
+- 🐛 **Found a bug?** [Open an issue][repo]
+- 💡 **Have an idea?** [Start a discussion][repo]
+- 🔧 **Want to contribute?** Pull requests are always welcome
 
-If Azure Explorer saves you time, consider [rating it on the Marketplace][marketplace] or [sponsoring on GitHub](https://github.com/sponsors/madskristensen).
+**If Azure Explorer saves you time**, consider:
+- ⭐ [Rating it on the Marketplace][marketplace]
+- 💖 [Sponsoring on GitHub](https://github.com/sponsors/madskristensen)
 
-## 📄 License
+## License
 
 [Apache 2.0](LICENSE.txt)
