@@ -58,5 +58,16 @@ namespace AzureExplorer.KeyVault.Models
                 }
             }, cancellationToken);
         }
+
+        /// <summary>
+        /// Adds a new secret node in sorted order without refreshing existing nodes.
+        /// </summary>
+        /// <returns>The newly created node.</returns>
+        public SecretNode AddSecret(string name)
+        {
+            var newNode = new SecretNode(name, SubscriptionId, VaultUri, enabled: true);
+            InsertChildSorted(newNode);
+            return newNode;
+        }
     }
 }

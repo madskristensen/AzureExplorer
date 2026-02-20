@@ -21,7 +21,7 @@ namespace AzureExplorer.Storage.Models
         protected override string ResourceType => "Microsoft.Storage/storageAccounts";
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureStorageAccount;
-        public override int ContextMenuId => PackageIds.StorageAccountsCategoryContextMenu;
+        public override int ContextMenuId => PackageIds.SubscriptionStorageAccountsCategoryContextMenu;
 
         private void OnResourceCreated(object sender, ResourceCreatedEventArgs e)
         {

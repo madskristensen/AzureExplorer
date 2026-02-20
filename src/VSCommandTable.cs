@@ -76,9 +76,13 @@ namespace AzureExplorer
         public const int KeyVaultActionsGroup = 0x0056;
         public const int KeyVaultRefreshGroup = 0x0053;
         public const int KeyVaultsCategoryContextMenuGroup = 0x0054;
+        public const int SubscriptionKeyVaultsCategoryContextMenu = 0x0065;
+        public const int SubscriptionKeyVaultsCategoryContextMenuGroup = 0x0066;
         public const int StorageAccountActionsGroup = 0x0162;
         public const int StorageAccountRefreshGroup = 0x0163;
         public const int StorageAccountsCategoryContextMenuGroup = 0x0164;
+        public const int SubscriptionStorageAccountsCategoryContextMenu = 0x0166;
+        public const int SubscriptionStorageAccountsCategoryContextMenuGroup = 0x0167;
         public const int FunctionAppBrowseGroup = 0x0172;
         public const int FunctionAppActionsGroup = 0x0173;
         public const int FunctionAppRefreshGroup = 0x0174;
@@ -101,6 +105,8 @@ namespace AzureExplorer
         public const int KeyActionsGroup = 0x005E;
         public const int CertificateActionsGroup = 0x005F;
         public const int SecretsNodeActionsGroup = 0x0062;
+        public const int KeysNodeActionsGroup = 0x0063;
+        public const int KeysNodeContextMenu = 0x0064;
         public const int QueueActionsGroup = 0x019E;
         public const int TableActionsGroup = 0x019F;
         public const int TenantContextMenuGroup = 0x004E;
@@ -157,6 +163,8 @@ namespace AzureExplorer
         public const int AddSecret = 0x0144;
         public const int CopySecretValue = 0x0145;
         public const int UpdateSecretValue = 0x0146;
+        public const int AddKey = 0x0147;
+        public const int CreateKeyVault = 0x0148;
         public const int Delete = 0x014A;
         public const int OpenInPortal = 0x0150;
         public const int CopyStorageConnectionString = 0x0165;

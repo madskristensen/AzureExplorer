@@ -40,6 +40,12 @@ namespace AzureExplorer.Core.Commands
             string originalDescription = node.Description;
             node.Description = "Deleting...";
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Deleting",
+                resource.DeleteResourceName,
+                resource.DeleteResourceType);
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Deleting {resource.DeleteResourceType.ToLowerInvariant()} '{resource.DeleteResourceName}'...");
@@ -56,6 +62,9 @@ namespace AzureExplorer.Core.Commands
                     parent.Children.Remove(node);
                 }
 
+                // Mark activity as successful
+                activity.Complete();
+
                 // Notify other views that this resource was deleted
                 if (!string.IsNullOrEmpty(resource.DeleteResourceProvider))
                 {
@@ -70,6 +79,9 @@ namespace AzureExplorer.Core.Commands
             {
                 // Restore original description on failure
                 node.Description = originalDescription;
+
+                // Mark activity as failed
+                activity.Fail(ex.Message);
 
                 await ex.LogAsync();
                 await VS.MessageBox.ShowErrorAsync($"Delete Failed", ex.Message);

@@ -23,7 +23,7 @@ namespace AzureExplorer.KeyVault.Models
         protected override string ResourceType => "Microsoft.KeyVault/vaults";
 
         public override ImageMoniker IconMoniker => KnownMonikers.AzureKeyVault;
-        public override int ContextMenuId => PackageIds.KeyVaultsCategoryContextMenu;
+        public override int ContextMenuId => PackageIds.SubscriptionKeyVaultsCategoryContextMenu;
 
         private void OnResourceCreated(object sender, ResourceCreatedEventArgs e)
         {

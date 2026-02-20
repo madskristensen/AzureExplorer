@@ -80,8 +80,15 @@
         </Strings>
       </Menu>
 
-      <!-- Context menu: Key Vaults category node -->
+      <!-- Context menu: Key Vaults category node (resource group level - has Create) -->
       <Menu guid="AzureExplorer" id="KeyVaultsCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Key Vaults</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Key Vaults category node (subscription level - no Create) -->
+      <Menu guid="AzureExplorer" id="SubscriptionKeyVaultsCategoryContextMenu" type="Context">
         <Strings>
           <CommandName>Key Vaults</CommandName>
         </Strings>
@@ -94,8 +101,15 @@
         </Strings>
       </Menu>
 
-      <!-- Context menu: Storage Accounts category node -->
+      <!-- Context menu: Storage Accounts category node (resource group level - has Create) -->
       <Menu guid="AzureExplorer" id="StorageAccountsCategoryContextMenu" type="Context">
+        <Strings>
+          <CommandName>Storage Accounts</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Storage Accounts category node (subscription level - no Create) -->
+      <Menu guid="AzureExplorer" id="SubscriptionStorageAccountsCategoryContextMenu" type="Context">
         <Strings>
           <CommandName>Storage Accounts</CommandName>
         </Strings>
@@ -196,6 +210,13 @@
       <Menu guid="AzureExplorer" id="SecretsNodeContextMenu" type="Context">
         <Strings>
           <CommandName>Secrets</CommandName>
+        </Strings>
+      </Menu>
+
+      <!-- Context menu: Keys node (folder) -->
+      <Menu guid="AzureExplorer" id="KeysNodeContextMenu" type="Context">
+        <Strings>
+          <CommandName>Keys</CommandName>
         </Strings>
       </Menu>
 
@@ -337,9 +358,14 @@
         <Parent guid="AzureExplorer" id="KeyVaultContextMenu"/>
       </Group>
 
-      <!-- Key Vaults category context menu groups -->
+      <!-- Key Vaults category context menu groups (resource group level) -->
       <Group guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenu"/>
+      </Group>
+
+      <!-- Key Vaults category context menu groups (subscription level - refresh only) -->
+      <Group guid="AzureExplorer" id="SubscriptionKeyVaultsCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SubscriptionKeyVaultsCategoryContextMenu"/>
       </Group>
 
       <!-- Storage Account context menu groups -->
@@ -350,9 +376,14 @@
         <Parent guid="AzureExplorer" id="StorageAccountContextMenu"/>
       </Group>
 
-      <!-- Storage Accounts category context menu groups -->
+      <!-- Storage Accounts category context menu groups (resource group level) -->
       <Group guid="AzureExplorer" id="StorageAccountsCategoryContextMenuGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="StorageAccountsCategoryContextMenu"/>
+      </Group>
+
+      <!-- Storage Accounts category context menu groups (subscription level - refresh only) -->
+      <Group guid="AzureExplorer" id="SubscriptionStorageAccountsCategoryContextMenuGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="SubscriptionStorageAccountsCategoryContextMenu"/>
       </Group>
 
       <!-- Function App context menu groups -->
@@ -447,6 +478,11 @@
       <!-- Secrets node context menu groups -->
       <Group guid="AzureExplorer" id="SecretsNodeActionsGroup" priority="0x0100">
         <Parent guid="AzureExplorer" id="SecretsNodeContextMenu"/>
+      </Group>
+
+      <!-- Keys node context menu groups -->
+      <Group guid="AzureExplorer" id="KeysNodeActionsGroup" priority="0x0100">
+        <Parent guid="AzureExplorer" id="KeysNodeContextMenu"/>
       </Group>
 
       <!-- Queue context menu groups -->
@@ -1154,6 +1190,28 @@
         </Strings>
       </Button>
 
+      <!-- Keys node: Add Key -->
+      <Button guid="AzureExplorer" id="AddKey" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="KeysNodeActionsGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Add"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Add Key...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.AddKey</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <!-- Key Vaults category: Create Key Vault -->
+      <Button guid="AzureExplorer" id="CreateKeyVault" priority="0x0100" type="Button">
+        <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="Add"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <ButtonText>Create Key Vault...</ButtonText>
+          <LocCanonicalName>.AzureExplorer.CreateKeyVault</LocCanonicalName>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
 
@@ -1208,6 +1266,9 @@
       <Parent guid="AzureExplorer" id="KeyVaultsCategoryContextMenuGroup"/>
     </CommandPlacement>
     <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="SubscriptionKeyVaultsCategoryContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
       <Parent guid="AzureExplorer" id="KeyVaultRefreshGroup"/>
     </CommandPlacement>
     <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0100">
@@ -1218,6 +1279,9 @@
     </CommandPlacement>
     <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
       <Parent guid="AzureExplorer" id="StorageAccountsCategoryContextMenuGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="AzureExplorer" id="RefreshNode" priority="0x0900">
+      <Parent guid="AzureExplorer" id="SubscriptionStorageAccountsCategoryContextMenuGroup"/>
     </CommandPlacement>
 
     <!-- Function App command placements -->
@@ -1345,6 +1409,11 @@
       <Parent guid="AzureExplorer" id="SecretsNodeActionsGroup"/>
     </CommandPlacement>
 
+    <!-- Key Vault node: Add Key placement -->
+    <CommandPlacement guid="AzureExplorer" id="AddKey" priority="0x0200">
+      <Parent guid="AzureExplorer" id="KeyVaultActionsGroup"/>
+    </CommandPlacement>
+
     <!-- Virtual Machine command placements -->
     <CommandPlacement guid="AzureExplorer" id="OpenInPortal" priority="0x0400">
       <Parent guid="AzureExplorer" id="VirtualMachineConnectGroup"/>
@@ -1399,8 +1468,10 @@
       <IDSymbol name="FrontDoorsCategoryContextMenu" value="0x0029" />
       <IDSymbol name="KeyVaultContextMenu" value="0x0050" />
       <IDSymbol name="KeyVaultsCategoryContextMenu" value="0x0051" />
+      <IDSymbol name="SubscriptionKeyVaultsCategoryContextMenu" value="0x0065" />
       <IDSymbol name="StorageAccountContextMenu" value="0x0160" />
       <IDSymbol name="StorageAccountsCategoryContextMenu" value="0x0161" />
+      <IDSymbol name="SubscriptionStorageAccountsCategoryContextMenu" value="0x0166" />
       <IDSymbol name="FunctionAppContextMenu" value="0x0170" />
       <IDSymbol name="FunctionAppsCategoryContextMenu" value="0x0171" />
       <IDSymbol name="SqlServerContextMenu" value="0x0180" />
@@ -1417,6 +1488,7 @@
       <IDSymbol name="KeyContextMenu" value="0x0059" />
       <IDSymbol name="CertificateContextMenu" value="0x005A" />
       <IDSymbol name="SecretsNodeContextMenu" value="0x005B" />
+      <IDSymbol name="KeysNodeContextMenu" value="0x0064" />
       <IDSymbol name="TenantContextMenu" value="0x002A" />
       <IDSymbol name="AccountContextMenu" value="0x002B" />
       <IDSymbol name="FileContextMenu" value="0x002C" />
@@ -1441,9 +1513,11 @@
       <IDSymbol name="KeyVaultActionsGroup" value="0x0056" />
       <IDSymbol name="KeyVaultRefreshGroup" value="0x0053" />
       <IDSymbol name="KeyVaultsCategoryContextMenuGroup" value="0x0054" />
+      <IDSymbol name="SubscriptionKeyVaultsCategoryContextMenuGroup" value="0x0066" />
       <IDSymbol name="StorageAccountActionsGroup" value="0x0162" />
       <IDSymbol name="StorageAccountRefreshGroup" value="0x0163" />
       <IDSymbol name="StorageAccountsCategoryContextMenuGroup" value="0x0164" />
+      <IDSymbol name="SubscriptionStorageAccountsCategoryContextMenuGroup" value="0x0167" />
       <IDSymbol name="FunctionAppBrowseGroup" value="0x0172" />
       <IDSymbol name="FunctionAppActionsGroup" value="0x0173" />
       <IDSymbol name="FunctionAppRefreshGroup" value="0x0174" />
@@ -1466,6 +1540,7 @@
       <IDSymbol name="KeyActionsGroup" value="0x005E" />
       <IDSymbol name="CertificateActionsGroup" value="0x005F" />
       <IDSymbol name="SecretsNodeActionsGroup" value="0x0062" />
+      <IDSymbol name="KeysNodeActionsGroup" value="0x0063" />
       <IDSymbol name="QueueActionsGroup" value="0x019E" />
       <IDSymbol name="TableActionsGroup" value="0x019F" />
       <IDSymbol name="TenantContextMenuGroup" value="0x004E" />
@@ -1524,6 +1599,8 @@
       <IDSymbol name="AddSecret" value="0x0144" />
       <IDSymbol name="CopySecretValue" value="0x0145" />
       <IDSymbol name="UpdateSecretValue" value="0x0146" />
+      <IDSymbol name="AddKey" value="0x0147" />
+      <IDSymbol name="CreateKeyVault" value="0x0148" />
       <IDSymbol name="Delete" value="0x014A" />
       <IDSymbol name="OpenInPortal" value="0x0150" />
       <IDSymbol name="CopyStorageConnectionString" value="0x0165" />

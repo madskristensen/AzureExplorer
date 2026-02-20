@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -38,6 +39,85 @@ namespace AzureExplorer.Core.Services
         private ActivityLogService()
         {
             LoadFromDisk();
+            SubscribeToResourceEvents();
+        }
+
+        /// <summary>
+        /// Subscribes to resource lifecycle events to automatically log creations and deletions.
+        /// </summary>
+        private void SubscribeToResourceEvents()
+        {
+            ResourceNotificationService.ResourceCreated += OnResourceCreated;
+            ResourceNotificationService.ResourceDeleted += OnResourceDeleted;
+        }
+
+        private void OnResourceCreated(object sender, ResourceCreatedEventArgs e)
+        {
+            string resourceType = GetFriendlyResourceType(e.ResourceType);
+
+            // Check if there's an in-progress entry for this resource and update it
+            var existingEntry = FindInProgressEntry("Creating", e.ResourceName, resourceType);
+            if (existingEntry != null)
+            {
+                existingEntry.Complete();
+            }
+            else
+            {
+                // Log as immediate success if no in-progress entry exists
+                LogActivity("Created", e.ResourceName, resourceType, ActivityStatus.Success, resourceId: e.ResourceType);
+            }
+        }
+
+        private void OnResourceDeleted(object sender, ResourceDeletedEventArgs e)
+        {
+            string resourceType = GetFriendlyResourceType(e.ResourceType);
+
+            // Check if there's an in-progress entry for this resource and update it
+            var existingEntry = FindInProgressEntry("Deleting", e.ResourceName, resourceType);
+            if (existingEntry != null)
+            {
+                existingEntry.Complete();
+            }
+            else
+            {
+                // Log as immediate success if no in-progress entry exists
+                LogActivity("Deleted", e.ResourceName, resourceType, ActivityStatus.Success, resourceId: e.ResourceType);
+            }
+        }
+
+        /// <summary>
+        /// Finds an existing in-progress activity entry for the specified resource.
+        /// </summary>
+        private ActivityEntry FindInProgressEntry(string action, string resourceName, string resourceType)
+        {
+            return Activities.FirstOrDefault(a =>
+                a.Status == ActivityStatus.InProgress &&
+                a.Action == action &&
+                a.ResourceName == resourceName &&
+                a.ResourceType == resourceType);
+        }
+
+        /// <summary>
+        /// Converts Azure resource provider types to friendly display names.
+        /// </summary>
+        private static string GetFriendlyResourceType(string resourceType)
+        {
+            return resourceType switch
+            {
+                "Microsoft.Resources/resourceGroups" => "Resource Group",
+                "Microsoft.Storage/storageAccounts" => "Storage Account",
+                "Microsoft.KeyVault/vaults" => "Key Vault",
+                "Microsoft.KeyVault/vaults/secrets" => "Secret",
+                "Microsoft.KeyVault/vaults/keys" => "Key",
+                "Microsoft.KeyVault/vaults/certificates" => "Certificate",
+                "Microsoft.Web/sites" => "App Service",
+                "Microsoft.Web/sites/slots" => "Deployment Slot",
+                "Microsoft.Compute/virtualMachines" => "Virtual Machine",
+                "Microsoft.Sql/servers" => "SQL Server",
+                "Microsoft.Sql/servers/databases" => "SQL Database",
+                "Microsoft.Cdn/profiles/endpoints" => "Front Door",
+                _ => resourceType?.Split('/').Last() ?? "Resource"
+            };
         }
 
         /// <summary>

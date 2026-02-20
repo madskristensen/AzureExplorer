@@ -345,6 +345,51 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Creates a new cryptographic key in the given Key Vault.
+        /// </summary>
+        /// <param name="subscriptionId">The subscription ID.</param>
+        /// <param name="vaultUri">The Key Vault URI.</param>
+        /// <param name="keyName">The name of the key to create.</param>
+        /// <param name="keyType">The key type (RSA or EC).</param>
+        /// <param name="keySizeInBits">The key size in bits (for RSA keys).</param>
+        /// <param name="curveName">The curve name (for EC keys).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task CreateKeyAsync(
+            string subscriptionId,
+            string vaultUri,
+            string keyName,
+            string keyType,
+            int? keySizeInBits = null,
+            string curveName = null,
+            CancellationToken cancellationToken = default)
+        {
+            TokenCredential credential = GetCredential(subscriptionId);
+            var client = new Azure.Security.KeyVault.Keys.KeyClient(new Uri(vaultUri), credential);
+
+            if (keyType == "RSA")
+            {
+                var options = new Azure.Security.KeyVault.Keys.CreateRsaKeyOptions(keyName)
+                {
+                    KeySize = keySizeInBits ?? 2048
+                };
+                await client.CreateRsaKeyAsync(options, cancellationToken);
+            }
+            else if (keyType == "EC")
+            {
+                var options = new Azure.Security.KeyVault.Keys.CreateEcKeyOptions(keyName);
+                if (!string.IsNullOrEmpty(curveName))
+                {
+                    options.CurveName = new Azure.Security.KeyVault.Keys.KeyCurveName(curveName);
+                }
+                await client.CreateEcKeyAsync(options, cancellationToken);
+            }
+            else
+            {
+                throw new System.ArgumentException($"Unsupported key type: {keyType}", nameof(keyType));
+            }
+        }
+
+        /// <summary>
         /// Yields keys in the given Key Vault.
         /// </summary>
         public async IAsyncEnumerable<KeyVault.Models.KeyNode> GetKeysAsync(
@@ -486,6 +531,24 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Registers a resource provider for a subscription.
+        /// </summary>
+        /// <param name="subscriptionId">The subscription ID.</param>
+        /// <param name="resourceProviderNamespace">The resource provider namespace (e.g., "Microsoft.KeyVault").</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public async Task RegisterResourceProviderAsync(
+            string subscriptionId,
+            string resourceProviderNamespace,
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+            SubscriptionResource sub = client.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(subscriptionId));
+
+            ResourceProviderResource provider = await sub.GetResourceProviderAsync(resourceProviderNamespace, cancellationToken: cancellationToken);
+            await provider.RegisterAsync(cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
         /// Deletes a resource group. Only succeeds if the resource group is empty.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if the resource group contains resources.</exception>
@@ -552,6 +615,53 @@ namespace AzureExplorer.Core.Services
             data.Sku = new Azure.ResourceManager.Resources.Models.ResourcesSku()
             {
                 Name = skuName
+            };
+
+            await client.GetGenericResources().CreateOrUpdateAsync(
+                Azure.WaitUntil.Completed,
+                resourceId,
+                data,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Creates a new Key Vault in the given resource group.
+        /// </summary>
+        public async Task CreateKeyVaultAsync(
+            string subscriptionId,
+            string resourceGroupName,
+            string vaultName,
+            string location,
+            string skuName = "standard",
+            CancellationToken cancellationToken = default)
+        {
+            ArmClient client = GetClient(subscriptionId);
+
+            // Get the tenant ID for the vault's access policies
+            var context = GetSubscriptionContext(subscriptionId);
+            string tenantId = context?.TenantId ?? throw new InvalidOperationException("Tenant ID not available for subscription");
+
+            // Build the resource ID for the Key Vault
+            var resourceId = ResourceIdentifier.Parse(
+                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.KeyVault/vaults/{vaultName}");
+
+            // Create Key Vault using generic resource API
+            var data = new GenericResourceData(new Azure.Core.AzureLocation(location))
+            {
+                Properties = BinaryData.FromObjectAsJson(new
+                {
+                    tenantId = tenantId,
+                    sku = new
+                    {
+                        family = "A",
+                        name = skuName
+                    },
+                    accessPolicies = new object[] { }, // Empty - use RBAC instead
+                    enableRbacAuthorization = true,
+                    enableSoftDelete = true,
+                    softDeleteRetentionInDays = 90,
+                    enablePurgeProtection = true
+                })
             };
 
             await client.GetGenericResources().CreateOrUpdateAsync(

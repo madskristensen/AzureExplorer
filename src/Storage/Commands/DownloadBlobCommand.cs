@@ -39,16 +39,24 @@ namespace AzureExplorer.Storage.Commands
             if (dialog.ShowDialog() != true)
                 return;
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Downloading",
+                blobNode.Label,
+                "Blob");
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Downloading {blobNode.Label}...");
 
                 await DownloadBlobAsync(blobNode, dialog.FileName);
 
+                activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"Downloaded {blobNode.Label} to {Path.GetFileName(dialog.FileName)}");
             }
             catch (Exception ex)
             {
+                activity.Fail(ex.Message);
                 await ex.LogAsync();
                 await VS.MessageBox.ShowErrorAsync("Download Failed", ex.Message);
             }

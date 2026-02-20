@@ -1,3 +1,4 @@
+using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 using AzureExplorer.VirtualMachine.Models;
 using AzureExplorer.VirtualMachine.Services;
@@ -20,6 +21,12 @@ namespace AzureExplorer.VirtualMachine.Commands
             if (AzureExplorerControl.SelectedNode?.ActualNode is not VirtualMachineNode node)
                 return;
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Starting",
+                node.Label,
+                "Virtual Machine");
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Starting {node.Label}...");
@@ -31,11 +38,13 @@ namespace AzureExplorer.VirtualMachine.Commands
                     node.Label);
 
                 node.State = VirtualMachineState.Running;
+                activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"{node.Label} started.");
             }
             catch (Exception ex)
             {
                 node.State = VirtualMachineState.Unknown;
+                activity.Fail(ex.Message);
                 await VS.MessageBox.ShowErrorAsync("Start Virtual Machine", ex.Message);
             }
         }

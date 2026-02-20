@@ -93,6 +93,7 @@
     <Compile Include="FunctionApp\Models\FunctionAppNode.cs" />
     <Compile Include="FunctionApp\Models\FunctionAppsNode.cs" />
     <Compile Include="FunctionApp\Models\SubscriptionFunctionAppsNode.cs" />
+    <Compile Include="KeyVault\Commands\AddKeyCommand.cs" />
     <Compile Include="KeyVault\Commands\AddSecretCommand.cs" />
     <Compile Include="FrontDoor\Commands\BrowseFrontDoorCommand.cs" />
     <Compile Include="KeyVault\Commands\CopyCertificateIdCommand.cs" />
@@ -100,9 +101,16 @@
     <Compile Include="KeyVault\Commands\CopySecretValueCommand.cs" />
     <Compile Include="KeyVault\Commands\CopyVaultUriCommand.cs" />
     <Compile Include="AppService\Commands\DisconnectLogStreamCommand.cs" />
+    <Compile Include="KeyVault\Commands\CreateKeyVaultCommand.cs" />
     <Compile Include="KeyVault\Commands\UpdateSecretCommand.cs" />
     <Compile Include="KeyVault\Dialogs\AddSecretDialog.xaml.cs">
       <DependentUpon>AddSecretDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="KeyVault\Dialogs\CreateKeyDialog.xaml.cs">
+      <DependentUpon>CreateKeyDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="KeyVault\Dialogs\CreateKeyVaultDialog.xaml.cs">
+      <DependentUpon>CreateKeyVaultDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="KeyVault\Dialogs\UpdateSecretDialog.xaml.cs">
       <DependentUpon>UpdateSecretDialog.xaml</DependentUpon>
@@ -238,6 +246,12 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="KeyVault\Dialogs\AddSecretDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="KeyVault\Dialogs\CreateKeyDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="KeyVault\Dialogs\CreateKeyVaultDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="KeyVault\Dialogs\UpdateSecretDialog.xaml">

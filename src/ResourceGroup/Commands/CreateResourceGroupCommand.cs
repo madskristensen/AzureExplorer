@@ -38,6 +38,12 @@ namespace AzureExplorer.ResourceGroup.Commands
             // Show "Creating..." on the parent node while API call is in progress
             node.Description = "Creating...";
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Creating",
+                dialog.ResourceGroupName,
+                "Resource Group");
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Creating resource group '{dialog.ResourceGroupName}'...");
@@ -55,6 +61,9 @@ namespace AzureExplorer.ResourceGroup.Commands
                 node.IsExpanded = true;
                 AzureExplorerControl.SelectNode(newNode);
 
+                // Mark activity as successful
+                activity.Complete();
+
                 // Notify other views (for consistency with other resource types)
                 ResourceNotificationService.NotifyCreated(
                     "Microsoft.Resources/resourceGroups",
@@ -64,6 +73,9 @@ namespace AzureExplorer.ResourceGroup.Commands
             }
             catch (Exception ex)
             {
+                // Mark activity as failed
+                activity.Fail(ex.Message);
+
                 await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Failed to create resource group: {ex.Message}");
             }

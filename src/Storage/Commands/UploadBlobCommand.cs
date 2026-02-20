@@ -59,10 +59,19 @@ namespace AzureExplorer.Storage.Commands
             try
             {
                 var count = dialog.FileNames.Length;
+                var fileLabel = count == 1 ? Path.GetFileName(dialog.FileNames[0]) : $"{count} files";
+
+                // Log the activity as in-progress
+                var activity = ActivityLogService.Instance.LogActivity(
+                    "Uploading",
+                    fileLabel,
+                    "Blob");
+
                 await VS.StatusBar.ShowMessageAsync($"Uploading {count} file(s)...");
 
                 await UploadBlobsAsync(subscriptionId, accountName, containerName, prefix, dialog.FileNames);
 
+                activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"Uploaded {count} file(s)");
 
                 // Refresh parent node to show new blobs

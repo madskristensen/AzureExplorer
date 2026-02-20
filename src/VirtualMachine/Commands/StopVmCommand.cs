@@ -1,3 +1,4 @@
+using AzureExplorer.Core.Services;
 using AzureExplorer.ToolWindows;
 using AzureExplorer.VirtualMachine.Models;
 using AzureExplorer.VirtualMachine.Services;
@@ -28,6 +29,12 @@ namespace AzureExplorer.VirtualMachine.Commands
             if (!confirmed)
                 return;
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Stopping",
+                node.Label,
+                "Virtual Machine");
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Stopping {node.Label}...");
@@ -40,11 +47,13 @@ namespace AzureExplorer.VirtualMachine.Commands
                     deallocate: true);
 
                 node.State = VirtualMachineState.Deallocated;
+                activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"{node.Label} stopped and deallocated.");
             }
             catch (Exception ex)
             {
                 node.State = VirtualMachineState.Unknown;
+                activity.Fail(ex.Message);
                 await VS.MessageBox.ShowErrorAsync("Stop Virtual Machine", ex.Message);
             }
         }

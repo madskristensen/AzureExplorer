@@ -54,6 +54,12 @@ namespace AzureExplorer.Storage.Commands
             // Show "Creating..." on the parent node while API call is in progress
             node.Description = "Creating...";
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Creating",
+                dialog.AccountName,
+                "Storage Account");
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Creating storage account '{dialog.AccountName}'...");
@@ -73,6 +79,9 @@ namespace AzureExplorer.Storage.Commands
                 node.IsExpanded = true;
                 AzureExplorerControl.SelectNode(newNode);
 
+                // Mark activity as successful
+                activity.Complete();
+
                 // Notify other views (e.g., subscription-level) that a new storage account was created
                 ResourceNotificationService.NotifyCreated(
                     "Microsoft.Storage/storageAccounts",
@@ -83,6 +92,9 @@ namespace AzureExplorer.Storage.Commands
             }
             catch (Azure.RequestFailedException ex) when (ex.ErrorCode == "StorageAccountAlreadyTaken")
             {
+                // Mark activity as failed
+                activity.Fail("Name already taken");
+
                 await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Name '{dialog.AccountName}' is already taken.");
                 await VS.MessageBox.ShowErrorAsync(
@@ -93,6 +105,9 @@ namespace AzureExplorer.Storage.Commands
             }
             catch (Exception ex)
             {
+                // Mark activity as failed
+                activity.Fail(ex.Message);
+
                 await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Failed to create storage account: {ex.Message}");
             }

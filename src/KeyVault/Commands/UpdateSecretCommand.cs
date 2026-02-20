@@ -18,6 +18,12 @@ namespace AzureExplorer.KeyVault.Commands
 
             if (dialog.ShowModal() != true) return;
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Updating",
+                node.Label,
+                "Secret");
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Updating secret '{node.Label}'...");
@@ -28,10 +34,12 @@ namespace AzureExplorer.KeyVault.Commands
                     node.Label,
                     dialog.SecretValue);
 
+                activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"Secret '{node.Label}' updated successfully.");
             }
             catch (Exception ex)
             {
+                activity.Fail(ex.Message);
                 await ex.LogAsync();
                 await VS.StatusBar.ShowMessageAsync($"Failed to update secret: {ex.Message}");
             }

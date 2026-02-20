@@ -1,0 +1,42 @@
+<platformUI:DialogWindow x:Class="AzureExplorer.KeyVault.Dialogs.CreateKeyVaultDialog"
+                        x:ClassModifier="internal"
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:platformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+                        xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
+                        toolkit:Themes.UseVsTheme="True"
+                        Title="Create Key Vault"
+                        Width="420"
+                        SizeToContent="Height"
+                        WindowStartupLocation="CenterOwner"
+                        ShowInTaskbar="False"
+                        ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Key Vault Name:" Margin="0,0,0,4" />
+        <TextBox Grid.Row="1" x:Name="VaultNameBox" Margin="0,0,0,4" MaxLength="24" CharacterCasing="Lower" TextChanged="OnVaultNameChanged" />
+        <TextBlock Grid.Row="2" Text="3-24 characters, alphanumeric and hyphens only, must start with a letter" 
+                   FontSize="10" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,12" />
+
+        <TextBlock Grid.Row="3" Text="Location:" Margin="0,0,0,4" />
+        <ComboBox Grid.Row="4" x:Name="LocationComboBox" Margin="0,0,0,12" DisplayMemberPath="DisplayName" SelectionChanged="OnLocationChanged" />
+
+        <TextBlock Grid.Row="5" Text="Pricing Tier:" Margin="0,0,0,4" />
+        <ComboBox Grid.Row="6" x:Name="SkuComboBox" Margin="0,0,0,16" />
+
+        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="CreateButton" Content="Create" Width="75" Margin="0,0,8,0" IsDefault="True" IsEnabled="False" Click="OnCreateClick" />
+            <Button Content="Cancel" Width="75" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</platformUI:DialogWindow>

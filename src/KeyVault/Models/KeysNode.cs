@@ -32,7 +32,7 @@ namespace AzureExplorer.KeyVault.Models
         public string VaultUri { get; }
 
         public override ImageMoniker IconMoniker => KnownMonikers.Key;
-        public override int ContextMenuId => 0; // No context menu for keys list
+        public override int ContextMenuId => PackageIds.KeysNodeContextMenu;
         public override bool SupportsChildren => true;
 
         public override async Task LoadChildrenAsync(CancellationToken cancellationToken = default)
@@ -57,6 +57,17 @@ namespace AzureExplorer.KeyVault.Models
                     AddChild(node);
                 }
             }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Adds a new key node in sorted order without refreshing existing nodes.
+        /// </summary>
+        /// <returns>The newly created node.</returns>
+        public KeyNode AddKey(string name, string keyType)
+        {
+            var newNode = new KeyNode(name, SubscriptionId, VaultUri, enabled: true, keyType);
+            InsertChildSorted(newNode);
+            return newNode;
         }
     }
 }
