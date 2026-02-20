@@ -6,6 +6,7 @@ Securely manage your secrets, keys, and certificates.
 
 | Action | Description |
 |--------|-------------|
+| **Create** | Create a new Key Vault in your resource group |
 | **Delete** | Delete Key Vaults with confirmation |
 | **Open in Portal** | Jump to the Key Vault in Azure Portal |
 | **Refresh** | Reload Key Vault contents |

@@ -43,7 +43,7 @@ When Microsoft removed **Cloud Explorer** from Visual Studio, many developers lo
 | **App Services & Function Apps** | Browse, Start/Stop/Restart, Stream Logs, File Browser, Drag & Drop Upload |
 | **Virtual Machines** | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address |
 | **Storage Accounts** | Create, Delete, Copy Connection String, Browse Blobs/Queues/Tables, Upload/Download |
-| **Key Vaults** | Delete, Manage Secrets/Keys/Certificates |
+| **Key Vaults** | Create, Delete, Manage Secrets/Keys/Certificates |
 | **SQL Servers & Databases** | Copy Connection String, Browse Databases |
 | **Front Door** | Browse Endpoints |
 
