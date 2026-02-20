@@ -9,9 +9,11 @@
 
 Download from the [Visual Studio Marketplace][marketplace] or get the latest [CI build][vsixgallery].
 
+> **Note:** This extension only works on Visual Studio 2026 and later.
+
 ---
 
-**Stop context-switching.** Manage your Azure resources without ever leaving Visual Studio.
+**Stop context-switching.**
 
 Azure Explorer brings your cloud infrastructure into your IDE with a fast, lightweight tool window. If you miss the old **Cloud Explorer** that was removed from Visual Studio, this extension is for you. Browse subscriptions, manage App Services and Function Apps, control Virtual Machines, access Key Vault secrets, browse Storage Account blobs, connect to SQL databases, and stream live logs — all from the comfort of Visual Studio.
 
@@ -29,175 +31,18 @@ Azure Explorer brings your cloud infrastructure into your IDE with a fast, light
 - **Blob Storage** — Browse containers, queues, tables, upload, download, and delete blobs
 - **SQL Database** — Copy connection strings for quick database access
 
-## Features
+## Supported Resources
 
-### Supported Azure Resource Types
+| Resource Type | Key Actions |
+|---------------|-------------|
+| **App Services & Function Apps** | Browse, Start/Stop/Restart, Stream Logs, File Browser, Drag & Drop Upload |
+| **Virtual Machines** | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address |
+| **Storage Accounts** | Copy Connection String, Browse Blobs/Queues/Tables, Upload/Download |
+| **Key Vaults** | Manage Secrets/Keys/Certificates |
+| **SQL Servers & Databases** | Copy Connection String, Browse Databases |
+| **Front Door** | Browse Endpoints |
 
-| Resource Type         | Actions                                                                                                                  |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **App Services**      | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, File Browser, Drag & Drop Upload, Add Tags |
-| **Function Apps**     | Browse, Start/Stop/Restart, Stream Logs, Kudu, Publish Profile, App Settings, File Browser, Drag & Drop Upload, Add Tags |
-| **Virtual Machines**  | Start/Stop/Restart, Connect via RDP/SSH, Copy IP Address, Add Tags                                                       |
-| **Storage Accounts**  | Copy Connection String, Browse Blobs/Queues/Tables, Add Tags                                                             |
-| **Blob Containers**   | Upload, Download, Delete, Copy URL                                                                                       |
-| **Queues**            | Copy URL, Open in Portal                                                                                                 |
-| **Tables**            | Copy URL, Open in Portal                                                                                                 |
-| **Key Vaults**        | Browse Secrets/Keys/Certificates, Add Tags                                                                               |
-| **Secrets**           | Add, Update, Copy Value, Delete                                                                                          |
-| **Keys**              | Copy Key ID, Open in Portal                                                                                              |
-| **Certificates**      | Copy Certificate ID, Open in Portal                                                                                      |
-| **SQL Servers**       | Copy Connection String, Browse Databases, Add Tags                                                                       |
-| **SQL Databases**     | Copy Connection String                                                                                                   |
-| **Front Door**        | Browse Endpoints                                                                                                         |
-| **App Service Plans** | View Hosting Plans                                                                                                       |
-
-### Browse Your Azure Resources
-
-Navigate your entire Azure estate in a familiar tree view. Expand subscriptions to see resource groups, or jump straight to resources at the subscription level.
-
-### Search Across All Subscriptions
-
-Quickly find any resource using the integrated Visual Studio search box in the tool window. Just start typing to search across all your signed-in accounts and subscriptions simultaneously.
-
-- **Instant Results** — Cached resources appear immediately as you type
-- **Background Search** — Azure API search runs in parallel for comprehensive results
-- **Grouped by Account** — Results are organized by Account → Subscription for easy navigation
-- **All Resource Types** — Searches App Services, Function Apps, VMs, Storage, Key Vaults, SQL, and more
-- **Tag Search** — Use `tag:Key=Value` syntax to find resources by tag (case-insensitive)
-
-**Search syntax examples:**
-
-| Query                        | Description                                       |
-| ---------------------------- | ------------------------------------------------- |
-| `myapp`                      | Find resources with "myapp" in the name           |
-| `tag:Environment=Production` | Find resources tagged with Environment=Production |
-| `tag:environment=production` | Same as above (case-insensitive)                  |
-| `tag:Team`                   | Find resources with any value for the Team tag    |
-| `api tag:Environment=Dev`    | Combine name and tag filters                      |
-
-You can also right-click on any tag in the tree and select **"Filter by This Tag"** to quickly search for all resources with that tag.
-
-### App Service & Function App Management
-
-Take control of your web apps and functions without leaving your code:
-
-- **Start / Stop / Restart** — Manage app lifecycle with safety confirmations
-- **Browse** — Launch your site in the default browser
-- **Portal** — Jump directly to the Azure Portal blade
-- **Kudu** — Access advanced diagnostics and console
-- **Stream Logs** — Watch application and HTTP logs in real-time
-- **Download Publish Profile** — Get deployment credentials
-- **Manage App Settings** — View and edit configuration
-- **File Browser** — Browse and edit files in your wwwroot folder
-- **Drag & Drop Upload** — Upload files and folders directly from File Explorer or Solution Explorer
-
-![App Service Context Menu](art/app-service-context-menu.png)
-
-### File Browser & Drag-and-Drop Upload
-
-Browse and manage files deployed to your App Services and Function Apps:
-
-- **Browse Files** — Expand the "Files" node to explore your wwwroot folder
-- **Edit Files** — Double-click any file to open it in the Visual Studio editor
-- **Drag & Drop Upload** — Drag files or folders from Windows File Explorer or Solution Explorer onto any folder
-- **Recursive Upload** — Dropping a folder uploads all its contents, preserving the folder structure
-- **Delete Files** — Right-click files or folders to delete them
-
-### Storage Account Management
-
-Browse and manage your storage resources:
-
-- **Copy Connection String** — Quick access to storage credentials
-- **Browse Containers** — Navigate blob containers and virtual folders
-- **Browse Queues** — View storage queues and copy URLs
-- **Browse Tables** — View storage tables and copy URLs
-- **Upload Files** — Drag and drop or select files to upload to blobs
-- **Download Blobs** — Save blobs to your local machine
-- **Delete Blobs** — Remove blobs with confirmation
-- **Copy URL** — Get the URL for blobs, queues, or tables
-
-### Key Vault Management
-
-Securely manage your secrets, keys, and certificates:
-
-**Secrets:**
-
-- **Add Secret** — Create new secrets directly from VS
-- **Update Value** — Modify existing secret values
-- **Copy Value** — One-click copy to clipboard
-- **Delete** — Remove secrets with confirmation
-
-**Keys:**
-
-- **Copy Key ID** — Copy the full key identifier URL
-- **Open in Portal** — Jump to the key in Azure Portal
-
-**Certificates:**
-
-- **Copy Certificate ID** — Copy the full certificate identifier URL
-- **View Expiration** — See certificate expiry dates at a glance
-- **Open in Portal** — Jump to the certificate in Azure Portal
-
-![Key Vault Context Menu](art/key-vault-context-menu.png)
-
-### SQL Server & Database
-
-Connect to your Azure SQL resources:
-
-- **Copy Connection String** — ADO.NET connection string template
-- **Browse Databases** — View all databases on a server
-- **Open in Portal** — Quick access to Azure Portal
-
-### Front Door & App Service Plans
-
-Browse Front Door profiles and endpoints, view your hosting plans, and quickly access the Portal for advanced configuration.
-
-### Resource Tags
-
-Organize and filter your Azure resources using tags:
-
-- **View Tags** — Expand any resource to see its tags as key-value pairs
-- **Add Tags** — Right-click a resource or the Tags node and select "Add Tag..."
-- **Remove Tags** — Right-click any tag and select "Remove Tag" to delete it
-- **Search by Tag** — Use `tag:Key=Value` syntax in the search box to find resources
-- **Filter by Tag** — Right-click a tag and select "Filter by This Tag" to search
-- **Copy Tags** — Copy all tags as JSON or individual tag values
-- **Auto-complete** — Tag keys and values auto-populate from previously used tags
-
-### Activity Log
-
-Track your actions with the built-in Activity Log panel:
-
-- **Recent Actions** — See a history of operations performed through Azure Explorer
-- **Status Tracking** — View success/failure status for each action
-- **Quick Navigation** — Click any entry to navigate to the related resource
-- **Persistent History** — Activity log is saved between sessions
-- **Toggle Visibility** — Show/hide the panel via the toolbar or View menu
-
-### Hide Subscriptions & Tenants
-
-Focus on what matters by hiding subscriptions or tenants you don't need:
-
-- **Hide Subscription** — Right-click any subscription and select "Hide" to remove it from view
-- **Hide Tenant** — Hide entire tenants to declutter your tree
-- **Show All** — Toggle "Show All" in the toolbar to reveal hidden items
-- **Persistent Settings** — Your visibility preferences are remembered
-
-### Virtual Machine Management
-
-Manage your Azure VMs without leaving Visual Studio:
-
-- **Start / Stop / Restart** — Control VM power state with one click
-- **Connect via RDP** — Launch Remote Desktop for Windows VMs
-- **Connect via SSH** — Open SSH connections for Linux VMs
-- **Copy IP Address** — Quick access to public IP for scripts or tools
-- **View Status** — See running, stopped, or deallocated state at a glance
-- **Open in Portal** — Jump to full VM management in Azure Portal
-
-## Requirements
-
-- **Visual Studio 2022** or later
-- **Windows 10** or later (required for WAM authentication)
+📖 **[Full Documentation](https://github.com/madskristensen/AzureExplorer/blob/master/docs/index.md)** — Detailed guides for all features and resource types.
 
 ## Getting Started
 
@@ -208,15 +53,14 @@ Manage your Azure VMs without leaving Visual Studio:
 
 ![Welcome screen](art/welcome.png)
 
-## Tips
+## Quick Tips
 
-- **Search** using the search box in the tool window to find resources across all subscriptions
-- **Double-click** an App Service or Function App to open it in your browser
-- **Double-click** a file in App Service to open it in the editor
-- **Drag & drop** files from File Explorer or Solution Explorer onto any folder in the Files node to upload
-- **Right-click** anywhere for context-specific actions
-- Use the **toolbar refresh** button to sync with Azure
+- **Search** with `tag:Key=Value` syntax to find resources by tag
+- **Double-click** resources to open in browser, files to edit
+- **Drag & drop** files onto App Services to upload
 - **Ctrl+Alt+P** to open selected resource in Azure Portal
+
+📖 See [Getting Started](https://github.com/madskristensen/AzureExplorer/blob/master/docs/getting-started.md) for more tips and detailed setup instructions.
 
 ## Contributing
 
