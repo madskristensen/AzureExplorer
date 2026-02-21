@@ -21,19 +21,17 @@ Download from the [Visual Studio Marketplace][marketplace] or get the latest [CI
 
 When Microsoft removed **Cloud Explorer** from Visual Studio, many developers lost a crucial workflow. Azure Explorer brings it back — rebuilt from the ground up with modern authentication, better performance, and features Cloud Explorer never had.
 
-**Built by [Mads Kristensen](https://github.com/madskristensen)**, a Microsoft developer and author of some of Visual Studio's most popular extensions (Web Essentials, Markdown Editor, Editor Enhancements, and 100+ more).
-
 ## What Can You Do?
 
-🚀 **Deploy & Debug Faster** — Stream live logs, browse deployed files, drag-and-drop upload — without leaving your code
+🚀 **Deploy & Debug Faster** - Stream live logs, browse deployed files, drag-and-drop upload — without leaving your code
 
-🔍 **Find Anything Instantly** — Search across all subscriptions with `tag:Environment=Production` syntax
+🔍 **Find Anything Instantly** - Search across all subscriptions with `tag:Environment=Production` syntax
 
-🔐 **Manage Secrets Securely** — View, edit, and copy Key Vault secrets without touching the Azure Portal
+🔐 **Manage Secrets Securely** - View, edit, and copy Key Vault secrets without touching the Azure Portal
 
-💻 **Connect to VMs** — One-click RDP/SSH connections to your Virtual Machines
+💻 **Connect to VMs** - One-click RDP/SSH connections to your Virtual Machines
 
-📦 **Browse Storage** — Navigate blob containers, upload files, copy connection strings
+📦 **Browse Storage** - Navigate blob containers, upload files, copy connection strings
 
 ## Supported Resources
 
@@ -49,7 +47,7 @@ When Microsoft removed **Cloud Explorer** from Visual Studio, many developers lo
 
 *More resource types coming soon!*
 
-📖 **[Full Documentation](https://github.com/madskristensen/AzureExplorer/blob/master/docs/index.md)** — Detailed guides, troubleshooting, and tips.
+📖 **[Full Documentation](https://github.com/madskristensen/AzureExplorer/blob/master/docs/index.md)** - Detailed guides, troubleshooting, and tips.
 
 ## Get Started in 30 Seconds
 
@@ -89,7 +87,6 @@ A: Not currently, but it's on the roadmap. [Open an issue][repo] if this is impo
 
 These extensions complement Azure Explorer for a complete Azure development experience:
 
-- **[Azure Functions](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)** — Develop and deploy serverless functions
 - **[SQL Server Data Tools](https://learn.microsoft.com/en-us/sql/ssdt/)** — Database development and deployment
 - **[Cloud Sync](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.CloudSync)** — Sync VS settings across machines
 
@@ -102,6 +99,7 @@ This is a passion project, and contributions are welcome!
 - 🔧 **Want to contribute?** Pull requests are always welcome
 
 **If Azure Explorer saves you time**, consider:
+
 - ⭐ [Rating it on the Marketplace][marketplace]
 - 💖 [Sponsoring on GitHub](https://github.com/sponsors/madskristensen)
 
