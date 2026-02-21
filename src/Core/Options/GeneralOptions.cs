@@ -98,5 +98,12 @@ namespace AzureExplorer.Core.Options
         [Browsable(false)]
         [DefaultValue(120.0)]
         public double ActivityLogPanelHeight { get; set; } = 120.0;
+
+        /// <summary>
+        /// Gets or sets the paths of nodes that are expanded in the tree view.
+        /// Stored as a list for JSON serialization compatibility.
+        /// </summary>
+        [Browsable(false)]
+        public List<string> ExpandedNodes { get; set; } = [];
     }
 }

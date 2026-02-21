@@ -329,7 +329,7 @@ namespace AzureExplorer.Core.Services
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Failed to save activity log: {ex.Message}");
+                    ex.Log();
                 }
             }
         }

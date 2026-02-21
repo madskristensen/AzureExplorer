@@ -90,7 +90,7 @@ internal sealed class SearchResultNode : ExplorerNodeBase
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Search result load error: {ex.Message}");
+            await ex.LogAsync();
             Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
         }
         finally

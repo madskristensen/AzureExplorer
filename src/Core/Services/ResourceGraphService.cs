@@ -103,7 +103,7 @@ namespace AzureExplorer.Core.Services
             catch (Exception ex)
             {
                 // Log failure and return empty results so caller can fall back to ARM API
-                System.Diagnostics.Debug.WriteLine($"Resource Graph query failed for subscription {subscriptionId}: {ex.Message}");
+                await ex.LogAsync();
             }
 
             return results;

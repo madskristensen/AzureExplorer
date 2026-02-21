@@ -205,16 +205,29 @@ namespace AzureExplorer.ToolWindows
                 var accountNode = new AccountNode(account.AccountId, account.Username);
                 RootNodes.Add(accountNode);
 
-                // Load children in background (don't expand automatically)
+                // Load children in background and restore expanded state
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     try
                     {
                         await accountNode.LoadChildrenAsync();
+
+                        // Restore expanded state for account and its children
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                        // Check if the account itself should be expanded
+                        var expandedNodes = GeneralOptions.Instance.ExpandedNodes;
+                        if (expandedNodes?.Contains(GetNodePath(accountNode)) == true)
+                        {
+                            accountNode.IsExpanded = true;
+                        }
+
+                        // Restore children expansion (sequentially to avoid timing issues)
+                        await RestoreExpandedChildrenAsync(accountNode);
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Failed to load account children: {ex.Message}");
+                        await ex.LogAsync();
                     }
                 }).FireAndForget();
             }
@@ -237,7 +250,7 @@ namespace AzureExplorer.ToolWindows
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Auth state change handler failed: {ex.Message}");
+                    await ex.LogAsync();
                 }
             }).FireAndForget();
         }
@@ -252,6 +265,55 @@ namespace AzureExplorer.ToolWindows
             {
                 _instance = null;
             }
+        }
+
+        /// <summary>
+        /// Saves the expanded state of all nodes. Called from Package.Dispose when VS closes.
+        /// </summary>
+        internal static void SaveExpandedState()
+        {
+            if (_instance == null)
+                return;
+
+            var expandedNodes = new List<string>();
+            CollectExpandedNodes(_instance.RootNodes, expandedNodes);
+            GeneralOptions.Instance.ExpandedNodes = expandedNodes;
+            GeneralOptions.Instance.Save();
+        }
+
+        /// <summary>
+        /// Recursively collects paths of all expanded nodes.
+        /// </summary>
+        private static void CollectExpandedNodes(IEnumerable<ExplorerNodeBase> nodes, List<string> expandedNodes)
+        {
+            foreach (ExplorerNodeBase node in nodes)
+            {
+                if (node.IsExpanded && node.SupportsChildren)
+                {
+                    expandedNodes.Add(GetNodePath(node));
+                }
+
+                if (node.Children.Count > 0)
+                {
+                    CollectExpandedNodes(node.Children, expandedNodes);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Builds a unique path for a node by walking up the parent chain.
+        /// </summary>
+        private static string GetNodePath(ExplorerNodeBase node)
+        {
+            var parts = new List<string>();
+            var current = node;
+            while (current != null)
+            {
+                parts.Add(current.Label);
+                current = current.Parent;
+            }
+            parts.Reverse();
+            return string.Join("/", parts);
         }
 
         private void SignInButton_Click(object sender, RoutedEventArgs e)
@@ -286,10 +348,14 @@ namespace AzureExplorer.ToolWindows
                     try
                     {
                         await node.LoadChildrenAsync();
+
+                        // Restore expanded state for any children that were previously expanded
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        await RestoreExpandedChildrenAsync(node);
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Failed to load children for {node.Label}: {ex.Message}");
+                        await ex.LogAsync();
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                         node.Children.Clear();
                         node.Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
@@ -298,6 +364,77 @@ namespace AzureExplorer.ToolWindows
 
                 e.Handled = true;
             }
+        }
+
+        /// <summary>
+        /// Checks children of a node and expands any that were previously expanded (per saved settings).
+        /// Recursively loads and expands children as needed.
+        /// Stops at resource nodes to avoid expanding Tags, Files, etc.
+        /// </summary>
+        private static async Task RestoreExpandedChildrenAsync(ExplorerNodeBase parent)
+        {
+            // Don't restore expansion below resource nodes (avoid expanding Tags, Files, Deployment Slots, etc.)
+            if (IsResourceNode(parent))
+                return;
+
+            var expandedNodes = GeneralOptions.Instance.ExpandedNodes;
+            if (expandedNodes == null || expandedNodes.Count == 0)
+                return;
+
+            // Take a snapshot of children to avoid collection modified during enumeration
+            var children = parent.Children.ToList();
+
+            foreach (ExplorerNodeBase child in children)
+            {
+                if (child.SupportsChildren && expandedNodes.Contains(GetNodePath(child)))
+                {
+                    child.IsExpanded = true;
+
+                    // Ensure children are loaded (might already be loading in background)
+                    if (!child.IsLoaded)
+                    {
+                        try
+                        {
+                            await child.LoadChildrenAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Failed to load children for {child.Label}: {ex.Message}");
+                        }
+                    }
+
+                    // Wait for loading to complete if background operation started it
+                    var timeout = DateTime.Now.AddSeconds(30);
+                    while (!child.IsLoaded && DateTime.Now < timeout)
+                    {
+                        await Task.Delay(100);
+                    }
+
+                    // Recurse if children loaded successfully
+                    if (child.IsLoaded)
+                    {
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        await RestoreExpandedChildrenAsync(child);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the node is an actual Azure resource (not a category/structural node).
+        /// We don't restore expansion below resource nodes to avoid auto-expanding Tags, Files, etc.
+        /// </summary>
+        private static bool IsResourceNode(ExplorerNodeBase node)
+        {
+            // Resource nodes are actual Azure resources - don't expand their children (Tags, Files, etc.)
+            // Category/structural nodes (subscriptions, resource groups, category folders) should continue expanding
+            return node.GetType().Name switch
+            {
+                "AppServiceNode" or "FunctionAppNode" or "StorageAccountNode" or "KeyVaultNode"
+                or "VirtualMachineNode" or "SqlServerNode" or "SqlDatabaseNode" or "FrontDoorNode"
+                or "AppServicePlanNode" => true,
+                _ => false
+            };
         }
 
         private void ExplorerTree_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
@@ -617,7 +754,7 @@ namespace AzureExplorer.ToolWindows
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Failed to save Activity Log height: {ex.Message}");
+                        await ex.LogAsync();
                     }
                 }).FireAndForget();
             }
@@ -660,7 +797,7 @@ namespace AzureExplorer.ToolWindows
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Failed to navigate to resource: {ex.Message}");
+                    await ex.LogAsync();
                 }
             }).FireAndForget();
         }
@@ -883,7 +1020,7 @@ namespace AzureExplorer.ToolWindows
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to extract VS project items: {ex.Message}");
+                ex.Log();
             }
 
             return null;
@@ -927,7 +1064,7 @@ namespace AzureExplorer.ToolWindows
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error parsing VS project items: {ex.Message}");
+                ex.Log();
             }
 
             return paths.Count > 0 ? paths.ToArray() : null;

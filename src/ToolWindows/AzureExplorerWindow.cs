@@ -38,7 +38,7 @@ namespace AzureExplorer.ToolWindows
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"Silent sign-in failed: {ex.Message}");
+                        await ex.LogAsync();
                     }
                 }
 
@@ -50,7 +50,7 @@ namespace AzureExplorer.ToolWindows
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Azure Explorer: Failed to create tool window content: {ex}");
+                await ex.LogAsync();
                 return new TextBlock { Text = $"Failed to load Azure Explorer:\n{ex.Message}", Margin = new Thickness(10) };
             }
         }

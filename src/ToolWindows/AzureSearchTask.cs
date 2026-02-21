@@ -100,7 +100,7 @@ internal sealed class AzureSearchTask(
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Search error: {ex}");
+            ex.Log();
             SearchResults = (uint)resultCount;
             ErrorCode = VSConstants.E_FAIL;
         }

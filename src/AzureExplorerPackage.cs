@@ -34,6 +34,9 @@ namespace AzureExplorer
         {
             if (disposing)
             {
+                // Save expanded state when VS closes
+                AzureExplorerControl.SaveExpandedState();
+
                 // Stop all active log streams when VS closes
                 LogStreamService.Stop();
             }

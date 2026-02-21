@@ -496,7 +496,7 @@ internal sealed class AzureSearchService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to create node from Resource Graph for {resourceType}/{name}: {ex.Message}");
+            ex.Log();
             return null;
         }
     }

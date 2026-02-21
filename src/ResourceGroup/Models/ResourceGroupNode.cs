@@ -118,7 +118,7 @@ namespace AzureExplorer.ResourceGroup.Models
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Load failed: {ex.Message}");
+                await ex.LogAsync();
             }
             finally
             {
@@ -182,7 +182,7 @@ namespace AzureExplorer.ResourceGroup.Models
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Pre-load failed: {ex.Message}");
+                await ex.LogAsync();
             }
         }
     }
