@@ -97,6 +97,12 @@ namespace AzureExplorer.Tags.Commands
             }
             newTags[tagKey] = tagValue;
 
+            // Log the activity as in-progress
+            var activity = ActivityLogService.Instance.LogActivity(
+                "Adding Tag",
+                $"{tagKey}={tagValue}",
+                resourceName);
+
             try
             {
                 await VS.StatusBar.ShowMessageAsync($"Adding tag '{tagKey}' to {resourceName}...");
@@ -120,12 +126,13 @@ namespace AzureExplorer.Tags.Commands
                     Parent = tagsNode
                 };
                 tagsNode.Children.Add(newTagNode);
-                tagsNode.Label = $"Tags ({tagsNode.Children.Count})";
 
+                activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"Tag '{tagKey}' added successfully.");
             }
             catch (Exception ex)
             {
+                activity.Fail(ex.Message);
                 await VS.MessageBox.ShowErrorAsync("Add Tag", $"Failed to add tag: {ex.Message}");
             }
         }

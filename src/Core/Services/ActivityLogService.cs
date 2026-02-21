@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,9 +7,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.Shell;
 
 namespace AzureExplorer.Core.Services
 {
@@ -18,27 +20,38 @@ namespace AzureExplorer.Core.Services
     /// Tracks user activities performed through the Azure Explorer extension.
     /// Activities are persisted to disk and restored on startup.
     /// </summary>
-    internal sealed class ActivityLogService
+    internal sealed class ActivityLogService : IDisposable
     {
-        private const int MaxActivities = 100;
-        private static readonly string StorageFolder = Path.Combine(
+        private const int _maxActivities = 100;
+        private const int _saveDebounceMs = 500;
+        private static readonly string _storageFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Microsoft", "VisualStudio", "AzureExplorer");
-        private static readonly string StorageFile = Path.Combine(StorageFolder, "activity-log.json");
+        private static readonly string _storageFile = Path.Combine(_storageFolder, "activity-log.json");
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
+        private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             WriteIndented = false,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
+        private readonly object _lock = new();
+        private CancellationTokenSource _saveCts;
+        private bool _disposed;
+        private bool _isLoaded;
+
         public static ActivityLogService Instance { get; } = new();
 
         public ObservableCollection<ActivityEntry> Activities { get; } = [];
 
+        /// <summary>
+        /// Gets whether the activity log has been loaded from disk.
+        /// </summary>
+        public bool IsLoaded => _isLoaded;
+
         private ActivityLogService()
         {
-            LoadFromDisk();
+            // Don't load from disk in constructor - defer to LoadAsync() for better startup perf
             SubscribeToResourceEvents();
         }
 
@@ -49,6 +62,34 @@ namespace AzureExplorer.Core.Services
         {
             ResourceNotificationService.ResourceCreated += OnResourceCreated;
             ResourceNotificationService.ResourceDeleted += OnResourceDeleted;
+        }
+
+        /// <summary>
+        /// Unsubscribes from resource lifecycle events to prevent memory leaks.
+        /// </summary>
+        private void UnsubscribeFromResourceEvents()
+        {
+            ResourceNotificationService.ResourceCreated -= OnResourceCreated;
+            ResourceNotificationService.ResourceDeleted -= OnResourceDeleted;
+        }
+
+        /// <summary>
+        /// Releases resources and unsubscribes from static events.
+        /// </summary>
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            UnsubscribeFromResourceEvents();
+
+            // Unsubscribe from all activity entry events
+            foreach (var entry in Activities)
+            {
+                entry.PropertyChanged -= OnEntryPropertyChanged;
+            }
+
+            _disposed = true;
         }
 
         private void OnResourceCreated(object sender, ResourceCreatedEventArgs e)
@@ -125,6 +166,13 @@ namespace AzureExplorer.Core.Services
         /// </summary>
         public ActivityEntry LogActivity(string action, string resourceName, string resourceType, string resourceId = null)
         {
+            // Ensure we've loaded existing data before modifying the collection
+            // This prevents data loss when activities are logged before the UI shows the activity log
+            if (!_isLoaded)
+            {
+                LoadFromDisk();
+            }
+
             var entry = new ActivityEntry
             {
                 Action = action,
@@ -142,14 +190,14 @@ namespace AzureExplorer.Core.Services
             Activities.Insert(0, entry);
 
             // Enforce maximum limit
-            while (Activities.Count > MaxActivities)
+            while (Activities.Count > _maxActivities)
             {
                 var removed = Activities[Activities.Count - 1];
                 removed.PropertyChanged -= OnEntryPropertyChanged;
                 Activities.RemoveAt(Activities.Count - 1);
             }
 
-            SaveToDisk();
+            ScheduleSave();
             return entry;
         }
 
@@ -158,6 +206,12 @@ namespace AzureExplorer.Core.Services
         /// </summary>
         public ActivityEntry LogActivity(string action, string resourceName, string resourceType, ActivityStatus status, string errorMessage = null, string resourceId = null)
         {
+            // Ensure we've loaded existing data before modifying the collection
+            if (!_isLoaded)
+            {
+                LoadFromDisk();
+            }
+
             var entry = new ActivityEntry
             {
                 Action = action,
@@ -172,14 +226,14 @@ namespace AzureExplorer.Core.Services
             entry.PropertyChanged += OnEntryPropertyChanged;
             Activities.Insert(0, entry);
 
-            while (Activities.Count > MaxActivities)
+            while (Activities.Count > _maxActivities)
             {
                 var removed = Activities[Activities.Count - 1];
                 removed.PropertyChanged -= OnEntryPropertyChanged;
                 Activities.RemoveAt(Activities.Count - 1);
             }
 
-            SaveToDisk();
+            ScheduleSave();
             return entry;
         }
 
@@ -198,55 +252,120 @@ namespace AzureExplorer.Core.Services
 
         private void OnEntryPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // Save when status changes (e.g., InProgress -> Success/Failed)
-            if (e.PropertyName == nameof(ActivityEntry.Status))
+            // Save when status or error message changes
+            if (e.PropertyName == nameof(ActivityEntry.Status) || 
+                e.PropertyName == nameof(ActivityEntry.ErrorMessage))
             {
-                SaveToDisk();
+                ScheduleSave();
             }
         }
 
+        /// <summary>
+        /// Schedules a debounced save to disk. Multiple rapid calls will be coalesced.
+        /// </summary>
+        private void ScheduleSave()
+        {
+            lock (_lock)
+            {
+                _saveCts?.Cancel();
+                _saveCts = new CancellationTokenSource();
+                var token = _saveCts.Token;
+
+                // Fire-and-forget is intentional for debouncing
+                _ = Task.Delay(_saveDebounceMs, token).ContinueWith(t =>
+                {
+                    if (!t.IsCanceled)
+                    {
+                        SaveToDiskCore();
+                    }
+                }, TaskScheduler.Default);
+            }
+        }
+
+        /// <summary>
+        /// Saves immediately without debouncing. Used when adding new activities.
+        /// </summary>
         private void SaveToDisk()
         {
-            try
+            lock (_lock)
             {
-                Directory.CreateDirectory(StorageFolder);
+                _saveCts?.Cancel();
+            }
+            SaveToDiskCore();
+        }
 
-                var data = new List<ActivityEntryData>();
-                foreach (var entry in Activities)
+        private void SaveToDiskCore()
+        {
+            lock (_lock)
+            {
+                // Ensure we've loaded existing data before saving to avoid overwriting
+                // This handles the case where activities are logged before the UI shows the activity log
+                if (!_isLoaded)
                 {
-                    data.Add(new ActivityEntryData
-                    {
-                        Action = entry.Action,
-                        ResourceName = entry.ResourceName,
-                        ResourceType = entry.ResourceType,
-                        ResourceId = entry.ResourceId,
-                        Status = entry.Status,
-                        ErrorMessage = entry.ErrorMessage,
-                        Timestamp = entry.Timestamp
-                    });
+                    LoadFromDiskCore();
                 }
 
-                string json = JsonSerializer.Serialize(data, JsonOptions);
-                File.WriteAllText(StorageFile, json);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to save activity log: {ex.Message}");
+                try
+                {
+                    Directory.CreateDirectory(_storageFolder);
+
+                    var data = new List<ActivityEntryData>();
+                    foreach (var entry in Activities)
+                    {
+                        data.Add(new ActivityEntryData
+                        {
+                            Action = entry.Action,
+                            ResourceName = entry.ResourceName,
+                            ResourceType = entry.ResourceType,
+                            ResourceId = entry.ResourceId,
+                            Status = entry.Status,
+                            ErrorMessage = entry.ErrorMessage,
+                            Timestamp = entry.Timestamp
+                        });
+                    }
+
+                    string json = JsonSerializer.Serialize(data, _jsonOptions);
+                    File.WriteAllText(_storageFile, json);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to save activity log: {ex.Message}");
+                }
             }
         }
 
         private void LoadFromDisk()
         {
+            lock (_lock)
+            {
+                LoadFromDiskCore();
+            }
+        }
+
+        /// <summary>
+        /// Core loading logic. Must be called within a lock.
+        /// </summary>
+        private void LoadFromDiskCore()
+        {
+            if (_isLoaded)
+                return;
+
             try
             {
-                if (!File.Exists(StorageFile))
+                if (!File.Exists(_storageFile))
+                {
+                    _isLoaded = true;
                     return;
+                }
 
-                string json = File.ReadAllText(StorageFile);
-                var data = JsonSerializer.Deserialize<List<ActivityEntryData>>(json, JsonOptions);
+                string json = File.ReadAllText(_storageFile);
+                var data = JsonSerializer.Deserialize<List<ActivityEntryData>>(json, _jsonOptions);
 
                 if (data == null)
+                {
+                    _isLoaded = true;
                     return;
+                }
 
                 foreach (var item in data)
                 {
@@ -263,13 +382,83 @@ namespace AzureExplorer.Core.Services
                     entry.PropertyChanged += OnEntryPropertyChanged;
                     Activities.Add(entry);
 
-                    if (Activities.Count >= MaxActivities)
+                    if (Activities.Count >= _maxActivities)
                         break;
                 }
+
+                _isLoaded = true;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to load activity log: {ex.Message}");
+                ex.Log();
+                _isLoaded = true; // Mark as loaded even on failure to prevent retry loops
+            }
+        }
+
+        /// <summary>
+        /// Loads the activity log from disk asynchronously. Safe to call multiple times.
+        /// This is deferred from the constructor to avoid blocking UI initialization.
+        /// </summary>
+        public async Task LoadAsync()
+        {
+            if (_isLoaded)
+                return;
+
+            // Read file data on background thread
+            List<ActivityEntryData> data = null;
+            await Task.Run(() =>
+            {
+                lock (_lock)
+                {
+                    if (_isLoaded)
+                        return;
+
+                    try
+                    {
+                        if (File.Exists(_storageFile))
+                        {
+                            string json = File.ReadAllText(_storageFile);
+                            data = JsonSerializer.Deserialize<List<ActivityEntryData>>(json, _jsonOptions);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ex.Log();
+                    }
+                }
+            }).ConfigureAwait(false);
+
+            // Switch to UI thread to populate the collection
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            lock (_lock)
+            {
+                if (_isLoaded)
+                    return;
+
+                if (data != null)
+                {
+                    foreach (var item in data)
+                    {
+                        var entry = new ActivityEntry
+                        {
+                            Action = item.Action,
+                            ResourceName = item.ResourceName,
+                            ResourceType = item.ResourceType,
+                            ResourceId = item.ResourceId,
+                            Status = item.Status,
+                            ErrorMessage = item.ErrorMessage,
+                            Timestamp = item.Timestamp
+                        };
+                        entry.PropertyChanged += OnEntryPropertyChanged;
+                        Activities.Add(entry);
+
+                        if (Activities.Count >= _maxActivities)
+                            break;
+                    }
+                }
+
+                _isLoaded = true;
             }
         }
 
@@ -365,11 +554,38 @@ namespace AzureExplorer.Core.Services
         {
             get
             {
-                var baseText = $"{Action} \"{ResourceName}\"";
+                var actionText = GetActionText();
+                var baseText = $"{actionText} \"{ResourceName}\"";
                 return Status == ActivityStatus.Failed && HasError
                     ? $"{baseText} - {ErrorMessage}"
                     : baseText;
             }
+        }
+
+        /// <summary>
+        /// Gets the action text with appropriate tense based on status.
+        /// </summary>
+        private string GetActionText()
+        {
+            if (Status == ActivityStatus.InProgress)
+                return Action;
+
+            // Convert to past tense for completed actions
+            return Action switch
+            {
+                "Adding Tag" => Status == ActivityStatus.Success ? "Added tag" : "Failed to add tag",
+                "Deleting Tag" => Status == ActivityStatus.Success ? "Deleted tag" : "Failed to delete tag",
+                "Adding" => Status == ActivityStatus.Success ? "Added" : "Failed to add",
+                "Deleting" => Status == ActivityStatus.Success ? "Deleted" : "Failed to delete",
+                "Creating" => Status == ActivityStatus.Success ? "Created" : "Failed to create",
+                "Updating" => Status == ActivityStatus.Success ? "Updated" : "Failed to update",
+                "Restarting" => Status == ActivityStatus.Success ? "Restarted" : "Failed to restart",
+                "Stopping" => Status == ActivityStatus.Success ? "Stopped" : "Failed to stop",
+                "Starting" => Status == ActivityStatus.Success ? "Started" : "Failed to start",
+                "Uploading" => Status == ActivityStatus.Success ? "Uploaded" : "Failed to upload",
+                "Downloading" => Status == ActivityStatus.Success ? "Downloaded" : "Failed to download",
+                _ => Action
+            };
         }
 
         [JsonIgnore]

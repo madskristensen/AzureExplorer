@@ -132,7 +132,6 @@ namespace AzureExplorer.Tags.Commands
                         Parent = tagsNode
                     };
                     tagsNode.Children.Add(newTagNode);
-                    tagsNode.Label = $"Tags ({tagsNode.Children.Count})";
                 }
 
                 activity.Complete();

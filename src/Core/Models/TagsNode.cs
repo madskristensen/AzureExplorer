@@ -8,14 +8,14 @@ using Microsoft.VisualStudio.Imaging.Interop;
 namespace AzureExplorer.Core.Models
 {
     /// <summary>
-    /// Container node that shows "Tags (n)" and expands to show individual tag key-value pairs.
+    /// Container node that shows "Tags" and expands to show individual tag key-value pairs.
     /// </summary>
     internal sealed class TagsNode : ExplorerNodeBase
     {
         private readonly IReadOnlyDictionary<string, string> _tags;
 
         public TagsNode(IReadOnlyDictionary<string, string> tags)
-            : base($"Tags ({tags?.Count ?? 0})")
+            : base("Tags")
         {
             _tags = tags ?? new Dictionary<string, string>();
 

@@ -545,6 +545,17 @@ namespace AzureExplorer.ToolWindows
             };
 
             UpdateEmptyMessageVisibility();
+
+            // Only load activity log from disk if it's visible - defer loading for hidden panels
+            if (GeneralOptions.Instance.ShowActivityLog)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ActivityLogService.Instance.LoadAsync();
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    UpdateEmptyMessageVisibility();
+                }).FireAndForget();
+            }
         }
 
         /// <summary>
@@ -572,6 +583,17 @@ namespace AzureExplorer.ToolWindows
                     double savedHeight = GeneralOptions.Instance.ActivityLogPanelHeight;
                     _activityLogRow.Height = new GridLength(savedHeight > 0 ? savedHeight : 120);
                     _activityLogRow.MinHeight = 60;
+
+                    // Load activity log on first show if not already loaded
+                    if (!ActivityLogService.Instance.IsLoaded)
+                    {
+                        ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                        {
+                            await ActivityLogService.Instance.LoadAsync();
+                            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                            UpdateEmptyMessageVisibility();
+                        }).FireAndForget();
+                    }
                 }
                 else
                 {

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using AzureExplorer.Core.Models;
@@ -21,6 +22,7 @@ internal sealed class AzureSearchTask(
 {
     private readonly CancellationTokenSource _cts = new();
     private readonly string _searchText = pSearchQuery?.SearchString?.Trim();
+    private readonly ConcurrentQueue<SearchResultNode> _pendingResults = new();
     private bool _disposed;
 
     protected override void OnStartSearch()
@@ -52,34 +54,41 @@ internal sealed class AzureSearchTask(
             // Phase 2: Background API search for additional results
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                await AzureSearchService.Instance.SearchAllResourcesAsync(
-                    _searchText,
-                    cachedNodes,
-                    onResultFound: result =>
-                    {
-                        if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
-                            return;
+                // Start a background task to periodically flush results to UI
+                // This avoids nested JoinableTaskFactory.Run() calls which can deadlock
+                var flushTask = FlushResultsToUIAsync(_cts.Token);
 
-                        // Add result to UI on main thread
-                        ThreadHelper.JoinableTaskFactory.Run(async () =>
+                try
+                {
+                    await AzureSearchService.Instance.SearchAllResourcesAsync(
+                        _searchText,
+                        cachedNodes,
+                        onResultFound: result =>
                         {
-                            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                            toolWindow.AddSearchResult(result);
-                        });
+                            if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
+                                return;
 
-                        Interlocked.Increment(ref resultCount);
-                    },
-                    onProgress: (searched, total) =>
-                    {
-                        if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
-                            return;
+                            // Queue result for batch processing instead of nested Run() call
+                            _pendingResults.Enqueue(result);
+                            Interlocked.Increment(ref resultCount);
+                        },
+                        onProgress: (searched, total) =>
+                        {
+                            if (_cts.IsCancellationRequested || TaskStatus == VSConstants.VsSearchTaskStatus.Stopped)
+                                return;
 
-                        // Report progress (callback is thread-safe per VS SDK docs)
+                            // Report progress (callback is thread-safe per VS SDK docs)
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                        SearchCallback.ReportProgress(this, searched, total);
+                            SearchCallback.ReportProgress(this, searched, total);
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-                    },
-                    cancellationToken: _cts.Token);
+                        },
+                        cancellationToken: _cts.Token);
+                }
+                finally
+                {
+                    // Ensure all remaining results are flushed to UI
+                    await FlushPendingResultsAsync();
+                }
             });
 
             SearchResults = (uint)resultCount;
@@ -98,6 +107,43 @@ internal sealed class AzureSearchTask(
 
         // Call base implementation to report completion
         base.OnStartSearch();
+    }
+
+    /// <summary>
+    /// Periodically flushes queued search results to the UI thread.
+    /// This runs concurrently with the search to provide responsive updates.
+    /// </summary>
+    private async Task FlushResultsToUIAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(50, cancellationToken).ConfigureAwait(false); // Flush every 50ms
+            await FlushPendingResultsAsync().ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Flushes all pending results to the UI thread in a single batch.
+    /// </summary>
+    private async Task FlushPendingResultsAsync()
+    {
+        if (_pendingResults.IsEmpty)
+            return;
+
+        var batch = new List<SearchResultNode>();
+        while (_pendingResults.TryDequeue(out var result))
+        {
+            batch.Add(result);
+        }
+
+        if (batch.Count > 0)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            foreach (var result in batch)
+            {
+                toolWindow.AddSearchResult(result);
+            }
+        }
     }
 
     protected override void OnStopSearch()

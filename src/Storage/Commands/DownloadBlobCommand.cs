@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 
 using Azure.Storage.Blobs;
 
@@ -49,10 +50,16 @@ namespace AzureExplorer.Storage.Commands
             {
                 await VS.StatusBar.ShowMessageAsync($"Downloading {blobNode.Label}...");
 
-                await DownloadBlobAsync(blobNode, dialog.FileName);
+                // Pass cancellation token for future cancellation support
+                await DownloadBlobAsync(blobNode, dialog.FileName, CancellationToken.None);
 
                 activity.Complete();
                 await VS.StatusBar.ShowMessageAsync($"Downloaded {blobNode.Label} to {Path.GetFileName(dialog.FileName)}");
+            }
+            catch (OperationCanceledException)
+            {
+                activity.Fail("Download was cancelled");
+                await VS.StatusBar.ShowMessageAsync($"Download of {blobNode.Label} was cancelled.");
             }
             catch (Exception ex)
             {
@@ -62,7 +69,7 @@ namespace AzureExplorer.Storage.Commands
             }
         }
 
-        private static async Task DownloadBlobAsync(BlobNode blobNode, string destinationPath)
+        private static async Task DownloadBlobAsync(BlobNode blobNode, string destinationPath, CancellationToken cancellationToken)
         {
             Azure.Core.TokenCredential credential = AzureResourceService.Instance.GetCredential(blobNode.SubscriptionId);
             var serviceUri = new Uri($"https://{blobNode.AccountName}.blob.core.windows.net");
@@ -70,8 +77,8 @@ namespace AzureExplorer.Storage.Commands
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(blobNode.ContainerName);
             BlobClient blobClient = containerClient.GetBlobClient(blobNode.BlobPath);
 
-            // Download to file
-            await blobClient.DownloadToAsync(destinationPath);
+            // Download to file with cancellation support
+            await blobClient.DownloadToAsync(destinationPath, cancellationToken);
         }
 
         private static string GetExtensionFromContentType(string contentType)
