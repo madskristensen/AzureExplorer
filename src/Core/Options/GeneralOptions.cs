@@ -6,7 +6,7 @@ namespace AzureExplorer.Core.Options
     /// <summary>
     /// General options for the Azure Explorer extension.
     /// </summary>
-    internal sealed class GeneralOptions : BaseOptionModel<GeneralOptions>
+    internal sealed class GeneralOptions : BaseOptionModel<GeneralOptions>, IRatingConfig
     {
         /// <summary>
         /// Gets or sets whether to show all nodes including hidden tenants, subscriptions, and empty resource types.
@@ -105,5 +105,11 @@ namespace AzureExplorer.Core.Options
         /// </summary>
         [Browsable(false)]
         public List<string> ExpandedNodes { get; set; } = [];
+
+        /// <summary>
+        /// Tracks successful usages for the rating prompt. Managed by <see cref="RatingPrompt"/>.
+        /// </summary>
+        [Browsable(false)]
+        public int RatingRequests { get; set; }
     }
 }

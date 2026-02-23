@@ -24,6 +24,7 @@ namespace AzureExplorer.ToolWindows
     public partial class AzureExplorerControl : UserControl
     {
         private static AzureExplorerControl _instance;
+        private static RatingPrompt _ratingPrompt = new("MadsKristensen.AzureExplorer", Vsix.Name, GeneralOptions.Instance);
         private readonly List<ExplorerNodeBase> _savedRootNodes = [];
         private bool _isSearchActive;
         private static ExplorerNodeBase _rightClickedNode;
@@ -198,6 +199,8 @@ namespace AzureExplorer.ToolWindows
             // Show tree view, hide empty state panel
             ExplorerTree.Visibility = Visibility.Visible;
             EmptyStatePanel.Visibility = Visibility.Collapsed;
+
+            _ratingPrompt.RegisterSuccessfulUsage();
 
             // Create an AccountNode for each signed-in account
             foreach (AccountInfo account in accounts.OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase))

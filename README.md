@@ -62,7 +62,7 @@ When Microsoft removed **Cloud Explorer** from Visual Studio, many developers lo
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+Alt+P` | Open selected resource in Azure Portal |
+| `Ctrl+Enter` | Open selected resource in Azure Portal |
 | `F5` | Refresh current view |
 | `Enter` | Expand/collapse or execute default action |
 | `Delete` | Delete selected item (with confirmation) |
