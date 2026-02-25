@@ -29,6 +29,7 @@ using AzureExplorer;
 [assembly: ProvideBindingRedirection(AssemblyName = "Azure.Core", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "1.50.0.0", NewVersion = "1.50.0.0")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Azure.Identity", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "1.17.1.0", NewVersion = "1.17.1.0")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Azure.ResourceManager", OldVersionLowerBound = "1.0.0.0", OldVersionUpperBound = "1.13.2.0", NewVersion = "1.13.2.0")]
+[assembly: ProvideBindingRedirection(AssemblyName = "Azure.Storage.Common", OldVersionLowerBound = "12.0.0.0", OldVersionUpperBound = "12.23.0.0", NewVersion = "12.23.0.0")]
 
 [assembly: AssemblyTitle(Vsix.Name)]
 [assembly: AssemblyDescription(Vsix.Description)]
