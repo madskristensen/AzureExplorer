@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using AzureExplorer.Core.Models;
 
 using Microsoft.VisualStudio.Imaging;
@@ -11,6 +13,9 @@ namespace AzureExplorer.Core.Search;
 /// </summary>
 internal sealed class SearchAccountNode : ExplorerNodeBase
 {
+    private readonly Dictionary<string, SearchSubscriptionNode> _subscriptionsById =
+        new(StringComparer.OrdinalIgnoreCase);
+
     public SearchAccountNode(string accountId, string accountName)
         : base(accountName)
     {
@@ -30,18 +35,14 @@ internal sealed class SearchAccountNode : ExplorerNodeBase
     /// </summary>
     public SearchSubscriptionNode GetOrCreateSubscription(string subscriptionId, string subscriptionName)
     {
-        // Check if we already have this subscription
-        foreach (ExplorerNodeBase child in Children)
-        {
-            if (child is SearchSubscriptionNode subNode && subNode.SubscriptionId == subscriptionId)
-            {
-                return subNode;
-            }
-        }
+        if (_subscriptionsById.TryGetValue(subscriptionId, out SearchSubscriptionNode existingNode))
+            return existingNode;
 
         // Create new subscription node
         var newSubNode = new SearchSubscriptionNode(subscriptionId, subscriptionName);
-        Children.Add(newSubNode);
+        _subscriptionsById[subscriptionId] = newSubNode;
+        AddChild(newSubNode);
+
         return newSubNode;
     }
 }

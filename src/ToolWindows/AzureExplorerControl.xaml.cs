@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -26,6 +27,8 @@ namespace AzureExplorer.ToolWindows
         private static AzureExplorerControl _instance;
         private static RatingPrompt _ratingPrompt = new("MadsKristensen.AzureExplorer", Vsix.Name, GeneralOptions.Instance);
         private readonly List<ExplorerNodeBase> _savedRootNodes = [];
+        private readonly Dictionary<string, SearchAccountNode> _searchAccountsByName = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, SearchSubscriptionNode> _searchSubscriptionsByAccountAndId = new(StringComparer.OrdinalIgnoreCase);
         private bool _isSearchActive;
         private static ExplorerNodeBase _rightClickedNode;
 
@@ -201,6 +204,7 @@ namespace AzureExplorer.ToolWindows
             EmptyStatePanel.Visibility = Visibility.Collapsed;
 
             _ratingPrompt.RegisterSuccessfulUsage();
+            HashSet<string> expandedNodeLookup = CreateExpandedNodeLookup();
 
             // Create an AccountNode for each signed-in account
             foreach (AccountInfo account in accounts.OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase))
@@ -219,14 +223,13 @@ namespace AzureExplorer.ToolWindows
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                         // Check if the account itself should be expanded
-                        var expandedNodes = GeneralOptions.Instance.ExpandedNodes;
-                        if (expandedNodes?.Contains(GetNodePath(accountNode)) == true)
+                        if (expandedNodeLookup.Contains(GetNodePath(accountNode)))
                         {
                             accountNode.IsExpanded = true;
                         }
 
                         // Restore children expansion (sequentially to avoid timing issues)
-                        await RestoreExpandedChildrenAsync(accountNode);
+                        await RestoreExpandedChildrenAsync(accountNode, expandedNodeLookup);
                     }
                     catch (Exception ex)
                     {
@@ -354,7 +357,7 @@ namespace AzureExplorer.ToolWindows
 
                         // Restore expanded state for any children that were previously expanded
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        await RestoreExpandedChildrenAsync(node);
+                        await RestoreExpandedChildrenAsync(node, CreateExpandedNodeLookup());
                     }
                     catch (Exception ex)
                     {
@@ -374,13 +377,12 @@ namespace AzureExplorer.ToolWindows
         /// Recursively loads and expands children as needed.
         /// Stops at resource nodes to avoid expanding Tags, Files, etc.
         /// </summary>
-        private static async Task RestoreExpandedChildrenAsync(ExplorerNodeBase parent)
+        private static async Task RestoreExpandedChildrenAsync(ExplorerNodeBase parent, ISet<string> expandedNodes)
         {
             // Don't restore expansion below resource nodes (avoid expanding Tags, Files, Deployment Slots, etc.)
             if (IsResourceNode(parent))
                 return;
 
-            var expandedNodes = GeneralOptions.Instance.ExpandedNodes;
             if (expandedNodes == null || expandedNodes.Count == 0)
                 return;
 
@@ -417,10 +419,19 @@ namespace AzureExplorer.ToolWindows
                     if (child.IsLoaded)
                     {
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        await RestoreExpandedChildrenAsync(child);
+                        await RestoreExpandedChildrenAsync(child, expandedNodes);
                     }
                 }
             }
+        }
+
+        private static HashSet<string> CreateExpandedNodeLookup()
+        {
+            List<string> expandedNodes = GeneralOptions.Instance.ExpandedNodes;
+            if (expandedNodes == null || expandedNodes.Count == 0)
+                return [];
+
+            return [.. expandedNodes];
         }
 
         /// <summary>
@@ -561,6 +572,9 @@ namespace AzureExplorer.ToolWindows
                 _savedRootNodes.Clear();
             }
 
+            _searchAccountsByName.Clear();
+            _searchSubscriptionsByAccountAndId.Clear();
+
             _isSearchActive = false;
 
             if (RootNodes.Count > 0)
@@ -597,6 +611,9 @@ namespace AzureExplorer.ToolWindows
                 RootNodes.Clear();
             }
 
+            _searchAccountsByName.Clear();
+            _searchSubscriptionsByAccountAndId.Clear();
+
             ExplorerTree.Visibility = Visibility.Visible;
             EmptyStatePanel.Visibility = Visibility.Collapsed;
         }
@@ -615,33 +632,68 @@ namespace AzureExplorer.ToolWindows
         /// </summary>
         internal void AddSearchResultNode(SearchResultNode resultNode)
         {
+            AddSearchResultNodes([resultNode]);
+        }
+
+        internal void AddSearchResultNodes(IReadOnlyList<SearchResultNode> resultNodes)
+        {
             if (!_isSearchActive)
                 return;
 
-            // Find or create the account node
-            SearchAccountNode accountNode = null;
-            foreach (ExplorerNodeBase node in RootNodes)
+            if (resultNodes == null || resultNodes.Count == 0)
+                return;
+
+            ICollectionView view = CollectionViewSource.GetDefaultView(RootNodes);
+            if (view != null)
             {
-                if (node is SearchAccountNode acct && acct.Label == resultNode.AccountName)
+                using (view.DeferRefresh())
                 {
-                    accountNode = acct;
-                    break;
+                    foreach (SearchResultNode resultNode in resultNodes)
+                    {
+                        AddSearchResultNodeCore(resultNode);
+                    }
                 }
             }
-
-            if (accountNode == null)
+            else
             {
-                accountNode = new SearchAccountNode(resultNode.AccountName, resultNode.AccountName);
-                RootNodes.Add(accountNode);
+                foreach (SearchResultNode resultNode in resultNodes)
+                {
+                    AddSearchResultNodeCore(resultNode);
+                }
             }
+        }
 
-            // Find or create the subscription node under the account
-            SearchSubscriptionNode subscriptionNode = accountNode.GetOrCreateSubscription(
-                            resultNode.SubscriptionId,
-                            resultNode.SubscriptionName);
+        private void AddSearchResultNodeCore(SearchResultNode resultNode)
+        {
+            SearchAccountNode accountNode = GetOrCreateSearchAccountNode(resultNode.AccountName);
+            SearchSubscriptionNode subscriptionNode = GetOrCreateSearchSubscriptionNode(accountNode, resultNode.SubscriptionId, resultNode.SubscriptionName);
 
             // Add the result under the subscription
             subscriptionNode.AddResult(resultNode);
+        }
+
+        private SearchAccountNode GetOrCreateSearchAccountNode(string accountName)
+        {
+            if (_searchAccountsByName.TryGetValue(accountName, out SearchAccountNode accountNode))
+                return accountNode;
+
+            accountNode = new SearchAccountNode(accountName, accountName);
+            _searchAccountsByName[accountName] = accountNode;
+            RootNodes.Add(accountNode);
+
+            return accountNode;
+        }
+
+        private SearchSubscriptionNode GetOrCreateSearchSubscriptionNode(SearchAccountNode accountNode, string subscriptionId, string subscriptionName)
+        {
+            string cacheKey = $"{accountNode.AccountId}|{subscriptionId}";
+            if (_searchSubscriptionsByAccountAndId.TryGetValue(cacheKey, out SearchSubscriptionNode subscriptionNode))
+                return subscriptionNode;
+
+            subscriptionNode = accountNode.GetOrCreateSubscription(subscriptionId, subscriptionName);
+            _searchSubscriptionsByAccountAndId[cacheKey] = subscriptionNode;
+
+            return subscriptionNode;
         }
 
         #region Activity Log

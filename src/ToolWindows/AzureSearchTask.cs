@@ -159,10 +159,7 @@ internal sealed class AzureSearchTask(
         if (batch.Count > 0)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            foreach (var result in batch)
-            {
-                toolWindow.AddSearchResult(result);
-            }
+            toolWindow.AddSearchResults(batch);
         }
     }
 

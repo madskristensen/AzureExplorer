@@ -188,6 +188,17 @@ namespace AzureExplorer.ToolWindows
                     control.AddSearchResultNode(resultNode);
                 }
             }
+
+            /// <summary>
+            /// Adds a batch of search result nodes to the tree view.
+            /// </summary>
+            internal void AddSearchResults(IReadOnlyList<SearchResultNode> resultNodes)
+            {
+                if (Content is AzureExplorerControl control)
+                {
+                    control.AddSearchResultNodes(resultNodes);
+                }
+            }
         }
     }
 }
