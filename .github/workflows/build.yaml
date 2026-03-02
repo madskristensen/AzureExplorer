@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: "Build"
 permissions:
-  actions: write
-  contents: write
+  contents: read
+  checks: write
 
 on:
   push:
@@ -25,6 +25,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
 
     - name: Setup .NET build dependencies
       uses: timheuer/bootstrap-dotnet@v1
@@ -34,10 +36,10 @@ jobs:
         msbuild: 'true'
 
     - name: Cache NuGet packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.slnx', '**/*.sln', '**/*.csproj', '**/packages.config', '**/packages.lock.json', '**/nuget.config') }}
         restore-keys: |
           ${{ runner.os }}-nuget-
 
@@ -48,11 +50,22 @@ jobs:
         manifest-file: ${{ env.VsixManifestPath }}
         vsix-token-source-file: ${{ env.VsixManifestSourcePath }}
 
-    - name: Build
-      run: msbuild /v:m -restore /p:OutDir=\_built
+    - name: Restore NuGet packages
+      run: msbuild /v:m /t:restore
 
-    # - name: Run tests
-    #   run: dotnet vstest /_built/*.Test.dll
+    - name: Build
+      run: msbuild /v:m /p:OutDir=\_built
+
+    - name: Run tests
+      run: dotnet vstest \_built\AzureExplorer.Test.dll --logger:"trx;LogFileName=test-results.trx"
+
+    - name: Report test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test Results
+        path: '**/test-results.trx'
+        reporter: dotnet-trx
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -64,9 +77,13 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     needs: build
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Download Package artifact
         uses: actions/download-artifact@v4
