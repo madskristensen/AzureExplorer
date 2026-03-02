@@ -143,6 +143,12 @@ internal sealed class AzureSearchService
     private const int _maxSearchResults = 500;
 
     /// <summary>
+    /// Maximum number of concurrent tenant Resource Graph queries.
+    /// Prevents excessive parallel requests and Azure throttling.
+    /// </summary>
+    private const int _maxConcurrentTenantQueries = 6;
+
+    /// <summary>
     /// Searches through already-loaded tree nodes for instant results (no API calls).
     /// This provides immediate feedback while the API search runs in the background.
     /// </summary>
@@ -300,6 +306,8 @@ internal sealed class AzureSearchService
         var totalResults = 0;
         var accountsSearched = 0;
 
+        using var tenantQuerySemaphore = new SemaphoreSlim(_maxConcurrentTenantQueries, _maxConcurrentTenantQueries);
+
         // Search each account in parallel
         IEnumerable<Task> accountTasks = accounts.Select(async account =>
         {
@@ -316,13 +324,22 @@ internal sealed class AzureSearchService
                 IEnumerable<Task> tenantTasks = tenants.Select(async tenant =>
                 {
                     // Check if we've hit the result limit
-                    if (totalResults >= _maxSearchResults)
+                    if (Volatile.Read(ref totalResults) >= _maxSearchResults)
                         return;
+
+                    var semaphoreAcquired = false;
 
                     try
                     {
+                        await tenantQuerySemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+                        semaphoreAcquired = true;
+
+                        // Check limit again after waiting for a slot
+                        if (Volatile.Read(ref totalResults) >= _maxSearchResults)
+                            return;
+
                         ArmClient client = AzureResourceService.Instance.GetSilentClient(account.AccountId, tenant.TenantId);
-                        TenantResource tenantResource = client.GetTenants().FirstOrDefault();
+                        TenantResource tenantResource = await GetFirstTenantResourceAsync(client, cancellationToken).ConfigureAwait(false);
                         if (tenantResource == null)
                             return;
 
@@ -332,7 +349,7 @@ internal sealed class AzureSearchService
                         var queryContent = new ResourceQueryContent(kustoQuery);
 
                         // Execute Resource Graph query
-                        Response<ResourceQueryResult> response = await tenantResource.GetResourcesAsync(queryContent, cancellationToken);
+                        Response<ResourceQueryResult> response = await tenantResource.GetResourcesAsync(queryContent, cancellationToken).ConfigureAwait(false);
                         ResourceQueryResult result = response.Value;
 
                         // Parse the response data as JSON
@@ -346,7 +363,7 @@ internal sealed class AzureSearchService
                                 cancellationToken.ThrowIfCancellationRequested();
 
                                 // Check result limit to prevent memory pressure
-                                if (totalResults >= _maxSearchResults)
+                                if (Volatile.Read(ref totalResults) >= _maxSearchResults)
                                     break;
 
                                 var resourceId = item.GetProperty("id").GetString();
@@ -397,9 +414,18 @@ internal sealed class AzureSearchService
                             }
                         }
                     }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine($"Resource Graph search failed for tenant {tenant.TenantId}: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (semaphoreAcquired)
+                            tenantQuerySemaphore.Release();
                     }
                 });
 
@@ -419,6 +445,16 @@ internal sealed class AzureSearchService
         await Task.WhenAll(accountTasks).ConfigureAwait(false);
 
         return (uint)totalResults;
+    }
+
+    private static async Task<TenantResource> GetFirstTenantResourceAsync(ArmClient client, CancellationToken cancellationToken)
+    {
+        await foreach (TenantResource tenant in client.GetTenants().GetAllAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return tenant;
+        }
+
+        return null;
     }
 
     /// <summary>

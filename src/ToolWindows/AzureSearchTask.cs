@@ -21,6 +21,7 @@ internal sealed class AzureSearchTask(
     AzureExplorerWindow.Pane toolWindow) : VsSearchTask(dwCookie, pSearchQuery, pSearchCallback), IDisposable
 {
     private readonly CancellationTokenSource _cts = new();
+    private readonly SemaphoreSlim _resultSignal = new(0, int.MaxValue);
     private readonly string _searchText = pSearchQuery?.SearchString?.Trim();
     private readonly ConcurrentQueue<SearchResultNode> _pendingResults = new();
     private bool _disposed;
@@ -56,7 +57,7 @@ internal sealed class AzureSearchTask(
             {
                 // Start a background task to periodically flush results to UI
                 // This avoids nested JoinableTaskFactory.Run() calls which can deadlock
-                var flushTask = FlushResultsToUIAsync(_cts.Token);
+                var flushTask = ProcessResultsToUIAsync(_cts.Token);
 
                 try
                 {
@@ -70,6 +71,7 @@ internal sealed class AzureSearchTask(
 
                             // Queue result for batch processing instead of nested Run() call
                             _pendingResults.Enqueue(result);
+                            _resultSignal.Release();
                             Interlocked.Increment(ref resultCount);
                         },
                         onProgress: (searched, total) =>
@@ -86,8 +88,19 @@ internal sealed class AzureSearchTask(
                 }
                 finally
                 {
+                    _cts.Cancel();
+
+                    try
+                    {
+                        await flushTask.ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected when cancellation stops the background flusher.
+                    }
+
                     // Ensure all remaining results are flushed to UI
-                    await FlushPendingResultsAsync();
+                    await FlushPendingResultsAsync().ConfigureAwait(false);
                 }
             });
 
@@ -110,14 +123,21 @@ internal sealed class AzureSearchTask(
     }
 
     /// <summary>
-    /// Periodically flushes queued search results to the UI thread.
-    /// This runs concurrently with the search to provide responsive updates.
+    /// Waits for new search results and flushes queued results to the UI thread in batches.
+    /// This runs concurrently with the search to provide responsive updates without polling.
     /// </summary>
-    private async Task FlushResultsToUIAsync(CancellationToken cancellationToken)
+    private async Task ProcessResultsToUIAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            await Task.Delay(50, cancellationToken).ConfigureAwait(false); // Flush every 50ms
+            await _resultSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            // Drain extra queued signals so we process a larger batch at once.
+            while (_resultSignal.CurrentCount > 0)
+            {
+                _resultSignal.Wait(0);
+            }
+
             await FlushPendingResultsAsync().ConfigureAwait(false);
         }
     }
@@ -157,6 +177,7 @@ internal sealed class AzureSearchTask(
         if (!_disposed)
         {
             _cts.Dispose();
+            _resultSignal.Dispose();
             _disposed = true;
         }
     }
