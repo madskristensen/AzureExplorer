@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -26,9 +27,15 @@ namespace AzureExplorer.ToolWindows
     {
         private static AzureExplorerControl _instance;
         private static RatingPrompt _ratingPrompt = new("MadsKristensen.AzureExplorer", Vsix.Name, GeneralOptions.Instance);
+        private static readonly TimeSpan _expandedRestoreDelay = TimeSpan.FromMilliseconds(300);
+        private const int _maxConcurrentNodeLoads = 4;
         private readonly List<ExplorerNodeBase> _savedRootNodes = [];
         private readonly Dictionary<string, SearchAccountNode> _searchAccountsByName = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, SearchSubscriptionNode> _searchSubscriptionsByAccountAndId = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<TenantNode> _tenantNodeIndex = [];
+        private readonly HashSet<SubscriptionNode> _subscriptionNodeIndex = [];
+        private readonly SemaphoreSlim _nodeLoadSemaphore = new(_maxConcurrentNodeLoads, _maxConcurrentNodeLoads);
+        private CancellationTokenSource _refreshCts = new();
         private bool _isSearchActive;
         private static ExplorerNodeBase _rightClickedNode;
 
@@ -89,23 +96,14 @@ namespace AzureExplorer.ToolWindows
             if (_instance == null)
                 return;
 
-            foreach (ExplorerNodeBase accountNode in _instance.RootNodes)
+            foreach (TenantNode tenant in _instance._tenantNodeIndex.ToList())
             {
-                foreach (ExplorerNodeBase tenantNode in accountNode.Children)
-                {
-                    if (tenantNode is TenantNode tenant)
-                    {
-                        tenant.NotifyVisibilityChanged();
+                tenant.NotifyVisibilityChanged();
+            }
 
-                        foreach (ExplorerNodeBase subscriptionNode in tenant.Children)
-                        {
-                            if (subscriptionNode is SubscriptionNode subscription)
-                            {
-                                subscription.NotifyVisibilityChanged();
-                            }
-                        }
-                    }
-                }
+            foreach (SubscriptionNode subscription in _instance._subscriptionNodeIndex.ToList())
+            {
+                subscription.NotifyVisibilityChanged();
             }
         }
 
@@ -188,7 +186,11 @@ namespace AzureExplorer.ToolWindows
 
         public void RefreshRootNodes()
         {
+            CancellationToken refreshToken = BeginRefreshCycle();
+
             RootNodes.Clear();
+            _tenantNodeIndex.Clear();
+            _subscriptionNodeIndex.Clear();
 
             IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
             if (accounts.Count == 0)
@@ -205,31 +207,28 @@ namespace AzureExplorer.ToolWindows
 
             _ratingPrompt.RegisterSuccessfulUsage();
             HashSet<string> expandedNodeLookup = CreateExpandedNodeLookup();
+            List<AccountNode> accountNodes = [];
 
             // Create an AccountNode for each signed-in account
             foreach (AccountInfo account in accounts.OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase))
             {
                 var accountNode = new AccountNode(account.AccountId, account.Username);
                 RootNodes.Add(accountNode);
+                accountNodes.Add(accountNode);
 
-                // Load children in background and restore expanded state
+                // Load children in background with bounded concurrency
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     try
                     {
-                        await accountNode.LoadChildrenAsync();
+                        await LoadNodeChildrenThrottledAsync(accountNode, refreshToken);
 
-                        // Restore expanded state for account and its children
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                        // Check if the account itself should be expanded
-                        if (expandedNodeLookup.Contains(GetNodePath(accountNode)))
-                        {
-                            accountNode.IsExpanded = true;
-                        }
-
-                        // Restore children expansion (sequentially to avoid timing issues)
-                        await RestoreExpandedChildrenAsync(accountNode, expandedNodeLookup);
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(refreshToken);
+                        IndexHideableNodes(accountNode);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Expected when a new refresh cycle starts.
                     }
                     catch (Exception ex)
                     {
@@ -237,6 +236,24 @@ namespace AzureExplorer.ToolWindows
                     }
                 }).FireAndForget();
             }
+
+            // Defer expansion restore to improve initial perceived render performance.
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await Task.Delay(_expandedRestoreDelay, refreshToken);
+                    await RestoreStartupExpandedStateAsync(accountNodes, expandedNodeLookup, refreshToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when refresh is superseded.
+                }
+                catch (Exception ex)
+                {
+                    await ex.LogAsync();
+                }
+            }).FireAndForget();
         }
 
         public async System.Threading.Tasks.Task ReloadAsync()
@@ -266,6 +283,10 @@ namespace AzureExplorer.ToolWindows
             // Unsubscribe from events to prevent memory leaks
             AzureAuthService.Instance.AuthStateChanged -= OnAuthStateChanged;
             Unloaded -= OnUnloaded;
+
+            _refreshCts.Cancel();
+            _refreshCts.Dispose();
+            _nodeLoadSemaphore.Dispose();
 
             if (_instance == this)
             {
@@ -349,15 +370,22 @@ namespace AzureExplorer.ToolWindows
                 !node.IsLoaded &&
                 node.SupportsChildren)
             {
+                CancellationToken refreshToken = _refreshCts.Token;
+
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     try
                     {
-                        await node.LoadChildrenAsync();
+                        await LoadNodeChildrenThrottledAsync(node, refreshToken);
 
                         // Restore expanded state for any children that were previously expanded
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        await RestoreExpandedChildrenAsync(node, CreateExpandedNodeLookup());
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(refreshToken);
+                        IndexHideableNodes(node);
+                        await RestoreExpandedChildrenAsync(node, CreateExpandedNodeLookup(), refreshToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Refresh superseded this load.
                     }
                     catch (Exception ex)
                     {
@@ -377,7 +405,36 @@ namespace AzureExplorer.ToolWindows
         /// Recursively loads and expands children as needed.
         /// Stops at resource nodes to avoid expanding Tags, Files, etc.
         /// </summary>
-        private static async Task RestoreExpandedChildrenAsync(ExplorerNodeBase parent, ISet<string> expandedNodes)
+        private async Task RestoreStartupExpandedStateAsync(
+            IReadOnlyList<AccountNode> accountNodes,
+            ISet<string> expandedNodes,
+            CancellationToken cancellationToken)
+        {
+            if (expandedNodes == null || expandedNodes.Count == 0)
+                return;
+
+            foreach (AccountNode accountNode in accountNodes)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!expandedNodes.Contains(GetNodePath(accountNode)))
+                    continue;
+
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                accountNode.IsExpanded = true;
+
+                if (!accountNode.IsLoaded)
+                {
+                    await LoadNodeChildrenThrottledAsync(accountNode, cancellationToken);
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    IndexHideableNodes(accountNode);
+                }
+
+                await RestoreExpandedChildrenAsync(accountNode, expandedNodes, cancellationToken);
+            }
+        }
+
+        private async Task RestoreExpandedChildrenAsync(ExplorerNodeBase parent, ISet<string> expandedNodes, CancellationToken cancellationToken)
         {
             // Don't restore expansion below resource nodes (avoid expanding Tags, Files, Deployment Slots, etc.)
             if (IsResourceNode(parent))
@@ -386,11 +443,15 @@ namespace AzureExplorer.ToolWindows
             if (expandedNodes == null || expandedNodes.Count == 0)
                 return;
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Take a snapshot of children to avoid collection modified during enumeration
             var children = parent.Children.ToList();
 
             foreach (ExplorerNodeBase child in children)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (child.SupportsChildren && expandedNodes.Contains(GetNodePath(child)))
                 {
                     child.IsExpanded = true;
@@ -400,7 +461,9 @@ namespace AzureExplorer.ToolWindows
                     {
                         try
                         {
-                            await child.LoadChildrenAsync();
+                            await LoadNodeChildrenThrottledAsync(child, cancellationToken);
+                            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                            IndexHideableNodes(child);
                         }
                         catch (Exception ex)
                         {
@@ -412,15 +475,73 @@ namespace AzureExplorer.ToolWindows
                     var timeout = DateTime.Now.AddSeconds(30);
                     while (!child.IsLoaded && DateTime.Now < timeout)
                     {
-                        await Task.Delay(100);
+                        await Task.Delay(100, cancellationToken);
                     }
 
                     // Recurse if children loaded successfully
                     if (child.IsLoaded)
                     {
-                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        await RestoreExpandedChildrenAsync(child, expandedNodes);
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        await RestoreExpandedChildrenAsync(child, expandedNodes, cancellationToken);
                     }
+                }
+            }
+        }
+
+        private CancellationToken BeginRefreshCycle()
+        {
+            _refreshCts.Cancel();
+            _refreshCts.Dispose();
+            _refreshCts = new CancellationTokenSource();
+
+            return _refreshCts.Token;
+        }
+
+        private async Task LoadNodeChildrenThrottledAsync(ExplorerNodeBase node, CancellationToken cancellationToken)
+        {
+            await _nodeLoadSemaphore.WaitAsync(cancellationToken);
+
+            try
+            {
+                await node.LoadChildrenAsync(cancellationToken);
+            }
+            finally
+            {
+                _nodeLoadSemaphore.Release();
+            }
+        }
+
+        private void IndexHideableNodes(ExplorerNodeBase root)
+        {
+            foreach (ExplorerNodeBase node in EnumerateLoadedNodes(root))
+            {
+                if (node is TenantNode tenant)
+                {
+                    _tenantNodeIndex.Add(tenant);
+                }
+                else if (node is SubscriptionNode subscription)
+                {
+                    _subscriptionNodeIndex.Add(subscription);
+                }
+            }
+        }
+
+        private static IEnumerable<ExplorerNodeBase> EnumerateLoadedNodes(ExplorerNodeBase root)
+        {
+            Stack<ExplorerNodeBase> stack = new();
+            stack.Push(root);
+
+            while (stack.Count > 0)
+            {
+                ExplorerNodeBase node = stack.Pop();
+                yield return node;
+
+                if (node.Children == null || node.Children.Count == 0)
+                    continue;
+
+                for (var i = node.Children.Count - 1; i >= 0; i--)
+                {
+                    stack.Push(node.Children[i]);
                 }
             }
         }
