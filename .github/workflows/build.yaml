@@ -57,7 +57,11 @@ jobs:
       run: msbuild /v:m /p:OutDir=\_built
 
     - name: Run tests
-      run: dotnet vstest \_built\AzureExplorer.Test.dll --logger:"trx;LogFileName=test-results.trx"
+      shell: pwsh
+      run: |
+        $vstest = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.PackageGroup.TestTools.Core -find "**\Common7\IDE\Extensions\TestPlatform\vstest.console.exe"
+        if (-not $vstest) { throw "vstest.console.exe not found" }
+        & $vstest "\_built\AzureExplorer.Test.dll" "/Logger:trx;LogFileName=test-results.trx"
 
     - name: Report test results
       uses: dorny/test-reporter@v1
