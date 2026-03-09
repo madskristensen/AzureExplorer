@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Azure.Core;
+using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Sql;
@@ -95,6 +96,55 @@ namespace AzureExplorer.Core.Services
         {
             _clientCache.Clear();
             _subscriptionAccountMap.Clear();
+        }
+
+        /// <summary>
+        /// Clears the cached ArmClient for a specific subscription.
+        /// Call when a request fails due to authentication issues.
+        /// </summary>
+        internal void ClearClientForSubscription(string subscriptionId)
+        {
+            if (string.IsNullOrEmpty(subscriptionId))
+                return;
+
+            _clientCache.TryRemove(subscriptionId, out _);
+        }
+
+        /// <summary>
+        /// Checks if an exception indicates an authentication failure that may be recoverable
+        /// by re-authenticating.
+        /// </summary>
+        internal static bool IsAuthenticationException(Exception ex)
+        {
+            // Check for Azure.Identity authentication exceptions
+            if (ex is AuthenticationRequiredException || ex is CredentialUnavailableException)
+                return true;
+
+            // Check for Azure SDK RequestFailedException with auth-related status codes
+            if (ex is Azure.RequestFailedException requestFailed)
+            {
+                // 401 Unauthorized, 403 Forbidden (token expired or revoked)
+                if (requestFailed.Status == 401 || requestFailed.Status == 403)
+                    return true;
+            }
+
+            // Check inner exceptions
+            if (ex.InnerException != null && IsAuthenticationException(ex.InnerException))
+                return true;
+
+            // Check for auth-related error messages
+            if (ex.Message != null)
+            {
+                var message = ex.Message.ToLowerInvariant();
+                if (message.Contains("token") && (message.Contains("expired") || message.Contains("invalid")) ||
+                    message.Contains("authentication") && message.Contains("required") ||
+                    message.Contains("credential") && message.Contains("unavailable"))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

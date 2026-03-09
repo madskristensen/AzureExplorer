@@ -237,6 +237,96 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Attempts to re-authenticate an existing account. This is called when
+        /// a token has expired and silent refresh has failed.
+        /// First tries silent authentication, then falls back to interactive if needed.
+        /// </summary>
+        /// <param name="accountId">The account ID to re-authenticate.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>True if re-authentication succeeded, false otherwise.</returns>
+        public async Task<bool> ReauthenticateAsync(string accountId, CancellationToken cancellationToken = default)
+        {
+            AuthenticationRecord record;
+            lock (_lock)
+            {
+                if (!_accounts.TryGetValue(accountId, out AccountCredential account))
+                    return false;
+                record = account.Record;
+            }
+
+            // Clear cached silent credential and ARM clients for this account
+            _silentCredentialCache.TryRemove(accountId, out _);
+            AzureResourceService.Instance.ClearClientCache();
+
+            try
+            {
+                // First try silent re-authentication
+                InteractiveBrowserCredential silentCredential = CreateSilentCredential(record);
+                var context = new TokenRequestContext(["https://management.azure.com/.default"]);
+
+                await Task.Run(
+                    async () => await silentCredential.GetTokenAsync(context, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                // Silent auth succeeded - update the credential
+                InteractiveBrowserCredential credential = CreateCredential(record);
+                lock (_lock)
+                {
+                    if (_accounts.TryGetValue(accountId, out AccountCredential existingAccount))
+                    {
+                        _accounts[accountId] = new AccountCredential(
+                            accountId, existingAccount.Username, credential, record);
+                    }
+                }
+
+                return true;
+            }
+            catch (AuthenticationRequiredException)
+            {
+                // Silent auth failed - need interactive auth
+            }
+            catch (CredentialUnavailableException)
+            {
+                // Credential not available - need interactive auth
+            }
+
+            // Fall back to interactive authentication
+            if (IsSigningIn)
+                return false;
+
+            IsSigningIn = true;
+            try
+            {
+                InteractiveBrowserCredential credential = CreateCredential(record);
+                var context = new TokenRequestContext(["https://management.azure.com/.default"]);
+
+                AuthenticationRecord newRecord = await Task.Run(
+                    async () => await credential.AuthenticateAsync(context, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                var username = newRecord.Username ?? "Azure Account";
+
+                lock (_lock)
+                {
+                    _accounts[accountId] = new AccountCredential(accountId, username, credential, newRecord);
+                }
+
+                SaveAuthRecord(accountId, newRecord);
+                AuthStateChanged?.Invoke(this, EventArgs.Empty);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                IsSigningIn = false;
+            }
+        }
+
+        /// <summary>
         /// Signs out a specific account and removes its persisted tokens.
         /// </summary>
         public void SignOut(string accountId)

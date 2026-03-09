@@ -110,6 +110,7 @@ namespace AzureExplorer.Core.Models
 
         /// <summary>
         /// Resets loaded state and reloads children with timeout protection.
+        /// Also clears the cached Azure clients to ensure fresh credentials are used.
         /// </summary>
         public async Task RefreshAsync(CancellationToken cancellationToken = default)
         {
@@ -117,6 +118,9 @@ namespace AzureExplorer.Core.Models
             IsLoading = false;
             Description = null;
             Children.Clear();
+
+            // Clear cached clients to force re-authentication if needed
+            AzureResourceService.Instance.ClearClientCache();
 
             try
             {
@@ -183,7 +187,19 @@ namespace AzureExplorer.Core.Models
             {
                 await ex.LogAsync();
                 Children.Clear();
-                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
+
+                // Provide a more helpful message for authentication errors
+                string errorMessage;
+                if (AzureResourceService.IsAuthenticationException(ex))
+                {
+                    errorMessage = "Session expired - right-click and Refresh to reconnect";
+                }
+                else
+                {
+                    errorMessage = $"Error: {ex.Message}";
+                }
+
+                Children.Add(new LoadingNode { Label = errorMessage });
             }
             finally
             {

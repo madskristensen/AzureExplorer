@@ -391,8 +391,22 @@ namespace AzureExplorer.ToolWindows
                     {
                         await ex.LogAsync();
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                        // Check for authentication errors and provide a helpful message
+                        string errorMessage;
+                        if (AzureResourceService.IsAuthenticationException(ex))
+                        {
+                            // Clear cached clients so next attempt gets fresh ones
+                            AzureResourceService.Instance.ClearClientCache();
+                            errorMessage = "Session expired - right-click and Refresh to reconnect";
+                        }
+                        else
+                        {
+                            errorMessage = $"Error: {ex.Message}";
+                        }
+
                         node.Children.Clear();
-                        node.Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
+                        node.Children.Add(new LoadingNode { Label = errorMessage });
                     }
                 }).FireAndForget();
 
