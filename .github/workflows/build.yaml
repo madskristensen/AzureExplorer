@@ -64,7 +64,7 @@ jobs:
         & $vstest "\_built\AzureExplorer.Test.dll" "/Logger:trx;LogFileName=test-results.trx"
 
     - name: Report test results
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2
       if: always()
       with:
         name: Test Results
@@ -72,7 +72,7 @@ jobs:
         reporter: dotnet-trx
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ github.event.repository.name }}.vsix
         path: /_built/**/*.vsix
@@ -90,7 +90,7 @@ jobs:
           fetch-depth: 1
 
       - name: Download Package artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ${{ github.event.repository.name }}.vsix
 

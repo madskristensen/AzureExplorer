@@ -36,6 +36,7 @@ namespace AzureExplorer.ToolWindows
         private readonly HashSet<SubscriptionNode> _subscriptionNodeIndex = [];
         private readonly SemaphoreSlim _nodeLoadSemaphore = new(_maxConcurrentNodeLoads, _maxConcurrentNodeLoads);
         private CancellationTokenSource _refreshCts = new();
+        private bool _isDisposed;
         private bool _isSearchActive;
         private static ExplorerNodeBase _rightClickedNode;
 
@@ -280,6 +281,8 @@ namespace AzureExplorer.ToolWindows
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            _isDisposed = true;
+
             // Unsubscribe from events to prevent memory leaks
             AzureAuthService.Instance.AuthStateChanged -= OnAuthStateChanged;
             Unloaded -= OnUnloaded;
@@ -365,6 +368,9 @@ namespace AzureExplorer.ToolWindows
 
         private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
         {
+            if (_isDisposed)
+                return;
+
             if (e.OriginalSource is TreeViewItem treeViewItem &&
                 treeViewItem.DataContext is ExplorerNodeBase node &&
                 !node.IsLoaded &&
