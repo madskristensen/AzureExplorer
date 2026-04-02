@@ -393,26 +393,61 @@ namespace AzureExplorer.ToolWindows
                     {
                         // Refresh superseded this load.
                     }
+                    catch (Exception ex) when (!refreshToken.IsCancellationRequested && AzureResourceService.IsAuthenticationException(ex))
+                    {
+                        // Auth failure — attempt automatic re-authentication and retry
+                        await ex.LogAsync();
+
+                        try
+                        {
+                            // Determine the account to re-authenticate
+                            string accountId = FindAccountIdForNode(node);
+
+                            if (accountId != null)
+                            {
+                                AzureResourceService.Instance.ClearClientCache();
+
+                                bool reauthenticated = await AzureAuthService.Instance.ReauthenticateAsync(accountId, refreshToken);
+                                if (reauthenticated)
+                                {
+                                    // Reset the node so it can load again
+                                    node.IsLoaded = false;
+                                    node.IsLoading = false;
+                                    node.Children.Clear();
+                                    node.Children.Add(new LoadingNode());
+
+                                    // Retry
+                                    await LoadNodeChildrenThrottledAsync(node, refreshToken);
+
+                                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(refreshToken);
+                                    IndexHideableNodes(node);
+                                    await RestoreExpandedChildrenAsync(node, CreateExpandedNodeLookup(), refreshToken);
+                                    return;
+                                }
+                            }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            return;
+                        }
+                        catch (Exception retryEx)
+                        {
+                            await retryEx.LogAsync();
+                        }
+
+                        // Retry failed — show the original error
+                        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        AzureResourceService.Instance.ClearClientCache();
+                        node.Children.Clear();
+                        node.Children.Add(new LoadingNode { Label = "Session expired - right-click and Refresh to reconnect" });
+                    }
                     catch (Exception ex)
                     {
                         await ex.LogAsync();
                         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                        // Check for authentication errors and provide a helpful message
-                        string errorMessage;
-                        if (AzureResourceService.IsAuthenticationException(ex))
-                        {
-                            // Clear cached clients so next attempt gets fresh ones
-                            AzureResourceService.Instance.ClearClientCache();
-                            errorMessage = "Session expired - right-click and Refresh to reconnect";
-                        }
-                        else
-                        {
-                            errorMessage = $"Error: {ex.Message}";
-                        }
-
                         node.Children.Clear();
-                        node.Children.Add(new LoadingNode { Label = errorMessage });
+                        node.Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
                     }
                 }).FireAndForget();
 
@@ -529,6 +564,28 @@ namespace AzureExplorer.ToolWindows
             {
                 _nodeLoadSemaphore.Release();
             }
+        }
+
+        /// <summary>
+        /// Walks up the parent chain to find the AccountId for re-authentication.
+        /// </summary>
+        private static string FindAccountIdForNode(ExplorerNodeBase node)
+        {
+            var current = node;
+            while (current != null)
+            {
+                if (current is AccountNode account)
+                    return account.AccountId;
+
+                if (current is TenantNode tenant)
+                    return tenant.AccountId;
+
+                current = current.Parent;
+            }
+
+            // Fall back to the first signed-in account
+            IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
+            return accounts.Count > 0 ? accounts[0].AccountId : null;
         }
 
         private void IndexHideableNodes(ExplorerNodeBase root)

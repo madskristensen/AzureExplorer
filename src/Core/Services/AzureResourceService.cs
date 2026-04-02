@@ -148,6 +148,63 @@ namespace AzureExplorer.Core.Services
         }
 
         /// <summary>
+        /// Executes an async operation and automatically retries once if the failure
+        /// is due to an expired or revoked credential. On the retry path the method
+        /// clears cached clients, re-authenticates (silent-first, then interactive
+        /// via WAM), and re-runs the operation so the user never sees an auth error.
+        /// </summary>
+        /// <param name="subscriptionId">
+        /// The subscription the operation targets (used to look up the account for
+        /// re-authentication). May be null for account-level operations.
+        /// </param>
+        /// <param name="operation">The async operation to execute.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        internal static async Task ExecuteWithAuthRetryAsync(
+            string subscriptionId,
+            Func<CancellationToken, Task> operation,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await operation(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested && IsAuthenticationException(ex))
+            {
+                // Determine which account owns this subscription so we can re-auth
+                string accountId = null;
+                if (subscriptionId != null)
+                {
+                    (string AccountId, string TenantId)? context = Instance.GetSubscriptionContext(subscriptionId);
+                    accountId = context?.AccountId;
+                }
+
+                // Fall back to first account if we can't determine the owner
+                if (accountId == null)
+                {
+                    IReadOnlyList<AccountInfo> accounts = AzureAuthService.Instance.Accounts;
+                    if (accounts.Count > 0)
+                        accountId = accounts[0].AccountId;
+                }
+
+                if (accountId == null)
+                    throw; // No account to re-auth with
+
+                // Clear stale cached state
+                Instance.ClearClientCache();
+
+                // Try to re-authenticate (silent first, then interactive WAM prompt)
+                bool reauthenticated = await AzureAuthService.Instance.ReauthenticateAsync(accountId, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!reauthenticated)
+                    throw; // Re-auth failed — surface the original error
+
+                // Retry the operation with fresh credentials
+                await operation(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Gets the account ID and tenant ID for a subscription (if known).
         /// Returns null if the subscription hasn't been loaded yet.
         /// </summary>

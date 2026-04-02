@@ -111,52 +111,39 @@ namespace AzureExplorer.Core.Models
 
             try
             {
-                // Try Azure Resource Graph first for fast loading
-                IReadOnlyList<ResourceGraphResult> resources = await ResourceGraphService.Instance.QueryByTypeAsync(
-                    SubscriptionId,
-                    ResourceType,
-                    resourceGroup: null,
-                    cancellationToken);
-
-                if (resources.Count > 0)
-                {
-                    // Resource Graph worked - use its results
-                    var count = 0;
-                    foreach (ResourceGraphResult resource in resources)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        if (!ShouldIncludeResource(resource))
-                            continue;
-
-                        ExplorerNodeBase node = CreateNodeFromGraphResult(resource);
-                        if (node != null)
-                        {
-                            InsertChildSorted(node);
-                            count++;
-                            Description = $"loading... ({count} found)";
-                        }
-                    }
-                }
-                else
-                {
-                    // Resource Graph returned 0 results - fall back to ARM API
-                    await LoadChildrenViaArmApiAsync(cancellationToken);
-                }
+                await LoadResourcesAsync(cancellationToken);
             }
-            catch
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested && AzureResourceService.IsAuthenticationException(ex))
             {
-                // Resource Graph failed - fall back to ARM API
+                // Auth failure — try to silently re-authenticate and retry
+                await ex.LogAsync();
+                Children.Clear();
+                Description = "re-authenticating...";
+
                 try
                 {
-                    await LoadChildrenViaArmApiAsync(cancellationToken);
+                    await AzureResourceService.ExecuteWithAuthRetryAsync(
+                        SubscriptionId,
+                        async ct => await LoadResourcesAsync(ct),
+                        cancellationToken);
                 }
-                catch (Exception armEx)
+                catch (Exception retryEx)
                 {
-                    await armEx.LogAsync();
+                    await retryEx.LogAsync();
                     Children.Clear();
-                    Children.Add(new LoadingNode { Label = $"Error: {armEx.Message}" });
+
+                    string errorMessage = AzureResourceService.IsAuthenticationException(retryEx)
+                        ? "Session expired - right-click and Refresh to reconnect"
+                        : $"Error: {retryEx.Message}";
+
+                    Children.Add(new LoadingNode { Label = errorMessage });
                 }
+            }
+            catch (Exception ex)
+            {
+                await ex.LogAsync();
+                Children.Clear();
+                Children.Add(new LoadingNode { Label = $"Error: {ex.Message}" });
             }
             finally
             {
@@ -164,6 +151,56 @@ namespace AzureExplorer.Core.Models
                 EndLoading();
                 OnPropertyChanged(nameof(IsVisible));
                 OnPropertyChanged(nameof(Opacity));
+            }
+        }
+
+        /// <summary>
+        /// Core loading logic: tries Resource Graph first, falls back to ARM API.
+        /// Extracted to enable retry on auth failures.
+        /// Auth exceptions are NOT caught here — they bubble up so the caller can retry.
+        /// </summary>
+        private async Task LoadResourcesAsync(CancellationToken cancellationToken)
+        {
+            IReadOnlyList<ResourceGraphResult> resources;
+            try
+            {
+                // Try Azure Resource Graph first for fast loading
+                resources = await ResourceGraphService.Instance.QueryByTypeAsync(
+                    SubscriptionId,
+                    ResourceType,
+                    resourceGroup: null,
+                    cancellationToken);
+            }
+            catch (Exception ex) when (!AzureResourceService.IsAuthenticationException(ex))
+            {
+                // Resource Graph failed for a non-auth reason — fall back to ARM API
+                resources = [];
+            }
+
+            if (resources.Count > 0)
+            {
+                // Resource Graph worked - use its results
+                var count = 0;
+                foreach (ResourceGraphResult resource in resources)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (!ShouldIncludeResource(resource))
+                        continue;
+
+                    ExplorerNodeBase node = CreateNodeFromGraphResult(resource);
+                    if (node != null)
+                    {
+                        InsertChildSorted(node);
+                        count++;
+                        Description = $"loading... ({count} found)";
+                    }
+                }
+            }
+            else
+            {
+                // Resource Graph returned 0 results or failed — fall back to ARM API
+                await LoadChildrenViaArmApiAsync(cancellationToken);
             }
         }
 

@@ -113,7 +113,7 @@ namespace AzureExplorer.Sql.Models
                     ct.ThrowIfCancellationRequested();
                     AddChild(db);
                 }
-            }, cancellationToken);
+            }, cancellationToken, SubscriptionId);
         }
 
         internal static SqlServerState ParseState(string state)

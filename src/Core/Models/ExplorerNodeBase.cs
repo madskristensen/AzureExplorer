@@ -173,15 +173,48 @@ namespace AzureExplorer.Core.Models
 
         /// <summary>
         /// Helper method that wraps the common loading pattern with standardized error handling.
+        /// Automatically retries once after re-authentication if the failure is due to an
+        /// expired token, so the user sees seamless recovery instead of an error message.
         /// Call <see cref="BeginLoading"/> before this method if needed.
         /// </summary>
         /// <param name="loadAction">The action that loads child nodes.</param>
         /// <param name="cancellationToken">Token to cancel the loading operation.</param>
-        protected async Task LoadChildrenWithErrorHandlingAsync(Func<CancellationToken, Task> loadAction, CancellationToken cancellationToken = default)
+        /// <param name="subscriptionId">
+        /// Optional subscription ID used to look up the correct account for
+        /// re-authentication. When provided, auth failures trigger automatic retry.
+        /// </param>
+        protected async Task LoadChildrenWithErrorHandlingAsync(Func<CancellationToken, Task> loadAction, CancellationToken cancellationToken = default, string subscriptionId = null)
         {
             try
             {
                 await loadAction(cancellationToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested && subscriptionId != null && AzureResourceService.IsAuthenticationException(ex))
+            {
+                // Auth failure with a known subscription — try to silently re-authenticate and retry
+                await ex.LogAsync();
+                Children.Clear();
+                Description = "re-authenticating...";
+
+                try
+                {
+                    await AzureResourceService.ExecuteWithAuthRetryAsync(
+                        subscriptionId,
+                        async ct => await loadAction(ct),
+                        cancellationToken);
+                }
+                catch (Exception retryEx)
+                {
+                    // Retry also failed — show the error from the retry attempt
+                    await retryEx.LogAsync();
+                    Children.Clear();
+
+                    string errorMessage = AzureResourceService.IsAuthenticationException(retryEx)
+                        ? "Session expired - right-click and Refresh to reconnect"
+                        : $"Error: {retryEx.Message}";
+
+                    Children.Add(new LoadingNode { Label = errorMessage });
+                }
             }
             catch (Exception ex)
             {

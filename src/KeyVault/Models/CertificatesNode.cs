@@ -56,7 +56,7 @@ namespace AzureExplorer.KeyVault.Models
                 {
                     AddChild(node);
                 }
-            }, cancellationToken);
+            }, cancellationToken, SubscriptionId);
         }
     }
 }

@@ -67,7 +67,7 @@ namespace AzureExplorer.AppService.Models
 
                 // Update description with slot count
                 Description = slots.Count == 0 ? "No slots" : $"{slots.Count} slot{(slots.Count == 1 ? "" : "s")}";
-            }, cancellationToken);
+            }, cancellationToken, SubscriptionId);
         }
     }
 }
