@@ -226,6 +226,8 @@ namespace AzureExplorer.Core.Services
                 }
 
                 SaveAuthRecord(accountId, record);
+
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 AuthStateChanged?.Invoke(this, EventArgs.Empty);
 
                 return new AccountInfo(accountId, username, credential);
@@ -312,6 +314,8 @@ namespace AzureExplorer.Core.Services
                 }
 
                 SaveAuthRecord(accountId, newRecord);
+
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 AuthStateChanged?.Invoke(this, EventArgs.Empty);
 
                 return true;
